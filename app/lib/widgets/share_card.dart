@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
+import '../data/capture_store.dart';
 import '../models/object_content.dart';
-import '../theme/wonder_palette.dart';
+import '../theme/wonder_tokens.dart';
 
-/// Khung thẻ chia sẻ chung: nền tối kiểu liquid-glass + thương hiệu WonderLens ở
-/// đỉnh + dòng tagline ở chân. Dùng chung cho thẻ khám phá lẫn thẻ bộ sưu tập để
-/// giữ phong cách nhất quán. Bề rộng cố định → chụp PNG luôn gọn, đọc rõ.
+/// Khung thẻ chia sẻ chung: nền tối sang trọng + vệt spotlight + thương hiệu
+/// WonderLens ở đỉnh + tagline ở chân. Bề rộng cố định → chụp PNG luôn gọn, nét.
+///
+/// Lưu ý: thẻ này được render để chụp PNG (RepaintBoundary.toImage) nên KHÔNG
+/// dùng BackdropFilter/glass (backdrop không chụp được) — chỉ gradient đặc.
 const double kShareCardWidth = 340;
 
 class _WonderCardShell extends StatelessWidget {
@@ -17,40 +21,54 @@ class _WonderCardShell extends StatelessWidget {
     return Container(
       width: kShareCardWidth,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(32),
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: <Color>[Color(0xFF17324C), Wonder.ink],
+          colors: <Color>[Color(0xFF15405A), Color(0xFF0B1220)],
         ),
         boxShadow: <BoxShadow>[
           BoxShadow(
-            color: Wonder.teal.withValues(alpha: 0.30),
-            blurRadius: 32,
-            spreadRadius: -6,
-            offset: const Offset(0, 12),
+            color: WonderColors.teal.withValues(alpha: 0.30),
+            blurRadius: 36,
+            spreadRadius: -8,
+            offset: const Offset(0, 14),
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(32),
+        child: Stack(
           children: <Widget>[
-            const _Brand(),
-            const SizedBox(height: 18),
-            ...children,
-            const SizedBox(height: 22),
-            Center(
-              child: Text(
-                'Quét đồ vật • Nghe kể chuyện • Sưu tầm huy hiệu',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.55),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+            // Vệt sáng "spotlight" dịu ở đỉnh cho khối có chiều sâu.
+            Positioned(
+              top: -90,
+              left: -30,
+              right: -30,
+              child: Container(
+                height: 260,
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    colors: <Color>[
+                      WonderColors.teal.withValues(alpha: 0.28),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(22),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const _Brand(),
+                  const SizedBox(height: 18),
+                  ...children,
+                  const SizedBox(height: 22),
+                  const _Tagline(),
+                ],
               ),
             ),
           ],
@@ -60,14 +78,11 @@ class _WonderCardShell extends StatelessWidget {
   }
 }
 
-/// Thẻ chia sẻ một lần khám phá: emoji to + tên vật + tóm tắt các chặng hành trình.
+/// Thẻ chia sẻ một lần khám phá: ẢNH THẬT (cutout) của vật + tên + hành trình.
 class ShareCard extends StatelessWidget {
   final ObjectContent content;
 
-  /// Số chặng tối đa in lên thẻ (giữ chiều cao hợp lý nếu hành trình dài).
   static const int _maxStages = 6;
-
-  /// Bề rộng logic cố định của thẻ.
   static const double width = kShareCardWidth;
 
   const ShareCard({super.key, required this.content});
@@ -81,10 +96,8 @@ class ShareCard extends StatelessWidget {
 
     return _WonderCardShell(
       children: <Widget>[
-        Center(
-          child: Text(content.emoji, style: const TextStyle(fontSize: 76)),
-        ),
-        const SizedBox(height: 10),
+        Center(child: _HeroPhoto(objectId: content.id, emoji: content.emoji)),
+        const SizedBox(height: 16),
         Center(
           child: Text(
             content.name,
@@ -92,7 +105,7 @@ class ShareCard extends StatelessWidget {
             style: const TextStyle(
               color: Colors.white,
               fontSize: 27,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w900,
               height: 1.1,
             ),
           ),
@@ -105,16 +118,24 @@ class ShareCard extends StatelessWidget {
             alignment: WrapAlignment.center,
             children: <Widget>[
               if (content.materialBadge.isNotEmpty)
-                _Pill(text: '🏅 ${content.materialBadge}', color: Wonder.teal),
+                _Pill(
+                  icon: Symbols.science,
+                  text: content.materialBadge,
+                  color: WonderColors.teal,
+                ),
               if (content.source == 'live')
-                const _Pill(text: '✨ Khám phá vui (AI)', color: Wonder.sunny),
+                const _Pill(
+                  icon: Symbols.auto_awesome,
+                  text: 'Khám phá vui (AI)',
+                  color: WonderColors.sunny,
+                ),
             ],
           ),
         ),
         const SizedBox(height: 20),
         const _Divider(),
         const SizedBox(height: 16),
-        const _Label('🗺️  HÀNH TRÌNH TẠO RA'),
+        const _Label(icon: Symbols.timeline, text: 'HÀNH TRÌNH TẠO RA'),
         const SizedBox(height: 12),
         for (var i = 0; i < shown.length; i++)
           _StageRow(index: i, title: shown[i].title),
@@ -135,7 +156,7 @@ class ShareCard extends StatelessWidget {
   }
 }
 
-/// Thẻ chia sẻ thành tích bộ sưu tập: cấp độ + tiến độ + huy hiệu + đồ vật đã sưu tầm.
+/// Thẻ chia sẻ thành tích bộ sưu tập: cấp độ + tiến độ + huy hiệu + đồ vật.
 class CollectionShareCard extends StatelessWidget {
   final String levelTitle;
   final int discoveredCount;
@@ -163,9 +184,24 @@ class CollectionShareCard extends StatelessWidget {
     return _WonderCardShell(
       children: <Widget>[
         Center(
-          child: Text(complete ? '🏆' : '🔬', style: const TextStyle(fontSize: 72)),
+          child: Container(
+            width: 96,
+            height: 96,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: WonderGradients.badge,
+              boxShadow: WonderShadows.glow(WonderColors.teal, opacity: 0.5),
+            ),
+            child: Icon(
+              complete ? Symbols.trophy : Symbols.science,
+              size: 52,
+              color: Colors.white,
+              fill: 1,
+              weight: 600,
+            ),
+          ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         Center(
           child: Text(
             levelTitle,
@@ -173,7 +209,7 @@ class CollectionShareCard extends StatelessWidget {
             style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w900,
               height: 1.1,
             ),
           ),
@@ -195,34 +231,79 @@ class CollectionShareCard extends StatelessWidget {
         const _Divider(),
         const SizedBox(height: 16),
         if (earnedMaterials.isNotEmpty) ...<Widget>[
-          const _Label('🏅  HUY HIỆU VẬT LIỆU'),
+          const _Label(icon: Symbols.workspace_premium, text: 'HUY HIỆU VẬT LIỆU'),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: <Widget>[
               for (final m in earnedMaterials)
-                _Pill(text: '🏅 $m', color: Wonder.teal),
+                _Pill(icon: Symbols.workspace_premium, text: m, color: WonderColors.sunny),
             ],
           ),
           const SizedBox(height: 18),
         ],
-        const _Label('🔍  ĐỒ VẬT ĐÃ SƯU TẦM'),
+        const _Label(icon: Symbols.grid_view, text: 'ĐỒ VẬT ĐÃ SƯU TẦM'),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: <Widget>[
             for (final e in discoveredEmojis)
-              Text(e, style: const TextStyle(fontSize: 30)),
+              _MiniTile(child: Text(e, style: const TextStyle(fontSize: 26))),
             for (var i = 0; i < lockedCount; i++)
-              Opacity(
-                opacity: 0.3,
-                child: Text('❓', style: const TextStyle(fontSize: 30)),
+              _MiniTile(
+                child: Icon(
+                  Symbols.lock,
+                  size: 22,
+                  color: Colors.white.withValues(alpha: 0.4),
+                  fill: 1,
+                ),
               ),
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Khung ảnh thật của vật: cutout (tách nền) trên nền sáng dịu trong khung bo
+/// góc + viền sáng + glow. Chưa có ảnh → rớt về emoji trên gradient thương hiệu.
+class _HeroPhoto extends StatelessWidget {
+  final String objectId;
+  final String emoji;
+  const _HeroPhoto({required this.objectId, required this.emoji});
+
+  @override
+  Widget build(BuildContext context) {
+    final file = CaptureStore.instance.fileFor(objectId);
+    const size = 158.0;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        gradient: file != null
+            ? const RadialGradient(
+                colors: <Color>[Color(0xFFFFFFFF), Color(0xFFD9EEF4)],
+              )
+            : WonderGradients.badge,
+        border: Border.all(color: Colors.white.withValues(alpha: 0.92), width: 3),
+        boxShadow: WonderShadows.glow(WonderColors.teal, opacity: 0.55),
+      ),
+      child: file != null
+          ? Padding(
+              padding: const EdgeInsets.all(14),
+              child: Image.file(
+                file,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.high,
+                gaplessPlayback: true,
+                errorBuilder: (_, _, _) =>
+                    Center(child: Text(emoji, style: const TextStyle(fontSize: 70))),
+              ),
+            )
+          : Center(child: Text(emoji, style: const TextStyle(fontSize: 78))),
     );
   }
 }
@@ -235,14 +316,15 @@ class _Brand extends StatelessWidget {
     return Row(
       children: <Widget>[
         Container(
-          width: 34,
-          height: 34,
+          width: 36,
+          height: 36,
           alignment: Alignment.center,
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            gradient: Wonder.cta,
+            gradient: WonderGradients.cta,
           ),
-          child: const Text('🔭', style: TextStyle(fontSize: 18)),
+          child: const Icon(Symbols.travel_explore,
+              size: 20, color: Colors.white, fill: 1, weight: 600),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -253,8 +335,8 @@ class _Brand extends StatelessWidget {
                 'WonderLens',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
               Text(
@@ -274,20 +356,46 @@ class _Brand extends StatelessWidget {
   }
 }
 
-class _Label extends StatelessWidget {
-  final String text;
-  const _Label(this.text);
+class _Tagline extends StatelessWidget {
+  const _Tagline();
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: const TextStyle(
-        color: Wonder.mint,
-        fontSize: 12,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 0.8,
+    return Center(
+      child: Text(
+        'Quét đồ vật • Nghe kể chuyện • Sưu tầm huy hiệu',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: 0.55),
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
       ),
+    );
+  }
+}
+
+class _Label extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  const _Label({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        Icon(icon, size: 16, color: WonderColors.mint, fill: 1, weight: 600),
+        const SizedBox(width: 7),
+        Text(
+          text,
+          style: const TextStyle(
+            color: WonderColors.mint,
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0.8,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -308,7 +416,7 @@ class _ProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
         height: 12,
         color: Colors.white.withValues(alpha: 0.14),
@@ -317,7 +425,7 @@ class _ProgressBar extends StatelessWidget {
           child: FractionallySizedBox(
             widthFactor: value.clamp(0.0, 1.0),
             child: Container(
-              decoration: const BoxDecoration(gradient: Wonder.cta),
+              decoration: const BoxDecoration(gradient: WonderGradients.cta),
             ),
           ),
         ),
@@ -327,27 +435,56 @@ class _ProgressBar extends StatelessWidget {
 }
 
 class _Pill extends StatelessWidget {
+  final IconData icon;
   final String text;
   final Color color;
-  const _Pill({required this.text, required this.color});
+  const _Pill({required this.icon, required this.text, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.20),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withValues(alpha: 0.55), width: 1),
       ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(icon, size: 15, color: color, fill: 1, weight: 600),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+/// Ô vuông nhỏ bo góc bọc emoji/icon đồ vật trong lưới "đã sưu tầm".
+class _MiniTile extends StatelessWidget {
+  final Widget child;
+  const _MiniTile({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 44,
+      height: 44,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+      ),
+      child: child,
     );
   }
 }
@@ -370,7 +507,7 @@ class _StageRow extends StatelessWidget {
             alignment: Alignment.center,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              gradient: Wonder.cta,
+              gradient: WonderGradients.cta,
             ),
             child: Text(
               '${index + 1}',
