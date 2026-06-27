@@ -6,7 +6,8 @@
   "description": "Vercel serverless proxy giấu OpenAI key cho WonderLens (recognize + generate).",
   "scripts": {
     "dev": "vercel dev",
-    "deploy": "vercel deploy --prod"
+    "deploy": "vercel deploy --prod",
+    "pregen:videos": "node scripts/pregen-hero-videos.mjs"
   },
   "devDependencies": {
     "@vercel/node": "^5.1.0",

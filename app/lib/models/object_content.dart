@@ -31,6 +31,7 @@ class ObjectContent {
   final String materialBadge;
   final List<Stage> stages;
   final String source; // 'asset' | 'live' | 'mock'
+  final String? video; // asset path video hành trình đóng gói sẵn (vật hero)
 
   const ObjectContent({
     required this.id,
@@ -39,6 +40,7 @@ class ObjectContent {
     required this.materialBadge,
     required this.stages,
     this.source = 'asset',
+    this.video,
   });
 
   factory ObjectContent.fromJson(
@@ -54,5 +56,6 @@ class ObjectContent {
             .map((e) => Stage.fromJson(e as Map<String, dynamic>))
             .toList(),
         source: source,
+        video: json['video'] as String?,
       );
 }

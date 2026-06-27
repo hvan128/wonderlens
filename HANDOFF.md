@@ -33,13 +33,17 @@ Tiếp theo (P1): **red-team kid-safety** output AI-live (chụp ~20 vật, kể
 - **Vercel** project `wonderlens-proxy` (scope `vannh120802-4480`) đã set 2 biến này cho Production + Preview + Development. `vercel env ls` để xem.
 - **OpenAI key TUYỆT ĐỐI không để trong `app/`** (app không đọc `.env`; key chỉ ở proxy). `app/.env` đã bị xoá.
 - Trước khi mở public rộng: **đặt spend limit OpenAI** + đổi `APP_SHARED_SECRET` (giá trị mẫu `dev-wonderlens` đã có trong repo lịch sử, đừng dùng lại).
+- **Video (Sora) ĐẮT**: `/api/video/create` ~**$0.80/clip** (sora-2 8s 720p, ≈80× recognize/generate), **không rate limit** trong code. Proxy ĐÃ live → **đặt hard spend limit OpenAI NGAY** (không chờ "public rộng"); cân nhắc thêm rate-limit qua Vercel WAF cho `/api/video/create`. Theo dõi `vercel logs` của create để bắt lạm dụng. Đã có moderation server-side (omni-moderation) chặn input không phù hợp trước khi tốn tiền tạo video.
 
 ## 5. Cấu trúc
 ```
 app/    Flutter (iOS/Android). lib/: screens, services, data, models, widgets, theme
         assets/content/*.json = 8 "vật hero" (nội dung kid-safe, offline)
+        assets/videos/*.mp4   = video hành trình hero (do pregen sinh, có thể trống)
 proxy/  Vercel serverless TS. api/recognize.ts (nhận diện) + api/generate.ts (AI-live)
-        lib/: openai-vision, openai-generate, hero-objects, kid-safe-prompt
+        + api/video/{create,status,content}.ts (text-to-video Sora: async tạo→poll→stream)
+        lib/: openai-vision, openai-generate, hero-objects, kid-safe-prompt, openai-video, video-prompt
+        scripts/pregen-hero-videos.mjs (tạo sẵn video hero → app/assets/videos/; `npm run pregen:videos`)
 plans/2026-06-27-wonderlens/  brainstorm-report.md + plan.md + phase-01..06
 docs/   demo-script.md (kịch bản 90s) + journal/
 ```
@@ -63,6 +67,8 @@ cd app && flutter run
 - **`RecognitionService` fallback mock** khi `PROXY_BASE_URL` rỗng/lỗi → demo không vỡ (đây là chủ ý).
 - **Tranh minh hoạ = emoji** (chưa làm asset thật); `Stage.illustration` đã sẵn để gắn ảnh sau.
 - **Proxy phải là ESM**: `package.json` có `"type":"module"` + import tương đối phải có đuôi `.js` (Vercel transpile .ts giữ ESM, không bundle lib). Đừng gỡ đuôi `.js`.
+- **Chia sẻ = ảnh thẻ + caption, fallback text** (offline, không backend): màn Hành trình (chia sẻ 1 khám phá) và màn Bộ sưu tập (khoe cấp độ + tiến độ + huy hiệu) đều có nút "Chia sẻ" → mở bảng xem trước thẻ (`widgets/share_card.dart`: `ShareCard` + `CollectionShareCard`, chung khung `_WonderCardShell`) → chụp PNG (`services/share_service.dart`) → khay chia sẻ hệ thống (`share_plus`). Chụp ảnh lỗi thì tự gửi text → demo không vỡ. Nút "khoe bộ sưu tập" chỉ hiện khi đã khám phá ≥1 vật. Đã thêm `NSPhotoLibraryAddUsageDescription` (iOS) cho mục "Lưu ảnh".
+- **Video hành trình = text-to-video (Sora)**: TimelineScreen có khối "Phim hành trình 🎬" (`widgets/journey_video.dart`). Vật hero → phát video asset đóng gói sẵn (offline, tức thì); vật lạ AI-live → nút tạo on-demand qua `services/video_service.dart` → `/api/video/*` (create→poll→tải file tạm→phát). Dùng **text-to-video, KHÔNG ảnh chụp** (Sora từ chối mặt người + dễ kiểm soát an toàn). An toàn: moderation server-side + strip emoji khỏi prompt + rào chắn "no scary/dark/sharp…". Mặc định **sora-2 / 8s / 720p** (đổi qua env `VIDEO_MODEL|VIDEO_SIZE|VIDEO_SECONDS`). Video hero KHÔNG có sẵn trong repo — chạy `cd proxy && npm run pregen:videos` (tốn ~$0.80/vật) để sinh + đóng gói; chưa chạy thì hero rớt về tạo on-demand như vật lạ.
 
 ## 8. Gotchas đã gặp
 - **Vercel URL theo-deploy** (dạng `...-xxxx-...vercel.app`) bị **SSO chặn (302)**. Dùng **alias production** `https://wonderlens-proxy.vercel.app` (public).

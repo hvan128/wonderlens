@@ -43,6 +43,12 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   confetti: ^0.8.0
+  share_plus: ^13.2.0
+  path_provider: ^2.1.6
+  video_player: ^2.9.2
+  flutter_animate: ^4.5.2
+  animations: ^2.2.0
+  material_symbols_icons: ^4.2951.0
 
 dev_dependencies:
   flutter_test:
@@ -68,6 +74,7 @@ flutter:
 
   assets:
     - assets/content/
+    - assets/videos/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

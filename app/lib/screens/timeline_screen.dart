@@ -6,9 +6,12 @@ import 'package:go_router/go_router.dart';
 import '../data/collection_repository.dart';
 import '../models/object_content.dart';
 import '../services/narration_service.dart';
+import '../ui/ui.dart';
+import '../widgets/journey_video.dart';
+import '../widgets/share_sheet.dart';
 
-/// Origin Timeline: cuộn xem từng chặng "hành trình tạo ra vật", có giọng đọc.
-/// Khi mở: ghi nhận vào bộ sưu tập + confetti/huy hiệu nếu là vật/huy hiệu mới.
+/// Origin Timeline: cuộn xem từng chặng "hành trình tạo ra vật", có giọng đọc +
+/// phim hành trình + chia sẻ. Khi mở: ghi nhận vào bộ sưu tập + confetti/huy hiệu.
 class TimelineScreen extends StatefulWidget {
   final ObjectContent? content;
 
@@ -24,6 +27,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
   DiscoveryResult? _result;
   bool _playing = false;
   int? _currentStage;
+  final _videoKey = GlobalKey<JourneyVideoState>();
 
   @override
   void initState() {
@@ -49,6 +53,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
   String _stageSpeech(Stage s) => '${s.kidText} ${s.funFact ?? ''}'.trim();
 
   Future<void> _playAll(List<Stage> stages) async {
+    _videoKey.currentState?.pauseVideo(); // tránh chồng tiếng với video
     setState(() => _playing = true);
     for (var i = 0; i < stages.length; i++) {
       if (!_playing || !mounted) break;
@@ -70,6 +75,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
   }
 
   Future<void> _speakOne(int i, Stage s) async {
+    _videoKey.currentState?.pauseVideo(); // tránh chồng tiếng với video
     await _narration.stop();
     if (!mounted) return;
     setState(() {
@@ -86,52 +92,109 @@ class _TimelineScreenState extends State<TimelineScreen> {
   Widget build(BuildContext context) {
     final c = widget.content;
     if (c == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Hành trình')),
+      return WonderScaffold(
+        header: WonderHeader(
+          title: 'Hành trình',
+          showBack: true,
+          onBack: () =>
+              context.canPop() ? context.pop() : context.go('/camera'),
+        ),
         body: const Center(child: Text('Chưa có dữ liệu hành trình.')),
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(title: Text(c.name)),
+    return WonderScaffold(
+      header: WonderHeader(
+        title: c.name,
+        subtitle: 'Hành trình tạo ra',
+        showBack: true,
+        onBack: () => context.canPop() ? context.pop() : context.go('/camera'),
+        actions: <WonderHeaderAction>[
+          WonderHeaderAction(
+            icon: PhosphorIconsBold.shareNetwork,
+            tooltip: 'Chia sẻ',
+            onTap: () => showDiscoveryShareSheet(context, c),
+          ),
+        ],
+      ),
       body: Stack(
-        children: [
+        children: <Widget>[
           ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-            children: [
-              _Header(content: c),
-              if (_result?.newBadge != null) ...[
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 36),
+            children: <Widget>[
+              _Header(content: c)
+                  .animate()
+                  .fadeIn(duration: WonderTokens.durBase)
+                  .slideY(begin: 0.12, end: 0),
+              if (_result?.newBadge != null) ...<Widget>[
                 const SizedBox(height: 12),
-                _BadgeBanner(material: _result!.newBadge!),
+                _BadgeBanner(material: _result!.newBadge!)
+                    .animate(delay: 150.ms)
+                    .fadeIn()
+                    .scaleXY(
+                      begin: 0.92,
+                      end: 1,
+                      curve: WonderTokens.curveEmphasized,
+                    ),
               ],
               const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: _playing ? _stop : () => _playAll(c.stages),
-                icon: Icon(
-                    _playing ? Icons.stop_rounded : Icons.volume_up_rounded),
-                label: Text(_playing ? 'Dừng đọc' : 'Nghe kể chuyện 🔊'),
+              // Phim hành trình (việc song song) — tự ẩn nếu không có video/proxy.
+              JourneyVideo(key: _videoKey, content: c, onPlay: _stop),
+              const SizedBox(height: 14),
+              WonderButton(
+                label: _playing ? 'Dừng đọc' : 'Nghe kể chuyện',
+                icon: _playing
+                    ? PhosphorIconsBold.stop
+                    : PhosphorIconsFill.speakerSimpleHigh,
+                onTap: _playing ? _stop : () => _playAll(c.stages),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
               for (var i = 0; i < c.stages.length; i++)
                 _StageTile(
-                  index: i,
-                  stage: c.stages[i],
-                  isLast: i == c.stages.length - 1,
-                  active: _currentStage == i,
-                  onSpeak: () => _speakOne(i, c.stages[i]),
+                      index: i,
+                      stage: c.stages[i],
+                      isLast: i == c.stages.length - 1,
+                      active: _currentStage == i,
+                      onSpeak: () => _speakOne(i, c.stages[i]),
+                    )
+                    .animate(delay: (120 + i * 90).ms)
+                    .fadeIn(duration: WonderTokens.durBase)
+                    .slideY(
+                      begin: 0.16,
+                      end: 0,
+                      curve: WonderTokens.curveStandard,
+                    ),
+              const SizedBox(height: 8),
+              Text(
+                'Bạn vừa khám phá xong! 🎉',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: WonderColors.textStrong,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
                 ),
-              const SizedBox(height: 16),
-              Text('Bạn vừa khám phá xong! 🎉',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 12),
-              FilledButton(
-                onPressed: () => context.go('/camera'),
-                child: const Text('Khám phá vật khác 🔍'),
               ),
-              TextButton(
-                onPressed: () => context.go('/collection'),
-                child: const Text('Xem bộ sưu tập'),
+              const SizedBox(height: 14),
+              WonderButton(
+                label: 'Khám phá vật khác',
+                icon: PhosphorIconsBold.magnifyingGlass,
+                onTap: () => context.go('/camera'),
+              ),
+              const SizedBox(height: 10),
+              WonderButton(
+                label: 'Chia sẻ khám phá',
+                icon: PhosphorIconsBold.shareNetwork,
+                gradient: const LinearGradient(
+                  colors: <Color>[WonderColors.grape, WonderColors.indigo],
+                ),
+                onTap: () => showDiscoveryShareSheet(context, c),
+              ),
+              const SizedBox(height: 6),
+              Center(
+                child: WonderTextButton(
+                  label: 'Xem bộ sưu tập',
+                  onTap: () => context.go('/collection'),
+                ),
               ),
             ],
           ),
@@ -145,6 +208,79 @@ class _TimelineScreenState extends State<TimelineScreen> {
               maxBlastForce: 12,
               minBlastForce: 6,
               emissionFrequency: 0.05,
+              colors: const <Color>[
+                WonderColors.teal,
+                WonderColors.sky,
+                WonderColors.grape,
+                WonderColors.sunny,
+                WonderColors.mint,
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  final ObjectContent content;
+  const _Header({required this.content});
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassSurface(
+      tone: GlassTone.light,
+      padding: const EdgeInsets.all(WonderTokens.space16),
+      shadows: WonderShadows.card,
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 62,
+            height: 62,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: WonderGradients.badge,
+              boxShadow: WonderShadows.glow(WonderColors.teal, opacity: 0.4),
+            ),
+            child: Center(
+              child: Text(content.emoji, style: const TextStyle(fontSize: 32)),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  content.name,
+                  style: const TextStyle(
+                    color: WonderColors.textStrong,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: <Widget>[
+                    if (content.materialBadge.isNotEmpty)
+                      WonderChip(
+                        label: content.materialBadge,
+                        icon: PhosphorIconsBold.flask,
+                        tone: GlassTone.light,
+                      ),
+                    if (content.source == 'live')
+                      WonderChip(
+                        label: 'Khám phá vui (AI)',
+                        icon: PhosphorIconsFill.sparkle,
+                        color: WonderColors.grape,
+                        tone: GlassTone.light,
+                      ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
@@ -159,59 +295,31 @@ class _BadgeBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      color: theme.colorScheme.tertiaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            const Text('🏅', style: TextStyle(fontSize: 32)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text('Huy hiệu mới: Vật liệu $material!',
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w800)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  final ObjectContent content;
-  const _Header({required this.content});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(content.emoji, style: const TextStyle(fontSize: 52)),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(content.name,
-                  style: Theme.of(context).textTheme.headlineSmall),
-              Wrap(
-                spacing: 6,
-                children: [
-                  if (content.materialBadge.isNotEmpty)
-                    Chip(label: Text(content.materialBadge)),
-                  if (content.source == 'live')
-                    const Chip(
-                      avatar: Text('✨'),
-                      label: Text('Khám phá vui (AI)'),
-                    ),
-                ],
-              ),
-            ],
+    return GlassSurface(
+      tone: GlassTone.light,
+      tint: WonderColors.sunny,
+      tintOpacity: 0.32,
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        children: <Widget>[
+          const PhosphorIcon(
+            PhosphorIconsFill.medal,
+            size: 30,
+            color: Color(0xFFE08A00),
           ),
-        ),
-      ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Huy hiệu mới: Vật liệu $material!',
+              style: const TextStyle(
+                color: WonderColors.textStrong,
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -233,83 +341,139 @@ class _StageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeOut,
-      builder: (context, t, child) => Opacity(
-        opacity: t,
-        child: Transform.translate(
-          offset: Offset(0, (1 - t) * 16),
-          child: child,
-        ),
-      ),
-      child: IntrinsicHeight(
+    return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           // Cột số chặng + đường nối dọc tạo cảm giác "timeline".
           Column(
-            children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: active
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.primaryContainer,
-                child: Text('${index + 1}',
+            children: <Widget>[
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: active ? WonderGradients.badge : null,
+                  color: active ? null : Colors.white,
+                  border: Border.all(
+                    color: active
+                        ? Colors.transparent
+                        : WonderColors.teal.withValues(alpha: 0.4),
+                    width: 2,
+                  ),
+                  boxShadow: active
+                      ? WonderShadows.glow(WonderColors.teal, opacity: 0.4)
+                      : null,
+                ),
+                child: Center(
+                  child: Text(
+                    '${index + 1}',
                     style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: active
-                          ? theme.colorScheme.onPrimary
-                          : theme.colorScheme.onPrimaryContainer,
-                    )),
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                      color: active ? Colors.white : WonderColors.tealDeep,
+                    ),
+                  ),
+                ),
               ),
               if (!isLast)
                 Expanded(
                   child: Container(
                     width: 3,
-                    color: theme.colorScheme.primaryContainer,
+                    margin: const EdgeInsets.symmetric(vertical: 2),
+                    color: WonderColors.teal.withValues(alpha: 0.22),
                   ),
                 ),
             ],
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Card(
-              margin: const EdgeInsets.only(bottom: 16),
-              color: active ? theme.colorScheme.primaryContainer : null,
-              child: Padding(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: GlassSurface(
+                tone: GlassTone.light,
+                tint: active ? WonderColors.teal : null,
+                tintOpacity: active ? 0.2 : null,
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Row(
-                      children: [
+                      children: <Widget>[
                         Expanded(
-                          child: Text(stage.title,
-                              style: theme.textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w800)),
+                          child: Text(
+                            stage.title,
+                            style: const TextStyle(
+                              color: WonderColors.textStrong,
+                              fontSize: 16.5,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
                         ),
-                        IconButton(
-                          tooltip: 'Nghe chặng này',
-                          icon: const Icon(Icons.volume_up_rounded),
-                          onPressed: onSpeak,
+                        Pressable(
+                          onTap: onSpeak,
+                          semanticLabel: 'Nghe chặng này',
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: WonderColors.teal.withValues(alpha: 0.12),
+                            ),
+                            child: const PhosphorIcon(
+                              PhosphorIconsFill.speakerSimpleHigh,
+                              size: 18,
+                              color: WonderColors.tealDeep,
+                            ),
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Text(stage.kidText, style: theme.textTheme.bodyLarge),
-                    if (stage.funFact != null && stage.funFact!.isNotEmpty) ...[
+                    Text(
+                      stage.kidText,
+                      style: TextStyle(
+                        color: WonderColors.textStrong.withValues(alpha: 0.9),
+                        fontSize: 15,
+                        height: 1.4,
+                      ),
+                    ),
+                    if (stage.funFact != null &&
+                        stage.funFact!.isNotEmpty) ...<Widget>[
                       const SizedBox(height: 10),
                       Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: const EdgeInsets.all(11),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.secondaryContainer,
-                          borderRadius: BorderRadius.circular(12),
+                          color: WonderColors.sunny.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(
+                            WonderTokens.radiusSm,
+                          ),
+                          border: Border.all(
+                            color: WonderColors.sunny.withValues(alpha: 0.4),
+                          ),
                         ),
-                        child: Text('💡 ${stage.funFact}',
-                            style: theme.textTheme.bodyMedium),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            const PhosphorIcon(
+                              PhosphorIconsFill.lightbulb,
+                              size: 17,
+                              color: Color(0xFFE08A00),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                stage.funFact!,
+                                style: TextStyle(
+                                  color: WonderColors.textStrong.withValues(
+                                    alpha: 0.88,
+                                  ),
+                                  fontSize: 13.5,
+                                  height: 1.35,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ],
@@ -318,7 +482,6 @@ class _StageTile extends StatelessWidget {
             ),
           ),
         ],
-      ),
       ),
     );
   }

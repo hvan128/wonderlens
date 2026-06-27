@@ -4,6 +4,8 @@
 <dict>
 	<key>NSCameraUsageDescription</key>
 	<string>WonderLens cần máy ảnh để bé chụp đồ vật và khám phá hành trình tạo ra nó.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>WonderLens cần quyền này để lưu thẻ khám phá vào Ảnh khi bé chọn chia sẻ.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

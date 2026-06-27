@@ -5,26 +5,32 @@ import 'screens/camera_screen.dart';
 import 'screens/collection_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/timeline_screen.dart';
+import 'ui/ui.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/onboarding',
-  routes: [
+  routes: <RouteBase>[
     GoRoute(
       path: '/onboarding',
-      builder: (context, state) => const OnboardingScreen(),
+      pageBuilder: (context, state) =>
+          wonderPage(key: state.pageKey, child: const OnboardingScreen()),
     ),
     GoRoute(
       path: '/camera',
-      builder: (context, state) => const CameraScreen(),
+      pageBuilder: (context, state) =>
+          wonderPage(key: state.pageKey, child: const CameraScreen()),
     ),
     GoRoute(
       path: '/timeline',
-      builder: (context, state) =>
-          TimelineScreen(content: state.extra as ObjectContent?),
+      pageBuilder: (context, state) => wonderPage(
+        key: state.pageKey,
+        child: TimelineScreen(content: state.extra as ObjectContent?),
+      ),
     ),
     GoRoute(
       path: '/collection',
-      builder: (context, state) => const CollectionScreen(),
+      pageBuilder: (context, state) =>
+          wonderPage(key: state.pageKey, child: const CollectionScreen()),
     ),
   ],
 );

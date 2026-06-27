@@ -9,8 +9,10 @@ void main() {
       (WidgetTester tester) async {
     await tester.pumpWidget(const ProviderScope(child: WonderLensApp()));
     await tester.pump();
+    // Cho các Timer delay (animation vào màn + blob nền) kích hoạt hết.
+    await tester.pump(const Duration(seconds: 2));
 
     expect(find.text('WonderLens'), findsOneWidget);
-    expect(find.text('Bắt đầu khám phá 🚀'), findsOneWidget);
+    expect(find.text('Bắt đầu khám phá'), findsOneWidget);
   });
 }

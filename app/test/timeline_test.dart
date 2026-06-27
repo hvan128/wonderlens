@@ -23,10 +23,12 @@ void main() {
       const MaterialApp(home: TimelineScreen(content: content)),
     );
     await tester.pump();
+    // Cho các Timer delay (reveal so le + blob nền) kích hoạt hết trước teardown.
+    await tester.pump(const Duration(seconds: 2));
 
     expect(find.text('Cốc giấy'), findsWidgets);
     expect(find.text('Bắt đầu từ cái cây'), findsOneWidget);
     expect(find.text('Nấu thành bột giấy'), findsOneWidget);
-    expect(find.text('Nghe kể chuyện 🔊'), findsOneWidget);
+    expect(find.text('Nghe kể chuyện'), findsOneWidget);
   });
 }
