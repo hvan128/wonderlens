@@ -25,7 +25,7 @@ class _WonderCardShell extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: <Color>[Color(0xFF15405A), Color(0xFF0B1220)],
+          colors: <Color>[Color(0xFF2A2150), WonderColors.ink],
         ),
         boxShadow: <BoxShadow>[
           BoxShadow(

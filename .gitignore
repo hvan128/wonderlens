@@ -6,6 +6,10 @@
 # macOS
 .DS_Store
 
+# IDE
+.idea/
+.vscode/
+
 # Flutter/Dart (phòng hờ, app/.gitignore đã có)
 app/build/
 app/.dart_tool/
