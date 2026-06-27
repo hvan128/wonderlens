@@ -8,6 +8,7 @@ import '../models/object_content.dart';
 import '../services/narration_service.dart';
 import '../ui/ui.dart';
 import '../widgets/journey_video.dart';
+import '../widgets/object_avatar.dart';
 import '../widgets/share_sheet.dart';
 
 /// Origin Timeline: cuộn xem từng chặng "hành trình tạo ra vật", có giọng đọc +
@@ -40,6 +41,15 @@ class _TimelineScreenState extends State<TimelineScreen> {
         _confetti.play();
         HapticFeedback.heavyImpact();
       }
+      // Tự đọc to CÂU CHUYỆN hoàn chỉnh (lịch sử + cách làm) ngay khi mở trang;
+      // dừng được bằng nút "Dừng đọc" hoặc khi chạm phát video. Hoãn sau frame
+      // đầu vì có gọi setState.
+      final narration = c.narrationText;
+      if (narration.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _playStory(narration);
+        });
+      }
     }
   }
 
@@ -52,20 +62,15 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
   String _stageSpeech(Stage s) => '${s.kidText} ${s.funFact ?? ''}'.trim();
 
-  Future<void> _playAll(List<Stage> stages) async {
+  /// Đọc to câu chuyện hoàn chỉnh — audio chính của trang chi tiết.
+  Future<void> _playStory(String text) async {
     _videoKey.currentState?.pauseVideo(); // tránh chồng tiếng với video
-    setState(() => _playing = true);
-    for (var i = 0; i < stages.length; i++) {
-      if (!_playing || !mounted) break;
-      setState(() => _currentStage = i);
-      await _narration.speak(_stageSpeech(stages[i]));
-    }
-    if (mounted) {
-      setState(() {
-        _playing = false;
-        _currentStage = null;
-      });
-    }
+    setState(() {
+      _playing = true;
+      _currentStage = null;
+    });
+    await _narration.speak(text);
+    if (mounted) setState(() => _playing = false);
   }
 
   Future<void> _stop() async {
@@ -137,6 +142,13 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       curve: WonderTokens.curveEmphasized,
                     ),
               ],
+              if (c.history != null && c.history!.trim().isNotEmpty) ...<Widget>[
+                const SizedBox(height: 12),
+                _HistoryCard(history: c.history!.trim())
+                    .animate(delay: 80.ms)
+                    .fadeIn(duration: WonderTokens.durBase)
+                    .slideY(begin: 0.1, end: 0),
+              ],
               const SizedBox(height: 12),
               // Phim hành trình (việc song song) — tự ẩn nếu không có video/proxy.
               JourneyVideo(key: _videoKey, content: c, onPlay: _stop),
@@ -146,7 +158,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 icon: _playing
                     ? PhosphorIconsBold.stop
                     : PhosphorIconsFill.speakerSimpleHigh,
-                onTap: _playing ? _stop : () => _playAll(c.stages),
+                onTap: _playing ? _stop : () => _playStory(c.narrationText),
               ),
               const SizedBox(height: 18),
               for (var i = 0; i < c.stages.length; i++)
@@ -235,17 +247,12 @@ class _Header extends StatelessWidget {
       shadows: WonderShadows.card,
       child: Row(
         children: <Widget>[
-          Container(
-            width: 62,
-            height: 62,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: WonderGradients.badge,
-              boxShadow: WonderShadows.glow(WonderColors.teal, opacity: 0.4),
-            ),
-            child: Center(
-              child: Text(content.emoji, style: const TextStyle(fontSize: 32)),
-            ),
+          ObjectAvatar(
+            objectId: content.id,
+            emoji: content.emoji,
+            diameter: 62,
+            emojiSize: 32,
+            glowOpacity: 0.4,
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -316,6 +323,61 @@ class _BadgeBanner extends StatelessWidget {
                 fontSize: 16,
                 fontWeight: FontWeight.w900,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Thẻ "Một chút lịch sử" — lịch sử ngắn của vật/vật liệu.
+class _HistoryCard extends StatelessWidget {
+  final String history;
+  const _HistoryCard({required this.history});
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassSurface(
+      tone: GlassTone.light,
+      padding: const EdgeInsets.all(WonderTokens.space16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Container(
+                width: 38,
+                height: 38,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: <Color>[WonderColors.grape, WonderColors.indigo],
+                  ),
+                ),
+                child: const Center(
+                  child: PhosphorIcon(Symbols.history,
+                      size: 20, color: Colors.white),
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'Một chút lịch sử',
+                style: TextStyle(
+                  color: WonderColors.textStrong,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            history,
+            style: TextStyle(
+              color: WonderColors.textStrong.withValues(alpha: 0.9),
+              fontSize: 15,
+              height: 1.45,
             ),
           ),
         ],

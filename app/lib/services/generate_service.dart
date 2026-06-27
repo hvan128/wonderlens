@@ -3,27 +3,23 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:http/http.dart' as http;
 
+import '../data/app_settings.dart';
 import '../models/object_content.dart';
 
 /// Gọi proxy /api/generate để AI sinh "hành trình" cho vật ngoài bộ hero.
-/// Trả null nếu chưa cấu hình proxy, lỗi, hoặc AI không nhận ra (kid-safe).
+/// Trả null nếu đang Mock offline, lỗi, hoặc AI không nhận ra (kid-safe).
 class GenerateService {
-  static const String _baseUrl =
-      String.fromEnvironment('PROXY_BASE_URL', defaultValue: '');
-  static const String _appToken =
-      String.fromEnvironment('APP_TOKEN', defaultValue: 'dev-wonderlens');
-
-  static bool get available => _baseUrl.isNotEmpty;
+  static bool get available => AppSettings.useLiveApi;
 
   Future<ObjectContent?> generate(List<int> imageBytes) async {
-    if (_baseUrl.isEmpty) return null;
+    if (!AppSettings.useLiveApi) return null;
     try {
       final res = await http
           .post(
-            Uri.parse('$_baseUrl/api/generate'),
+            Uri.parse('${AppSettings.baseUrl}/api/generate'),
             headers: {
               'Content-Type': 'application/json',
-              'x-app-token': _appToken,
+              'x-app-token': AppSettings.appToken,
             },
             body: jsonEncode({'image_base64': base64Encode(imageBytes)}),
           )

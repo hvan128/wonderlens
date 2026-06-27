@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../data/capture_store.dart';
 import '../models/journey_args.dart';
 import '../ui/ui.dart';
 
@@ -46,13 +47,7 @@ class ConfirmScreen extends StatelessWidget {
                         const _DashedScanRing(size: 210)
                             .animate(onPlay: (c) => c.repeat())
                             .rotate(duration: 9.seconds),
-                        Text(
-                          content.emoji,
-                          style: const TextStyle(
-                            fontSize: 116,
-                            shadows: <Shadow>[Shadow(color: Colors.black54, blurRadius: 22)],
-                          ),
-                        )
+                        _HeroVisual(objectId: content.id, emoji: content.emoji)
                             .animate(onPlay: (c) => c.repeat(reverse: true))
                             .moveY(begin: -8, end: 8, duration: 4.seconds, curve: Curves.easeInOut),
                       ],
@@ -300,6 +295,38 @@ class _DashedRingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// Ảnh sản phẩm thật (cutout do trẻ vừa chụp) nếu có; chưa có thì emoji to.
+class _HeroVisual extends StatelessWidget {
+  final String objectId;
+  final String emoji;
+  const _HeroVisual({required this.objectId, required this.emoji});
+
+  @override
+  Widget build(BuildContext context) {
+    final file = CaptureStore.instance.fileFor(objectId);
+    if (file == null) {
+      return Text(
+        emoji,
+        style: const TextStyle(
+          fontSize: 116,
+          shadows: <Shadow>[Shadow(color: Colors.black54, blurRadius: 22)],
+        ),
+      );
+    }
+    return Image.file(
+      file,
+      width: 184,
+      height: 184,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.medium,
+      errorBuilder: (context, error, stack) => Text(
+        emoji,
+        style: const TextStyle(fontSize: 116),
+      ),
+    );
+  }
 }
 
 class _Fallback extends StatelessWidget {

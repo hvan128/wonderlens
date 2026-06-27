@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../data/capture_store.dart';
 import '../data/collection_repository.dart';
 import '../data/content_repository.dart';
 import '../data/hero_catalog.dart';
@@ -345,6 +346,7 @@ class _Cell extends StatelessWidget {
     final matColor = WonderColors.material(item.material);
     return Pressable(
       onTap: onTap,
+      semanticLabel: 'Xem phim ${item.name}',
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -354,7 +356,7 @@ class _Cell extends StatelessWidget {
         ),
         child: Stack(
           children: <Widget>[
-            Positioned(
+            const Positioned(
               top: 9,
               right: 9,
               child: Text('🎬', style: TextStyle(fontSize: 14)),
@@ -363,7 +365,7 @@ class _Cell extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Text(item.emoji, style: const TextStyle(fontSize: 42)),
+                  _CellAvatar(objectId: item.id, emoji: item.emoji),
                   const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -400,6 +402,48 @@ class _Cell extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Ảnh sản phẩm thật (cutout do trẻ chụp) cho ô đã mở; chưa có thì rớt về emoji
+/// theo mockup. Tự cập nhật khi vừa lưu ảnh mới (CaptureStore.revision).
+class _CellAvatar extends StatelessWidget {
+  final String objectId;
+  final String emoji;
+  const _CellAvatar({required this.objectId, required this.emoji});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<int>(
+      valueListenable: CaptureStore.revision,
+      builder: (context, _, _) {
+        final file = CaptureStore.instance.fileFor(objectId);
+        if (file == null) {
+          return Text(emoji, style: const TextStyle(fontSize: 42));
+        }
+        return Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+            boxShadow: WonderShadows.glow(WonderColors.wonder, opacity: 0.25),
+          ),
+          child: ClipOval(
+            child: Image.file(
+              file,
+              width: 56,
+              height: 56,
+              fit: BoxFit.cover,
+              gaplessPlayback: true,
+              filterQuality: FilterQuality.medium,
+              errorBuilder: (context, error, stack) =>
+                  Text(emoji, style: const TextStyle(fontSize: 42)),
+            ),
+          ),
+        );
+      },
     );
   }
 }

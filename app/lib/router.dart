@@ -1,6 +1,7 @@
 import 'package:animations/animations.dart';
 import 'package:go_router/go_router.dart';
 
+import 'app_route_observer.dart';
 import 'models/journey_args.dart';
 import 'models/object_content.dart';
 import 'screens/badge_screen.dart';
@@ -16,6 +17,7 @@ import 'ui/ui.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/onboarding',
+  observers: [appRouteObserver],
   routes: <RouteBase>[
     GoRoute(
       path: '/onboarding',

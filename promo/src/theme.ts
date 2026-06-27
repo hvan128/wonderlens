@@ -3,7 +3,7 @@
 export const WIDTH = 1080;
 export const HEIGHT = 1920;
 export const FPS = 30;
-export const DURATION_IN_FRAMES = 15 * FPS; // 450 frame ~ 15s
+export const DURATION_IN_FRAMES = 16 * FPS; // 480 frame ~ 16s
 
 export const COLORS = {
   teal: '#26C6DA', // seedColor app

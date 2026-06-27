@@ -30,6 +30,8 @@ const CAM_Y = 1086;
 const CUP_CX = 762;
 const CUP_CY = 1232;
 const DESK_TOP = 1356;
+// tâm để "lao vào" — khớp thẻ kết quả (~42% màn hình, nằm trên mép bàn)
+const FOCUS_CY = 1240;
 
 export const BoyWorld = () => {
   const frame = useCurrentFrame();
@@ -38,61 +40,72 @@ export const BoyWorld = () => {
   const enter = spring({ frame, fps, config: { damping: 14, mass: 0.8 }, durationInFrames: 32 });
   const enterX = interpolate(enter, [0, 1], [-400, 0]);
 
-  const diveDamp = interpolate(frame, [176, 206], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const diveDamp = interpolate(frame, [236, 266], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const bobY = Math.sin(frame / 11) * 7 * diveDamp;
 
   const blinkPhase = frame % 78;
   const blink = blinkPhase < 6 ? 1 - Math.abs(blinkPhase - 3) / 3 : 0;
-  const wow = interpolate(frame, [150, 167], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  // "wow" bật lên ngay khi chụp được, giữ tới lúc lao vào
+  const wow = interpolate(frame, [118, 140], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
-  const beamOpacity = interpolate(frame, [78, 90, 150, 162], [0, 1, 1, 0], {
+  // NGẮM & QUÉT: cam sau chĩa vào cốc, tia quét khoá mục tiêu
+  const beamOpacity = interpolate(frame, [58, 72, 120, 134], [0, 1, 1, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
-  const lock = interpolate(frame, [88, 148], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-  const locked = frame >= 148;
+  const lock = interpolate(frame, [70, 116], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const locked = frame >= 116;
   const dash = frame * 5;
 
-  const flash = interpolate(frame, [146, 152, 164], [0, 1, 0], {
+  // CHỤP: loé flash đèn cam sau
+  const flash = interpolate(frame, [116, 126, 140], [0, 1, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
 
-  // LẬT máy: 0 = lưng (cam sau) -> 180 = màn hình
-  const flipDeg = interpolate(frame, [158, 184], [0, 180], {
+  // LẬT máy lại để xem màn hình: 0 = lưng (cam sau) -> 180 = màn hình
+  const flipDeg = interpolate(frame, [132, 158], [0, 180], {
     easing: Easing.inOut(Easing.cubic),
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
-  const showResult = interpolate(frame, [150, 182], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
-  const statusText = frame < 84 ? 'Đưa máy vào cốc' : frame < 150 ? 'Đang quét…' : 'Đã nhận ra!';
-  const statusOpacity = interpolate(frame, [12, 26, 168, 180], [0, 1, 1, 0], {
+  // 3 trạng thái màn hình sau khi lật: ảnh vừa chụp -> AI phân tích -> kết quả
+  const captured = interpolate(frame, [150, 164], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const analyzing = interpolate(frame, [172, 186, 214, 228], [0, 1, 1, 0], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  const showResult = interpolate(frame, [224, 246], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+
+  const statusText = frame < 84 ? 'Đưa máy vào cốc' : frame < 116 ? 'Đang quét…' : 'Đã chụp!';
+  const statusOpacity = interpolate(frame, [12, 26, 130, 144], [0, 1, 1, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
 
-  // lao vào màn hình (sau khi lật)
-  const zoom = interpolate(frame, [184, 240], [1, 7], {
+  // lao vào màn hình (sau khi có kết quả)
+  const zoom = interpolate(frame, [244, 280], [1, 7], {
     easing: Easing.in(Easing.cubic),
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
-  const worldOpacity = interpolate(frame, [216, 240], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const worldOpacity = interpolate(frame, [262, 280], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   // parallax: tiền cảnh (bàn + cốc) trôi xuống nhanh hơn khi lao vào
-  const foreParallax = interpolate(frame, [184, 240], [0, 520], {
+  const foreParallax = interpolate(frame, [244, 280], [0, 520], {
     easing: Easing.in(Easing.cubic),
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
 
-  const capOpacity = interpolate(frame, [10, 28, 138, 158], [0, 1, 1, 0], {
+  const capOpacity = interpolate(frame, [10, 28, 122, 138], [0, 1, 1, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
   const capY = interpolate(enter, [0, 1], [40, 0]);
 
-  const cupPop = interpolate(frame, [148, 158, 170], [0, 1, 0], {
+  // cốc thật giật nhẹ đúng lúc bấm chụp
+  const cupPop = interpolate(frame, [116, 126, 140], [0, 1, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
@@ -131,7 +144,7 @@ export const BoyWorld = () => {
         style={{
           opacity: worldOpacity,
           transform: `scale(${zoom})`,
-          transformOrigin: `${PHONE_CX}px ${PHONE_CY}px`,
+          transformOrigin: `${PHONE_CX}px ${FOCUS_CY}px`,
         }}
       >
         <div style={{ transform: `translateY(${bobY}px)` }}>
@@ -160,15 +173,7 @@ export const BoyWorld = () => {
             }}
           >
             <FlipPhone width={PHONE_W} height={PHONE_H} flipDeg={flipDeg} flash={flash}>
-              <LensOverlay
-                scanY={0.5}
-                bracketInset={16}
-                label=""
-                scanning={0}
-                showResult={showResult}
-                flash={0}
-                showBrackets={false}
-              />
+              <LensOverlay captured={captured} analyzing={analyzing} showResult={showResult} flash={0} />
             </FlipPhone>
           </div>
 

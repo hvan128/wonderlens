@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../ui/ui.dart';
+import '../widgets/dev_panel.dart';
 
 /// Màn 1 · Chào mừng. Nền tím kỳ diệu, vài đồ vật trôi nhẹ, mascot Tia có vầng
 /// hào quang, wordmark hai tông + một câu dẫn, CTA vàng. Onboarding < 10 giây.
@@ -29,7 +30,12 @@ class OnboardingScreen extends StatelessWidget {
                     const Spacer(flex: 3),
                     const _HaloMascot(),
                     const SizedBox(height: 26),
-                    const _Wordmark()
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      // Cử chỉ ẩn: nhấn giữ wordmark để mở Dev panel (Mock ↔ API thật).
+                      onLongPress: () => showDevPanel(context),
+                      child: const _Wordmark(),
+                    )
                         .animate()
                         .fadeIn(duration: WonderTokens.durSlow)
                         .slideY(begin: 0.25, end: 0, curve: WonderTokens.curveStandard),

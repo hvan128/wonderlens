@@ -13,6 +13,15 @@ export const OBJECT_NAME = 'Cốc giấy';
 export const MATERIAL_BADGE = 'Giấy';
 export const CONFIDENCE = '98%';
 
+// Trạng thái màn hình "lens": chụp xong -> AI phân tích -> ra kết quả.
+export const CAPTURED_LABEL = 'Đã chụp';
+export const ANALYZING_LABEL = 'Đang phân tích…';
+
+// Thông tin cơ bản ngắn hiện trong popup khi nhận ra vật — ưu tiên nguồn gốc/giá trị, hợp trẻ nhỏ.
+export const OBJECT_MADE_FROM = 'Làm từ gỗ cây';
+export const OBJECT_FACT_EYEBROW = 'Bạn có biết?';
+export const OBJECT_FACT = 'Năm 1907, cốc giấy ra đời để ai cũng có cốc sạch riêng!';
+
 export const CUP_STAGES: Stage[] = [
   { title: 'Bắt đầu từ cái cây', icon: 'tree', accent: COLORS.tree },
   { title: 'Nấu gỗ thành bột giấy', icon: 'pulp', accent: COLORS.pulp },

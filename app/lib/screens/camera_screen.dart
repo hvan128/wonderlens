@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../app_route_observer.dart';
+import '../data/capture_store.dart';
 import '../data/collection_repository.dart';
 import '../data/content_repository.dart';
 import '../data/hero_catalog.dart';
@@ -15,11 +17,13 @@ import '../models/journey_args.dart';
 import '../models/object_content.dart';
 import '../services/generate_service.dart';
 import '../services/recognition_service.dart';
+import '../services/segmentation_service.dart';
 import '../ui/ui.dart';
+import '../widgets/dev_panel.dart';
 
 /// Màn 2 · Khung ngắm. Preview camera tràn màn hình + lớp điều khiển + mascot Tia.
-/// Nhận diện qua proxy; khi thấy vật → sang màn Xác nhận. Toàn bộ logic camera /
-/// permission / nhận diện giữ nguyên. Bám mockup `.s-cam`.
+/// Nhận diện qua proxy; tách nền + lưu ảnh sản phẩm (offline) rồi sang màn Xác
+/// nhận. Toàn bộ logic camera/permission/nhận diện giữ nguyên. Bám mockup `.s-cam`.
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
 
@@ -28,7 +32,7 @@ class CameraScreen extends StatefulWidget {
 }
 
 class _CameraScreenState extends State<CameraScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, RouteAware {
   CameraController? _controller;
   bool _initializing = true;
   bool _busy = false;
@@ -44,6 +48,7 @@ class _CameraScreenState extends State<CameraScreen>
   final _service = RecognitionService();
   final _generate = GenerateService();
   final _repo = ContentRepository();
+  final _segmentation = SegmentationService();
 
   static const double _confidenceThreshold = 0.6;
 
@@ -55,10 +60,34 @@ class _CameraScreenState extends State<CameraScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) appRouteObserver.subscribe(this, route);
+  }
+
+  @override
   void dispose() {
+    appRouteObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _controller?.dispose();
     super.dispose();
+  }
+
+  /// Bị màn khác (confirm/timeline) phủ lên → nhả camera để khỏi giữ
+  /// AVCaptureSession (tránh xung đột với video player) và preview không đen.
+  @override
+  void didPushNext() {
+    final c = _controller;
+    _controller = null;
+    c?.dispose();
+    if (mounted) setState(() {});
+  }
+
+  /// Quay lại màn camera → mở lại camera.
+  @override
+  void didPopNext() {
+    _setup();
   }
 
   /// Thu hồi/khởi tạo lại camera theo vòng đời app để tránh preview đen khi
@@ -152,8 +181,18 @@ class _CameraScreenState extends State<CameraScreen>
     try {
       shot = await controller.takePicture();
       final bytes = await File(shot.path).readAsBytes();
+      // Tách nền chạy song song nhận diện (offline, độc lập với mạng). Await ở
+      // đây để chắc chắn native đọc xong file trước khi `finally` xoá ảnh tạm.
+      final cutoutFuture = _segmentation.cutout(shot.path);
       final result = await _service.recognize(bytes);
+      final cutout = await cutoutFuture;
       if (!mounted) return;
+
+      // Lưu "ảnh sản phẩm" cho id vật đã quyết (hero, mock, hoặc AI-live).
+      Future<void> saveCapture(String id) async {
+        if (cutout == null) return;
+        await CaptureStore.instance.save(id, cutout);
+      }
 
       ObjectContent? content;
       if (result.objectId != 'unknown') {
@@ -161,6 +200,8 @@ class _CameraScreenState extends State<CameraScreen>
         if (!mounted) return;
       }
       if (content != null) {
+        await saveCapture(content.id);
+        if (!mounted) return;
         _toConfirm(
           content,
           confident: result.confidence >= _confidenceThreshold,
@@ -186,6 +227,8 @@ class _CameraScreenState extends State<CameraScreen>
           'Thử một đồ vật khác nhé!',
         );
       } else {
+        await saveCapture(live.id);
+        if (!mounted) return;
         _toConfirm(live, confident: true, confidence: null);
       }
     } catch (e) {
@@ -263,7 +306,7 @@ class _CameraScreenState extends State<CameraScreen>
           if (cameraReady) const IgnorePointer(child: _Reticle()),
           SafeArea(
             // Ghim hàng điều khiển lên đỉnh; nếu không, Stack(StackFit.expand)
-            // ép Row cao full màn hình và canh giữa dọc 2 nút (lỗi đã gặp).
+            // ép Row cao full màn hình và canh giữa dọc 2 nút.
             child: Align(
               alignment: Alignment.topCenter,
               child: Padding(
@@ -298,6 +341,7 @@ class _CameraScreenState extends State<CameraScreen>
                   onScan: _busy ? null : _capture,
                   onTorch: _toggleTorch,
                   onCollection: () => context.push('/collection'),
+                  onDevPanel: () => showDevPanel(context),
                 ),
               ),
             ),
@@ -517,6 +561,7 @@ class _BottomControls extends StatelessWidget {
   final VoidCallback? onScan;
   final VoidCallback onTorch;
   final VoidCallback onCollection;
+  final VoidCallback onDevPanel;
 
   const _BottomControls({
     required this.busy,
@@ -524,6 +569,7 @@ class _BottomControls extends StatelessWidget {
     required this.onScan,
     required this.onTorch,
     required this.onCollection,
+    required this.onDevPanel,
   });
 
   @override
@@ -535,7 +581,12 @@ class _BottomControls extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            _HintBubble(busy: busy),
+            // Cử chỉ ẩn: nhấn giữ bong bóng gợi ý để mở Dev panel (Mock ↔ API).
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onLongPress: onDevPanel,
+              child: _HintBubble(busy: busy),
+            ),
             const SizedBox(height: 14),
             const _AutoPill(),
             const SizedBox(height: 12),

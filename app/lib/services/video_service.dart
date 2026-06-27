@@ -4,25 +4,24 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:http/http.dart' as http;
 
+import '../data/app_settings.dart';
 import '../models/object_content.dart';
 
 /// Tạo "video hành trình" cho vật lạ (AI-live) qua proxy: khởi động job →
 /// poll trạng thái → tải MP4 về file tạm để phát (phát từ file ổn định hơn
 /// stream mạng trên iOS). Trả null nếu chưa cấu hình proxy / lỗi / hết giờ.
 class VideoService {
-  static const String _baseUrl =
-      String.fromEnvironment('PROXY_BASE_URL', defaultValue: '');
-  static const String _appToken =
-      String.fromEnvironment('APP_TOKEN', defaultValue: 'dev-wonderlens');
+  static String get _baseUrl => AppSettings.baseUrl;
+  static String get _appToken => AppSettings.appToken;
 
-  static bool get available => _baseUrl.isNotEmpty;
+  static bool get available => AppSettings.useLiveApi;
 
   /// Sinh video cho [content]. Gọi [onProgress] (0..100) trong lúc render.
   Future<File?> generate(
     ObjectContent content, {
     void Function(int progress)? onProgress,
   }) async {
-    if (_baseUrl.isEmpty) return null;
+    if (!AppSettings.useLiveApi) return null;
     try {
       onProgress?.call(0);
       final videoId = await _create(content);

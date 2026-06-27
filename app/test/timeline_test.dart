@@ -29,6 +29,11 @@ void main() {
     expect(find.text('Cốc giấy'), findsWidgets);
     expect(find.text('Bắt đầu từ cái cây'), findsOneWidget);
     expect(find.text('Nấu thành bột giấy'), findsOneWidget);
-    expect(find.text('Nghe kể chuyện'), findsOneWidget);
+    // Auto-play tự đọc khi mở trang → nút điều khiển giọng đọc có thể đang ở
+    // trạng thái "Dừng đọc" (đang đọc) hoặc "Nghe kể chuyện" (đã đọc xong).
+    final hasNarrationControl =
+        find.text('Nghe kể chuyện').evaluate().isNotEmpty ||
+            find.text('Dừng đọc').evaluate().isNotEmpty;
+    expect(hasNarrationControl, isTrue);
   });
 }

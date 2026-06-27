@@ -38,6 +38,8 @@ class ObjectContent {
   final List<Stage> stages;
   final String source; // 'asset' | 'live' | 'mock'
   final String? video; // asset path video hành trình đóng gói sẵn (vật hero)
+  final String? history; // lịch sử ngắn của vật/vật liệu
+  final String? story; // câu chuyện hoàn chỉnh — dùng làm audio chính
 
   const ObjectContent({
     required this.id,
@@ -47,7 +49,25 @@ class ObjectContent {
     required this.stages,
     this.source = 'asset',
     this.video,
+    this.history,
+    this.story,
   });
+
+  /// Văn bản đọc to chính cho trang chi tiết: ưu tiên [story] (câu chuyện hoàn
+  /// chỉnh). Nếu chưa có thì ghép lịch sử + các chặng để vẫn luôn có audio.
+  String get narrationText {
+    final s = story?.trim() ?? '';
+    if (s.isNotEmpty) return s;
+    final parts = <String>[];
+    final h = history?.trim() ?? '';
+    if (h.isNotEmpty) parts.add(h);
+    for (final st in stages) {
+      if (st.kidText.isNotEmpty) parts.add(st.kidText);
+      final f = st.funFact;
+      if (f != null && f.isNotEmpty) parts.add(f);
+    }
+    return parts.join(' ');
+  }
 
   factory ObjectContent.fromJson(
     Map<String, dynamic> json, {
@@ -63,5 +83,7 @@ class ObjectContent {
             .toList(),
         source: source,
         video: json['video'] as String?,
+        history: json['history'] as String?,
+        story: json['story'] as String?,
       );
 }

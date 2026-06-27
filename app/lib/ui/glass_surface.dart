@@ -1,27 +1,25 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'phosphor_compat.dart';
 
 import '../theme/wonder_tokens.dart';
+import 'phosphor_compat.dart';
 import 'pressable.dart';
 
 /// Hai tông kính: tối (đặt trên camera/nền rực, chữ trắng) và sáng (đặt trên
 /// nền canvas dịu, chữ đậm).
 enum GlassTone { dark, light }
 
-/// Bề mặt "liquid glass" hand-rolled theo đúng công thức:
-///  1. BackdropFilter = blur + tăng bão hoà (ColorFilter.matrix) → frost thật.
-///  2. Gradient nền (highlight chéo) cho khối thuỷ tinh.
-///  3. foregroundDecoration = vệt specular sáng ở đỉnh + rim mờ ở đáy.
-///  4. Viền hairline trắng + shadow mềm.
+/// Bề mặt "liquid glass": làm nhoè nền phía sau + lớp phủ trong mờ + viền
+/// hairline + một vệt sáng (sheen) dịu ở đỉnh. Cố ý KHÔNG dùng ColorFilter bão
+/// hoà trên BackdropFilter vì nó gây viền tối ở mép (artifact premultiplied
+/// alpha) — chỉ blur thuần cho sạch.
 class GlassSurface extends StatelessWidget {
   final Widget child;
   final GlassTone tone;
   final double radius;
   final EdgeInsetsGeometry padding;
   final double? blur;
-  final double? saturation;
   final Color? tint;
   final double? tintOpacity;
   final List<BoxShadow>? shadows;
@@ -35,7 +33,6 @@ class GlassSurface extends StatelessWidget {
     this.radius = WonderTokens.radiusLg,
     this.padding = const EdgeInsets.all(WonderTokens.space16),
     this.blur,
-    this.saturation,
     this.tint,
     this.tintOpacity,
     this.shadows,
@@ -49,47 +46,41 @@ class GlassSurface extends StatelessWidget {
   Widget build(BuildContext context) {
     final br = BorderRadius.circular(radius);
     final baseTint = tint ?? (_dark ? WonderColors.ink : Colors.white);
-    final op = tintOpacity ?? (_dark ? 0.40 : 0.58);
-    final borderC = Colors.white.withValues(alpha: _dark ? 0.22 : 0.65);
-    final specTop = _dark ? 0.28 : 0.62;
-    final sat = saturation ?? (_dark ? 1.7 : 1.25);
+    final op = tintOpacity ?? (_dark ? 0.34 : 0.46);
+    final borderC = Colors.white.withValues(alpha: _dark ? 0.24 : 0.55);
+    final sheen = _dark ? 0.14 : 0.30;
     final sigma = blur ?? WonderTokens.glassBlur;
 
     Widget panel = ClipRRect(
       borderRadius: br,
       child: BackdropFilter(
-        filter: ImageFilter.compose(
-          outer: ColorFilter.matrix(_saturate(sat)),
-          inner: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-        ),
+        filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
             borderRadius: br,
+            // Lớp tint mờ — đỉnh đậm hơn đáy chút cho cảm giác khối kính.
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
               colors: <Color>[
-                Colors.white.withValues(alpha: _dark ? 0.16 : 0.36),
+                baseTint.withValues(alpha: (op + 0.05).clamp(0.0, 1.0)),
                 baseTint.withValues(alpha: op),
-                baseTint.withValues(alpha: (op + 0.06).clamp(0.0, 1.0)),
               ],
-              stops: const <double>[0.0, 0.5, 1.0],
             ),
             border: Border.all(color: borderC, width: 1),
           ),
+          // Vệt sáng mềm ở đỉnh (không phải dải cứng) → cạnh kính "bắt sáng".
           foregroundDecoration: BoxDecoration(
             borderRadius: br,
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: <Color>[
-                Colors.white.withValues(alpha: specTop),
+                Colors.white.withValues(alpha: sheen),
                 Colors.transparent,
-                Colors.transparent,
-                Colors.white.withValues(alpha: _dark ? 0.05 : 0.14),
               ],
-              stops: const <double>[0.0, 0.12, 0.86, 1.0],
+              stops: const <double>[0.0, 0.55],
             ),
           ),
           child: child,
@@ -109,19 +100,6 @@ class GlassSurface extends StatelessWidget {
       panel = Pressable(onTap: onTap, semanticLabel: semanticLabel, child: panel);
     }
     return panel;
-  }
-
-  /// Ma trận 5x4 tăng/giảm bão hoà giữ nguyên độ sáng (luminance-preserving).
-  static List<double> _saturate(double s) {
-    const lr = 0.2126, lg = 0.7152, lb = 0.0722;
-    final inv = 1 - s;
-    final r = inv * lr, g = inv * lg, b = inv * lb;
-    return <double>[
-      r + s, g, b, 0, 0, //
-      r, g + s, b, 0, 0, //
-      r, g, b + s, 0, 0, //
-      0, 0, 0, 1, 0, //
-    ];
   }
 }
 
