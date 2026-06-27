@@ -4,12 +4,14 @@ import android.graphics.Bitmap
 import android.net.Uri
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.segmentation.subject.SubjectSegmentation
+import com.google.mlkit.vision.segmentation.subject.SubjectSegmenter
 import com.google.mlkit.vision.segmentation.subject.SubjectSegmenterOptions
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.util.concurrent.Executors
 
 /**
  * Tách chủ thể khỏi nền bằng ML Kit Subject Segmentation (offline, minSdk 24).
@@ -19,6 +21,9 @@ import java.io.File
  */
 class MainActivity : FlutterActivity() {
     private val channelName = "wonderlens/segmentation"
+    // Giải mã ảnh (InputImage.fromFilePath) là I/O đồng bộ → chạy nền để không
+    // chặn main thread (tránh giật khi quét). Listener của ML Kit vẫn về main.
+    private val bgExecutor = Executors.newSingleThreadExecutor()
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -38,25 +43,40 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun cutout(path: String, result: MethodChannel.Result) {
-        try {
-            val image = InputImage.fromFilePath(this, Uri.fromFile(File(path)))
-            val options = SubjectSegmenterOptions.Builder()
-                .enableForegroundBitmap()
-                .build()
-            val segmenter = SubjectSegmentation.getClient(options)
+        bgExecutor.execute {
+            val image = try {
+                InputImage.fromFilePath(this, Uri.fromFile(File(path)))
+            } catch (e: Exception) {
+                runOnUiThread { result.success(null) }
+                return@execute
+            }
+            val segmenter = SubjectSegmentation.getClient(
+                SubjectSegmenterOptions.Builder().enableForegroundBitmap().build()
+            )
+            // addOnSuccessListener/addOnFailureListener (không truyền executor) chạy
+            // trên main thread → result.success gọi đúng luồng, đúng một lần.
             segmenter.process(image)
                 .addOnSuccessListener { segResult ->
-                    val foreground: Bitmap? = segResult.foregroundBitmap
-                    val png = foreground?.let { toPng(it) }
-                    segmenter.close()
+                    val png = try {
+                        segResult.foregroundBitmap?.let { toPng(it) }
+                    } catch (e: Exception) {
+                        null
+                    }
+                    closeQuietly(segmenter)
                     result.success(png)
                 }
                 .addOnFailureListener {
-                    segmenter.close()
+                    closeQuietly(segmenter)
                     result.success(null)
                 }
+        }
+    }
+
+    private fun closeQuietly(segmenter: SubjectSegmenter) {
+        try {
+            segmenter.close()
         } catch (e: Exception) {
-            result.success(null)
+            // Bỏ qua — đảm bảo result luôn được trả về.
         }
     }
 

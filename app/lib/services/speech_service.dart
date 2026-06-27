@@ -11,12 +11,16 @@ import '../data/app_settings.dart';
 /// (cùng văn bản → dùng lại file, không gọi lại OpenAI). Trả null khi lỗi/không
 /// cấu hình để [NarrationService] rớt về giọng máy on-device.
 class SpeechService {
+  /// Bump khi đổi giọng/tốc độ/model ở proxy → bỏ qua audio cache cũ, tải lại.
+  static const _voiceVersion = 'v2';
+
   final Map<String, File> _mem = {};
 
   Future<File?> synthesize(String text) async {
     final t = text.trim();
     if (t.isEmpty) return null;
-    final key = t.hashCode.toUnsigned(32).toRadixString(16);
+    final key =
+        '${_voiceVersion}_${t.hashCode.toUnsigned(32).toRadixString(16)}';
 
     final cached = _mem[key];
     if (cached != null && await cached.exists()) return cached;

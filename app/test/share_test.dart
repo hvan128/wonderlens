@@ -86,7 +86,8 @@ void main() {
     expect(find.text('Nhà khám phá 🧭'), findsOneWidget);
     expect(find.text('Đã khám phá 3/8 đồ vật'), findsOneWidget);
     expect(find.text('WonderLens'), findsOneWidget);
-    expect(find.text('🏅 Giấy'), findsOneWidget);
+    // Thẻ v2 hiển thị huy hiệu vật liệu bằng icon + chữ (không còn prefix 🏅).
+    expect(find.text('Giấy'), findsOneWidget);
   });
 
   test('collectionCaption gồm cấp độ và tiến độ', () {

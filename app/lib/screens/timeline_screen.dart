@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../data/collection_repository.dart';
 import '../models/object_content.dart';
+import '../services/journey_image_service.dart';
 import '../services/narration_service.dart';
 import '../ui/ui.dart';
 import '../widgets/journey_video.dart';
@@ -29,6 +32,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
   bool _playing = false;
   int? _currentStage;
   final _videoKey = GlobalKey<JourneyVideoState>();
+  // Ảnh AI-live theo chặng (vật lạ). Hero dùng asset bundle qua Stage.illustration.
+  Map<int, File> _stageImages = const {};
+  bool _imagesLoading = false;
 
   @override
   void initState() {
@@ -45,12 +51,28 @@ class _TimelineScreenState extends State<TimelineScreen> {
       // dừng được bằng nút "Dừng đọc" hoặc khi chạm phát video. Hoãn sau frame
       // đầu vì có gọi setState.
       final narration = c.narrationText;
-      if (narration.isNotEmpty) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) _playStory(narration);
-        });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        // Phim hành trình chạy NGẦM song song — không chờ giọng đọc xong.
+        _videoKey.currentState?.autoGenerate();
+        if (narration.isNotEmpty) _playStory(narration);
+      });
+      // Vật lạ (AI-live): sinh ảnh "đồng nhất bối cảnh" cho từng chặng qua proxy.
+      // Hero objects đã có ảnh bundle (Stage.illustration) → không gọi proxy.
+      if (c.source == 'live' && JourneyImageService.available) {
+        _loadStageImages(c);
       }
     }
+  }
+
+  Future<void> _loadStageImages(ObjectContent c) async {
+    setState(() => _imagesLoading = true);
+    final imgs = await JourneyImageService().generate(c);
+    if (!mounted) return;
+    setState(() {
+      _stageImages = imgs;
+      _imagesLoading = false;
+    });
   }
 
   @override
@@ -64,13 +86,18 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
   /// Đọc to câu chuyện hoàn chỉnh — audio chính của trang chi tiết.
   Future<void> _playStory(String text) async {
-    _videoKey.currentState?.pauseVideo(); // tránh chồng tiếng với video
     setState(() {
       _playing = true;
       _currentStage = null;
     });
     await _narration.speak(text);
-    if (mounted) setState(() => _playing = false);
+    if (!mounted) return;
+    final finishedNaturally = _playing; // _stop() đặt _playing=false giữa chừng
+    setState(() => _playing = false);
+    if (finishedNaturally) {
+      // Đọc xong giọng kể → tự tạo phim hành trình ngầm (không cần bấm nút).
+      _videoKey.currentState?.autoGenerate();
+    }
   }
 
   Future<void> _stop() async {
@@ -80,7 +107,6 @@ class _TimelineScreenState extends State<TimelineScreen> {
   }
 
   Future<void> _speakOne(int i, Stage s) async {
-    _videoKey.currentState?.pauseVideo(); // tránh chồng tiếng với video
     await _narration.stop();
     if (!mounted) return;
     setState(() {
@@ -149,9 +175,6 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     .fadeIn(duration: WonderTokens.durBase)
                     .slideY(begin: 0.1, end: 0),
               ],
-              const SizedBox(height: 12),
-              // Phim hành trình (việc song song) — tự ẩn nếu không có video/proxy.
-              JourneyVideo(key: _videoKey, content: c, onPlay: _stop),
               const SizedBox(height: 14),
               WonderButton(
                 label: _playing ? 'Dừng đọc' : 'Nghe kể chuyện',
@@ -168,6 +191,17 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       isLast: i == c.stages.length - 1,
                       active: _currentStage == i,
                       onSpeak: () => _speakOne(i, c.stages[i]),
+                      image: resolveStageImage(
+                        illustration: c.stages[i].illustration,
+                        liveFile: _stageImages[i],
+                      ),
+                      imageLoading: _imagesLoading &&
+                          c.source == 'live' &&
+                          resolveStageImage(
+                                illustration: c.stages[i].illustration,
+                                liveFile: _stageImages[i],
+                              ) ==
+                              null,
                     )
                     .animate(delay: (120 + i * 90).ms)
                     .fadeIn(duration: WonderTokens.durBase)
@@ -177,6 +211,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       curve: WonderTokens.curveStandard,
                     ),
               const SizedBox(height: 8),
+              // Phim hành trình ở CUỐI — tự tạo ngầm sau khi đọc xong câu chuyện.
+              JourneyVideo(key: _videoKey, content: c),
+              const SizedBox(height: 16),
               Text(
                 'Bạn vừa khám phá xong! 🎉',
                 textAlign: TextAlign.center,
@@ -392,6 +429,8 @@ class _StageTile extends StatelessWidget {
   final bool isLast;
   final bool active;
   final VoidCallback onSpeak;
+  final ImageProvider? image;
+  final bool imageLoading;
 
   const _StageTile({
     required this.index,
@@ -399,6 +438,8 @@ class _StageTile extends StatelessWidget {
     required this.isLast,
     required this.active,
     required this.onSpeak,
+    this.image,
+    this.imageLoading = false,
   });
 
   @override
@@ -460,6 +501,10 @@ class _StageTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
+                    if (image != null || imageLoading) ...<Widget>[
+                      _StageImage(image: image, loading: imageLoading),
+                      const SizedBox(height: 12),
+                    ],
                     Row(
                       children: <Widget>[
                         Expanded(
@@ -546,5 +591,58 @@ class _StageTile extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// Ảnh minh hoạ của một chặng. Khung 16/10 bo góc, giữ chỗ ổn định. Khi đang
+/// sinh ảnh (AI-live) hiện shimmer; ảnh lỗi rớt về placeholder mềm, không vỡ.
+class _StageImage extends StatelessWidget {
+  final ImageProvider? image;
+  final bool loading;
+
+  const _StageImage({required this.image, required this.loading});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(WonderTokens.radiusMd),
+      child: AspectRatio(
+        aspectRatio: 16 / 10,
+        child: image != null
+            ? Image(
+                image: image!,
+                fit: BoxFit.cover,
+                gaplessPlayback: true,
+                filterQuality: FilterQuality.medium,
+                frameBuilder: (context, child, frame, wasSync) {
+                  if (wasSync || frame != null) {
+                    return child.animate().fadeIn(duration: WonderTokens.durBase);
+                  }
+                  return _placeholder(shimmer: true);
+                },
+                errorBuilder: (context, error, stack) =>
+                    _placeholder(shimmer: false),
+              )
+            : _placeholder(shimmer: loading),
+      ),
+    );
+  }
+
+  Widget _placeholder({required bool shimmer}) {
+    final box = Container(
+      color: WonderColors.teal.withValues(alpha: 0.1),
+      child: Center(
+        child: PhosphorIcon(
+          PhosphorIconsFill.image,
+          size: 26,
+          color: WonderColors.teal.withValues(alpha: 0.5),
+        ),
+      ),
+    );
+    if (!shimmer) return box;
+    return box.animate(onPlay: (c) => c.repeat()).shimmer(
+          duration: 1200.ms,
+          color: Colors.white.withValues(alpha: 0.55),
+        );
   }
 }

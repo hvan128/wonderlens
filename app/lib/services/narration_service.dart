@@ -23,7 +23,7 @@ class NarrationService {
   Future<void> _ensureTts() async {
     if (_ttsReady) return;
     await _tts.setLanguage('vi-VN');
-    await _tts.setSpeechRate(0.45); // chậm lại cho trẻ dễ nghe
+    await _tts.setSpeechRate(0.58); // nhịp nhanh gọn (cũ 0.45 hơi lê thê)
     await _tts.setPitch(1.1);
     await _tts.awaitSpeakCompletion(true);
     _ttsReady = true;

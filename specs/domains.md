@@ -36,11 +36,18 @@
 **Owns:**
 - `lib/screens/camera_screen.dart`
 - `lib/services/recognition_service.dart`
+- `lib/services/segmentation_service.dart` + `lib/services/image_cutout.dart` (tách nền on-device)
+- `lib/data/capture_store.dart` (lưu ảnh sản phẩm cutout)
+- `lib/widgets/object_avatar.dart` (hiển thị ảnh sản phẩm, dùng chung Domain 2/3)
+- `ios/Runner/AppDelegate.swift` (Apple Vision) · `MainActivity.kt` (ML Kit) — xem `ADR-006`
 - `proxy/api/recognize.ts`
 - `proxy/lib/openai-vision.ts`
 - `proxy/lib/hero-objects.ts`
 
-**Contract out:** → Domain 2 nhận `RecognitionResult { objectId, isHero, confidence }`
+**Contract out:**
+- → Domain 2 nhận `RecognitionResult { objectId, isHero, confidence }`
+- Ảnh sản phẩm (cutout PNG) lưu theo `objectId` qua `CaptureStore`; Domain 2/3 đọc
+  để hiển thị thay emoji (fallback emoji nếu thiếu).
 
 **Business rules:**
 - Confidence < 0.7 → hỏi user "Có phải [X]? / Chụp lại"

@@ -12,12 +12,13 @@ import '../ui/ui.dart';
 /// - Vật lạ (AI-live) + có proxy: bấm nút → Sora tạo (~vài phút) → phát từ file tạm.
 /// - Không có asset lẫn proxy: ẩn hẳn.
 ///
-/// State để public ([JourneyVideoState]) để màn cha pause video qua GlobalKey
-/// khi bắt đầu đọc TTS (tránh chồng tiếng).
+/// State để public ([JourneyVideoState]) để màn cha kích hoạt tạo phim ngầm
+/// (autoGenerate) qua GlobalKey. Video phát TẮT TIẾNG nên không chặn giọng đọc.
 class JourneyVideo extends StatefulWidget {
   final ObjectContent content;
 
-  /// Gọi khi video bắt đầu phát (để màn cha dừng giọng đọc TTS).
+  /// Tuỳ chọn màn cha truyền vào — hiện KHÔNG được gọi nữa: video tắt tiếng,
+  /// chạy độc lập nên không cần dừng giọng đọc khi phát.
   final VoidCallback? onPlay;
 
   const JourneyVideo({super.key, required this.content, this.onPlay});
@@ -59,7 +60,8 @@ class JourneyVideoState extends State<JourneyVideo> {
     super.dispose();
   }
 
-  /// Pause video nếu đang phát — màn cha gọi trước khi đọc TTS.
+  /// Pause video nếu đang phát — màn cha có thể gọi (tuỳ chọn). Video tắt tiếng
+  /// nên không bắt buộc, giữ để tương thích lời gọi sẵn có.
   void pauseVideo() {
     final c = _controller;
     if (c != null && c.value.isPlaying) {
@@ -81,6 +83,7 @@ class JourneyVideoState extends State<JourneyVideo> {
     try {
       await ctrl.initialize();
       await ctrl.setLooping(false);
+      await ctrl.setVolume(0); // tắt tiếng: phim chạy độc lập, không chặn narration
       if (!mounted) {
         await ctrl.dispose();
         return;
@@ -114,7 +117,8 @@ class JourneyVideoState extends State<JourneyVideo> {
     }
     _tempFile = file;
     await _initController(VideoPlayerController.file(file));
-    if (mounted && _controller != null) _togglePlay();
+    // KHÔNG tự phát: sinh xong chỉ chuyển sang trạng thái sẵn sàng (nút play).
+    // Người dùng chủ động bấm mới chiếu.
   }
 
   /// Thử lại theo nguồn: hero thì init lại asset đóng gói; vật lạ thì gọi Sora.
@@ -127,13 +131,20 @@ class JourneyVideoState extends State<JourneyVideo> {
     }
   }
 
+  /// Tự sinh phim ngầm — màn cha gọi SAU khi đọc xong giọng kể. Chỉ sinh khi
+  /// chưa có asset sẵn, có proxy và đang ở trạng thái chờ (idle).
+  void autoGenerate() {
+    if (_hasAsset || !_canGenerate) return;
+    if (_phase != _Phase.idle) return;
+    _generate();
+  }
+
   void _togglePlay() {
     final c = _controller;
     if (c == null) return;
     if (c.value.isPlaying) {
       c.pause();
     } else {
-      widget.onPlay?.call();
       // Phát lại từ đầu nếu đã xem hết.
       if (c.value.position >= c.value.duration) {
         c.seekTo(Duration.zero);
@@ -196,8 +207,8 @@ class JourneyVideoState extends State<JourneyVideo> {
       case _Phase.error:
         return _errorBox();
       case _Phase.idle:
-        // hero asset đang init thì hiện loading; vật lạ thì hiện nút tạo.
-        return _hasAsset ? _initing() : _generateButton();
+        // hero asset đang init thì hiện loading; vật lạ chờ tự sinh sau giọng kể.
+        return _hasAsset ? _initing() : _autoHint();
     }
   }
 
@@ -287,23 +298,23 @@ class JourneyVideoState extends State<JourneyVideo> {
     );
   }
 
-  Widget _generateButton() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+  /// Trạng thái chờ: KHÔNG có nút — phim sẽ tự tạo ngầm sau khi đọc xong câu
+  /// chuyện (màn cha gọi [autoGenerate]).
+  Widget _autoHint() {
+    return Row(
       children: <Widget>[
-        Text(
-          'Xem đoạn phim ngắn về cách tạo ra vật này nhé!',
-          style: TextStyle(
-            color: WonderColors.textStrong.withValues(alpha: 0.9),
-            fontSize: 14.5,
-            height: 1.35,
+        const PhosphorIcon(PhosphorIconsFill.filmSlate,
+            size: 20, color: WonderColors.grape),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            'Phim hành trình sẽ tự xuất hiện sau khi nghe xong câu chuyện nhé!',
+            style: TextStyle(
+              color: WonderColors.textStrong.withValues(alpha: 0.85),
+              fontSize: 14,
+              height: 1.35,
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
-        WonderButton(
-          label: 'Tạo phim hành trình',
-          icon: PhosphorIconsFill.filmSlate,
-          onTap: _generate,
         ),
       ],
     );
