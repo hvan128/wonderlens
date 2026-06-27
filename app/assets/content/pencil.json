@@ -1,0 +1,28 @@
+{
+  "id": "pencil",
+  "name": "Bút chì",
+  "emoji": "✏️",
+  "material_badge": "Gỗ + Than chì",
+  "stages": [
+    {
+      "title": "Ruột là than chì ⚫",
+      "kid_text": "Ruột bút chì không phải là chì độc đâu nhé! Nó làm từ than chì trộn với đất sét rồi nung cứng.",
+      "fun_fact": "Trộn nhiều đất sét thì nét cứng và nhạt, ít đất sét thì nét mềm và đậm."
+    },
+    {
+      "title": "Vỏ là gỗ 🌳",
+      "kid_text": "Phần vỏ bao quanh ruột được làm từ gỗ cây mềm, để dễ gọt cho nhọn.",
+      "fun_fact": "Gỗ mềm giúp bạn gọt bút chì nhẹ nhàng mà không bị mẻ ruột."
+    },
+    {
+      "title": "Ghép ruột vào gỗ ✏️",
+      "kid_text": "Người ta đặt thanh than chì vào rãnh trên miếng gỗ, rồi dán hai nửa gỗ ôm lấy nó.",
+      "fun_fact": "Vì thế khi gọt, bạn thấy lớp gỗ bao quanh lõi đen ở giữa."
+    },
+    {
+      "title": "Sơn màu và hoàn thiện 🎨",
+      "kid_text": "Bút chì được sơn màu bên ngoài cho đẹp, đôi khi gắn thêm cục tẩy ở một đầu.",
+      "fun_fact": "Một cây bút chì có thể vẽ được đường dài tới hàng chục ki-lô-mét!"
+    }
+  ]
+}

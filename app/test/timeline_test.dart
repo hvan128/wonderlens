@@ -1,0 +1,32 @@
+// Kiểm TimelineScreen render đủ các chặng + nút nghe kể chuyện.
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:wonderlens/models/object_content.dart';
+import 'package:wonderlens/screens/timeline_screen.dart';
+
+void main() {
+  const content = ObjectContent(
+    id: 'paper_cup',
+    name: 'Cốc giấy',
+    emoji: '🥤',
+    materialBadge: 'Giấy',
+    stages: [
+      Stage(title: 'Bắt đầu từ cái cây', kidText: 'Cốc giấy làm từ gỗ.'),
+      Stage(title: 'Nấu thành bột giấy', kidText: 'Gỗ nấu thành bột giấy.'),
+    ],
+  );
+
+  testWidgets('Timeline hiển thị tên vật, các chặng và nút nghe',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: TimelineScreen(content: content)),
+    );
+    await tester.pump();
+
+    expect(find.text('Cốc giấy'), findsWidgets);
+    expect(find.text('Bắt đầu từ cái cây'), findsOneWidget);
+    expect(find.text('Nấu thành bột giấy'), findsOneWidget);
+    expect(find.text('Nghe kể chuyện 🔊'), findsOneWidget);
+  });
+}

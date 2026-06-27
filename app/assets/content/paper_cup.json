@@ -1,0 +1,28 @@
+{
+  "id": "paper_cup",
+  "name": "Cốc giấy",
+  "emoji": "🥤",
+  "material_badge": "Giấy",
+  "stages": [
+    {
+      "title": "Bắt đầu từ cái cây 🌳",
+      "kid_text": "Cốc giấy được làm từ gỗ của cây. Người ta trồng cả những khu rừng để lấy gỗ làm giấy.",
+      "fun_fact": "Một cái cây lớn có thể làm ra hàng nghìn chiếc cốc giấy đấy!"
+    },
+    {
+      "title": "Nấu gỗ thành bột giấy 🪵",
+      "kid_text": "Gỗ được băm thành mảnh nhỏ rồi nấu với nước cho mềm nhũn ra, thành một thứ sền sệt gọi là bột giấy.",
+      "fun_fact": "Bột giấy ướt nhèm trông giống như cháo loãng vậy!"
+    },
+    {
+      "title": "Cán thành tấm giấy 📄",
+      "kid_text": "Bột giấy được trải mỏng, ép cho ráo nước rồi sấy khô, biến thành những cuộn giấy thật to.",
+      "fun_fact": "Cuộn giấy lớn có thể dài hơn cả một sân bóng!"
+    },
+    {
+      "title": "Cuộn thành cốc + tráng chống nước 🥤",
+      "kid_text": "Giấy được cắt, cuộn lại thành hình cốc, rồi phủ một lớp màng mỏng bên trong để nước không thấm ra ngoài.",
+      "fun_fact": "Nhờ lớp màng đó mà bạn rót nước vào cốc giấy không bị rỉ!"
+    }
+  ]
+}

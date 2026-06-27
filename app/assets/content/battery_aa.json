@@ -1,0 +1,28 @@
+{
+  "id": "battery_aa",
+  "name": "Pin AA",
+  "emoji": "🔋",
+  "material_badge": "Kim loại + Hoá chất",
+  "stages": [
+    {
+      "title": "Vỏ bằng kim loại 🥫",
+      "kid_text": "Pin có lớp vỏ kim loại cứng cáp để chứa an toàn các chất bên trong.",
+      "fun_fact": "Vỏ kim loại cũng giúp pin không bị móp khi va chạm."
+    },
+    {
+      "title": "Hoá chất tạo ra điện ⚡",
+      "kid_text": "Bên trong pin có các chất hoá học. Khi chúng phản ứng với nhau thì sinh ra dòng điện.",
+      "fun_fact": "Đó là lý do pin giúp đồ chơi và remote hoạt động được."
+    },
+    {
+      "title": "Hai đầu cộng và trừ ➕➖",
+      "kid_text": "Pin có một đầu cộng (+) và một đầu trừ (−). Điện chạy từ đầu này sang đầu kia để cấp năng lượng.",
+      "fun_fact": "Lắp pin phải đúng chiều + và − thì đồ vật mới chạy nhé!"
+    },
+    {
+      "title": "Niêm phong an toàn 🔋",
+      "kid_text": "Cuối cùng pin được bịt thật kín để hoá chất không rò ra ngoài.",
+      "fun_fact": "Pin cũ hãy bỏ vào thùng thu gom riêng, đừng vứt chung với rác thường nhé!"
+    }
+  ]
+}

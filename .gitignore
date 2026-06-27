@@ -1,0 +1,16 @@
+# Secrets — KHÔNG BAO GIỜ commit
+.env
+.env.*
+!.env.example
+
+# macOS
+.DS_Store
+
+# Flutter/Dart (phòng hờ, app/.gitignore đã có)
+app/build/
+app/.dart_tool/
+app/.flutter-plugins-dependencies
+
+# Node / Vercel (phòng hờ, proxy/.gitignore đã có)
+proxy/node_modules/
+proxy/.vercel/

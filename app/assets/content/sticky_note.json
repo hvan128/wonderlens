@@ -1,0 +1,28 @@
+{
+  "id": "sticky_note",
+  "name": "Giấy note",
+  "emoji": "🗒️",
+  "material_badge": "Giấy + Keo",
+  "stages": [
+    {
+      "title": "Cũng bắt đầu từ giấy 📄",
+      "kid_text": "Giấy note được làm từ giấy, mà giấy thì làm từ gỗ cây giống tờ A4.",
+      "fun_fact": "Giấy note thường có màu vàng tươi để dễ nhìn thấy."
+    },
+    {
+      "title": "Loại keo đặc biệt 🧪",
+      "kid_text": "Điều kỳ diệu nằm ở một loại keo dính nhẹ: dán lên rồi gỡ ra dán lại được nhiều lần.",
+      "fun_fact": "Loại keo này được phát minh tình cờ khi người ta đang tìm... keo siêu dính!"
+    },
+    {
+      "title": "Phết keo thành một dải 〰️",
+      "kid_text": "Keo chỉ được phết thành một dải nhỏ ở mép sau tờ giấy, nên phần còn lại vẫn rời.",
+      "fun_fact": "Nhờ vậy tờ giấy dính mà vẫn dễ lật và gỡ ra."
+    },
+    {
+      "title": "Cắt và xếp thành tập 🗒️",
+      "kid_text": "Giấy được cắt thành những tờ nhỏ vuông vắn rồi xếp chồng lên nhau thành một tập.",
+      "fun_fact": "Bạn có thể dán giấy note để nhắc mình những việc cần nhớ!"
+    }
+  ]
+}
