@@ -77,7 +77,6 @@ wonderlens/
   "stages": [
     {
       "title": "string",
-      "chapter": "string (optional — nhãn chương ngắn cho chip UI, vd 'Dầu mỏ')",
       "illustration": "assets/images/...",
       "kid_text": "string (≤50 từ, ngôn ngữ trẻ 6-10)",
       "fun_fact": "string (≤20 từ)",

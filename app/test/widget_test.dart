@@ -12,8 +12,7 @@ void main() {
     // Cho các Timer delay (animation vào màn + blob nền) kích hoạt hết.
     await tester.pump(const Duration(seconds: 2));
 
-    // Wordmark hai tông (Text.rich) → khớp theo nội dung gộp "WonderLens".
-    expect(find.textContaining('WonderLens'), findsWidgets);
+    expect(find.text('WonderLens'), findsOneWidget);
     expect(find.text('Bắt đầu khám phá'), findsOneWidget);
   });
 }
