@@ -1,0 +1,3 @@
+# Ảnh minh hoạ hành trình theo chặng cho hero objects.
+# Sinh bằng: cd proxy && npm run pregen:images
+# File: {object_id}_stage{n}.png — điền tự động vào stages[].illustration của content JSON.

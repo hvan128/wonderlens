@@ -77,8 +77,24 @@ class CaptureStore {
         : name;
   }
 
-  /// Chỉ giữ ký tự an toàn cho tên file (id vật là slug như `paper_cup`; vật
-  /// AI-live có thể lạ nên cần làm sạch).
-  static String _safeId(String objectId) =>
-      objectId.trim().replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_');
+  /// Tên file an toàn cho [objectId]. Id vật hero là slug đã an toàn
+  /// (`paper_cup`) → giữ nguyên (ổn định, tương thích file cũ). Id lạ (AI-live)
+  /// có ký tự đặc biệt → thêm hash ổn định để tránh hai id khác nhau trùng tên
+  /// file (vd `a:1` và `a-1` cùng ra `a_1`).
+  static String _safeId(String objectId) {
+    final trimmed = objectId.trim();
+    final safe = trimmed.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_');
+    if (safe == trimmed) return safe;
+    return '${safe}_${_stableHashHex(trimmed)}';
+  }
+
+  /// FNV-1a 32-bit — hash ổn định qua mọi lần chạy (khác `String.hashCode`).
+  static String _stableHashHex(String s) {
+    var hash = 0x811c9dc5;
+    for (final unit in s.codeUnits) {
+      hash = (hash ^ unit) & 0xFFFFFFFF;
+      hash = (hash * 0x01000193) & 0xFFFFFFFF;
+    }
+    return hash.toRadixString(16).padLeft(8, '0');
+  }
 }

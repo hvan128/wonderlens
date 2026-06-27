@@ -12,12 +12,13 @@ import '../ui/ui.dart';
 /// - Vật lạ (AI-live) + có proxy: bấm nút → Sora tạo (~vài phút) → phát từ file tạm.
 /// - Không có asset lẫn proxy: ẩn hẳn.
 ///
-/// State để public ([JourneyVideoState]) để màn cha pause video qua GlobalKey
-/// khi bắt đầu đọc TTS (tránh chồng tiếng).
+/// State để public ([JourneyVideoState]) để màn cha kích hoạt tạo phim ngầm
+/// (autoGenerate) qua GlobalKey. Video phát TẮT TIẾNG nên không chặn giọng đọc.
 class JourneyVideo extends StatefulWidget {
   final ObjectContent content;
 
-  /// Gọi khi video bắt đầu phát (để màn cha dừng giọng đọc TTS).
+  /// Tuỳ chọn màn cha truyền vào — hiện KHÔNG được gọi nữa: video tắt tiếng,
+  /// chạy độc lập nên không cần dừng giọng đọc khi phát.
   final VoidCallback? onPlay;
 
   const JourneyVideo({super.key, required this.content, this.onPlay});
@@ -59,7 +60,8 @@ class JourneyVideoState extends State<JourneyVideo> {
     super.dispose();
   }
 
-  /// Pause video nếu đang phát — màn cha gọi trước khi đọc TTS.
+  /// Pause video nếu đang phát — màn cha có thể gọi (tuỳ chọn). Video tắt tiếng
+  /// nên không bắt buộc, giữ để tương thích lời gọi sẵn có.
   void pauseVideo() {
     final c = _controller;
     if (c != null && c.value.isPlaying) {
@@ -81,6 +83,7 @@ class JourneyVideoState extends State<JourneyVideo> {
     try {
       await ctrl.initialize();
       await ctrl.setLooping(false);
+      await ctrl.setVolume(0); // tắt tiếng: phim chạy độc lập, không chặn narration
       if (!mounted) {
         await ctrl.dispose();
         return;
@@ -114,7 +117,8 @@ class JourneyVideoState extends State<JourneyVideo> {
     }
     _tempFile = file;
     await _initController(VideoPlayerController.file(file));
-    if (mounted && _controller != null) _togglePlay();
+    // KHÔNG tự phát: sinh xong chỉ chuyển sang trạng thái sẵn sàng (nút play).
+    // Người dùng chủ động bấm mới chiếu.
   }
 
   /// Thử lại theo nguồn: hero thì init lại asset đóng gói; vật lạ thì gọi Sora.
@@ -141,7 +145,6 @@ class JourneyVideoState extends State<JourneyVideo> {
     if (c.value.isPlaying) {
       c.pause();
     } else {
-      widget.onPlay?.call();
       // Phát lại từ đầu nếu đã xem hết.
       if (c.value.position >= c.value.duration) {
         c.seekTo(Duration.zero);

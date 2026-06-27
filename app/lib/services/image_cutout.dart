@@ -12,16 +12,21 @@ import 'package:flutter/painting.dart';
 /// giải mã lỗi, để gọi viên rớt về emoji.
 ///
 /// Đây là hàm thuần (chỉ `dart:ui`), tách khỏi platform channel để test được.
+///
+/// Quét pixel chạy đồng bộ trên main isolate là chủ ý: chỉ 1 lần mỗi lần chụp
+/// (không phải mỗi frame), trong lúc overlay "đang xem" đang phủ, và các API
+/// `dart:ui` (decode/toImage) vốn cần UI isolate nên không tách isolate gọn được.
 Future<Uint8List?> tightCropTransparentPng(
   Uint8List pngBytes, {
   int padding = 12,
   int alphaThreshold = 16,
 }) async {
+  ui.Codec? codec;
   ui.Image? src;
   ui.Image? out;
   ui.Picture? picture;
   try {
-    final codec = await ui.instantiateImageCodec(pngBytes);
+    codec = await ui.instantiateImageCodec(pngBytes);
     final frame = await codec.getNextFrame();
     src = frame.image;
     final int w = src.width;
@@ -79,5 +84,6 @@ Future<Uint8List?> tightCropTransparentPng(
     src?.dispose();
     out?.dispose();
     picture?.dispose();
+    codec?.dispose();
   }
 }

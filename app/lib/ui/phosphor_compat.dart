@@ -62,6 +62,7 @@ abstract final class PhosphorIconsBold {
 abstract final class PhosphorIconsFill {
   static const IconData filmSlate = Symbols.slideshow;
   static const IconData filmStrip = Symbols.movie;
+  static const IconData image = Symbols.image;
   static const IconData lightbulb = Symbols.lightbulb;
   static const IconData lightning = Symbols.bolt;
   static const IconData medal = Symbols.workspace_premium;
