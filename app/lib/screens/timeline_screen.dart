@@ -70,7 +70,13 @@ class _TimelineScreenState extends State<TimelineScreen> {
       _currentStage = null;
     });
     await _narration.speak(text);
-    if (mounted) setState(() => _playing = false);
+    if (!mounted) return;
+    final finishedNaturally = _playing; // _stop() đặt _playing=false giữa chừng
+    setState(() => _playing = false);
+    if (finishedNaturally) {
+      // Đọc xong giọng kể → tự tạo phim hành trình ngầm (không cần bấm nút).
+      _videoKey.currentState?.autoGenerate();
+    }
   }
 
   Future<void> _stop() async {
@@ -149,9 +155,6 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     .fadeIn(duration: WonderTokens.durBase)
                     .slideY(begin: 0.1, end: 0),
               ],
-              const SizedBox(height: 12),
-              // Phim hành trình (việc song song) — tự ẩn nếu không có video/proxy.
-              JourneyVideo(key: _videoKey, content: c, onPlay: _stop),
               const SizedBox(height: 14),
               WonderButton(
                 label: _playing ? 'Dừng đọc' : 'Nghe kể chuyện',
@@ -177,6 +180,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       curve: WonderTokens.curveStandard,
                     ),
               const SizedBox(height: 8),
+              // Phim hành trình ở CUỐI — tự tạo ngầm sau khi đọc xong câu chuyện.
+              JourneyVideo(key: _videoKey, content: c, onPlay: _stop),
+              const SizedBox(height: 16),
               Text(
                 'Bạn vừa khám phá xong! 🎉',
                 textAlign: TextAlign.center,

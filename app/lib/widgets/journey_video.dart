@@ -127,6 +127,14 @@ class JourneyVideoState extends State<JourneyVideo> {
     }
   }
 
+  /// Tự sinh phim ngầm — màn cha gọi SAU khi đọc xong giọng kể. Chỉ sinh khi
+  /// chưa có asset sẵn, có proxy và đang ở trạng thái chờ (idle).
+  void autoGenerate() {
+    if (_hasAsset || !_canGenerate) return;
+    if (_phase != _Phase.idle) return;
+    _generate();
+  }
+
   void _togglePlay() {
     final c = _controller;
     if (c == null) return;
@@ -196,8 +204,8 @@ class JourneyVideoState extends State<JourneyVideo> {
       case _Phase.error:
         return _errorBox();
       case _Phase.idle:
-        // hero asset đang init thì hiện loading; vật lạ thì hiện nút tạo.
-        return _hasAsset ? _initing() : _generateButton();
+        // hero asset đang init thì hiện loading; vật lạ chờ tự sinh sau giọng kể.
+        return _hasAsset ? _initing() : _autoHint();
     }
   }
 
@@ -287,23 +295,23 @@ class JourneyVideoState extends State<JourneyVideo> {
     );
   }
 
-  Widget _generateButton() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+  /// Trạng thái chờ: KHÔNG có nút — phim sẽ tự tạo ngầm sau khi đọc xong câu
+  /// chuyện (màn cha gọi [autoGenerate]).
+  Widget _autoHint() {
+    return Row(
       children: <Widget>[
-        Text(
-          'Xem đoạn phim ngắn về cách tạo ra vật này nhé!',
-          style: TextStyle(
-            color: WonderColors.textStrong.withValues(alpha: 0.9),
-            fontSize: 14.5,
-            height: 1.35,
+        const PhosphorIcon(PhosphorIconsFill.filmSlate,
+            size: 20, color: WonderColors.grape),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            'Phim hành trình sẽ tự xuất hiện sau khi nghe xong câu chuyện nhé!',
+            style: TextStyle(
+              color: WonderColors.textStrong.withValues(alpha: 0.85),
+              fontSize: 14,
+              height: 1.35,
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
-        WonderButton(
-          label: 'Tạo phim hành trình',
-          icon: PhosphorIconsFill.filmSlate,
-          onTap: _generate,
         ),
       ],
     );
