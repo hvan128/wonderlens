@@ -37,6 +37,7 @@ Nguồn: [brainstorm-report.md](./brainstorm-report.md).
 | 4 | [Collection & Badges](./phase-04-collection-badges.md) | Completed |
 | 5 | [AI Live Fallback](./phase-05-ai-live-fallback.md) | Completed |
 | 6 | [Polish & Demo](./phase-06-polish-demo.md) | Completed |
+| 7 | [Video Journey](./phase-07-video-journey.md) | Planned |
 
 ## Dependency graph (nội bộ)
 
@@ -44,9 +45,11 @@ Nguồn: [brainstorm-report.md](./brainstorm-report.md).
 P1 ──► P2 ──► P3 ──► P6
         │      │      ▲
         ├──► P4 ──────┤
-        └──► P5 ──────┘
+        ├──► P5 ──────┘
+        └──► P7
 ```
 - P2 phụ thuộc P1; P3, P4, P5 phụ thuộc P2 (P5 dùng thêm schema của P3); P6 phụ thuộc tất cả.
+- P7 phụ thuộc P3 vì dùng cùng content schema/timeline và bổ sung video assets cho hero objects.
 - Có thể demo được ngay sau P3 (đường xương sống wow). P4/P5/P6 là tăng cường.
 
 ## Acceptance criteria (toàn cục)
@@ -54,6 +57,7 @@ P1 ──► P2 ──► P3 ──► P6
 - [ ] ≥ 8 vật hero hoạt động **offline** (nội dung + audio bundled).
 - [ ] Mở huy hiệu + vào bộ sưu tập sau mỗi khám phá.
 - [ ] Vật lạ (có mạng) → AI live sinh hành trình kid-safe + TTS, ≥1 lần thành công.
+- [ ] Vật hero → có nút "Xem cách tạo ra" → mở video 30–60s hoặc fallback poster nếu asset chưa sẵn.
 - [ ] Demo 90s chạy trọn vẹn **không cần wifi** cho phần hero.
 
 ## Constraints (non-negotiable)

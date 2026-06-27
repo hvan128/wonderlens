@@ -30,3 +30,8 @@
 - Đặt OpenAI spend limit + đổi `APP_SHARED_SECRET` khỏi giá trị mẫu trước khi deploy công khai.
 - Tranh minh hoạ hiện là emoji (trường `Stage.illustration` đã sẵn).
 - OpenAI key cần đặt ở `proxy/.env` (server), không phải `app/.env` (app không đọc .env).
+
+## Ý tưởng tiếp theo: Video Journey
+- Sau khi chụp đồ vật, flow mới nên là: nhận diện → timeline lịch sử bằng text + audio → video ngắn "cách tạo ra" cho trẻ em → huy hiệu/bộ sưu tập.
+- Video nên đi theo hướng **curated/bundled cho hero objects** trước để chạy offline và kiểm duyệt kid-safe; vật AI-live chỉ có text + audio, chưa sinh video tự động.
+- Đã tách thành `TASK-007: Video Journey` và `Phase 7` để có Goal, AC, DoD rõ trước khi code.
