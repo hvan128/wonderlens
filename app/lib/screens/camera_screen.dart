@@ -9,12 +9,15 @@ import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../app_route_observer.dart';
+import '../data/capture_store.dart';
 import '../data/content_repository.dart';
 import '../models/object_content.dart';
 import '../services/generate_service.dart';
 import '../services/recognition_service.dart';
+import '../services/segmentation_service.dart';
 import '../ui/ui.dart';
 import '../widgets/dev_panel.dart';
+import '../widgets/object_avatar.dart';
 
 /// Màn khám phá kiểu "Apple lens" cho trẻ: preview camera tràn màn hình + lớp
 /// điều khiển liquid-glass. Toàn bộ logic camera/permission/nhận diện giữ nguyên.
@@ -44,6 +47,7 @@ class _CameraScreenState extends State<CameraScreen>
   final _service = RecognitionService();
   final _generate = GenerateService();
   final _repo = ContentRepository();
+  final _segmentation = SegmentationService();
 
   static const double _confidenceThreshold = 0.6;
 
@@ -176,8 +180,18 @@ class _CameraScreenState extends State<CameraScreen>
     try {
       shot = await controller.takePicture();
       final bytes = await File(shot.path).readAsBytes();
+      // Tách nền chạy song song nhận diện (offline, độc lập với mạng). Await ở
+      // đây để chắc chắn native đọc xong file trước khi `finally` xoá ảnh tạm.
+      final cutoutFuture = _segmentation.cutout(shot.path);
       final result = await _service.recognize(bytes);
+      final cutout = await cutoutFuture;
       if (!mounted) return;
+
+      // Lưu "ảnh sản phẩm" cho id vật đã quyết (hero, mock, hoặc AI-live).
+      Future<void> saveCapture(String id) async {
+        if (cutout == null) return;
+        await CaptureStore.instance.save(id, cutout);
+      }
 
       ObjectContent? content;
       if (result.objectId != 'unknown') {
@@ -185,6 +199,8 @@ class _CameraScreenState extends State<CameraScreen>
         if (!mounted) return;
       }
       if (content != null) {
+        await saveCapture(content.id);
+        if (!mounted) return;
         _present(content, confident: result.confidence >= _confidenceThreshold);
         return;
       }
@@ -206,6 +222,8 @@ class _CameraScreenState extends State<CameraScreen>
           'Thử một đồ vật khác nhé!',
         );
       } else {
+        await saveCapture(live.id);
+        if (!mounted) return;
         _present(live, confident: true);
       }
     } catch (e) {
@@ -571,7 +589,13 @@ class _DiscoveryOverlay extends StatelessWidget {
           children: <Widget>[
             Row(
               children: <Widget>[
-                _EmojiBadge(emoji: content.emoji),
+                ObjectAvatar(
+                  objectId: content.id,
+                  emoji: content.emoji,
+                  diameter: 66,
+                  emojiSize: 34,
+                  glowOpacity: 0.45,
+                ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
@@ -790,25 +814,6 @@ class _GeneratingOverlay extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _EmojiBadge extends StatelessWidget {
-  final String emoji;
-  const _EmojiBadge({required this.emoji});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 66,
-      height: 66,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: WonderGradients.badge,
-        boxShadow: WonderShadows.glow(WonderColors.teal, opacity: 0.45),
-      ),
-      child: Center(child: Text(emoji, style: const TextStyle(fontSize: 34))),
     );
   }
 }

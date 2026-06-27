@@ -49,7 +49,6 @@ dependencies:
   flutter_animate: ^4.5.2
   animations: ^2.2.0
   material_symbols_icons: ^4.2951.0
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

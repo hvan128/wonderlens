@@ -5,6 +5,7 @@ import '../data/collection_repository.dart';
 import '../data/content_repository.dart';
 import '../data/hero_catalog.dart';
 import '../ui/ui.dart';
+import '../widgets/object_avatar.dart';
 import '../widgets/share_sheet.dart';
 
 /// Bộ sưu tập khám phá: lưới 8 vật (mờ nếu chưa quét), huy hiệu vật liệu, cấp độ.
@@ -305,7 +306,13 @@ class _ObjectCell extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             if (found)
-              Text(item.emoji, style: const TextStyle(fontSize: 38))
+              ObjectAvatar(
+                objectId: item.id,
+                emoji: item.emoji,
+                diameter: 54,
+                emojiSize: 38,
+                glowOpacity: 0.3,
+              )
             else
               PhosphorIcon(
                 PhosphorIconsBold.lockSimple,
