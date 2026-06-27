@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
@@ -152,6 +153,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
         children: <Widget>[
           ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 36),
+            // Dựng hết con ngay frame đầu (kể cả JourneyVideo ở cuối trang) để
+            // autoGenerate qua _videoKey bắt được widget → phim sinh ngầm NGAY
+            // khi vào màn, không chờ cuộn/đọc xong.
+            scrollCacheExtent: const ScrollCacheExtent.viewport(20.0),
             children: <Widget>[
               _Header(content: c)
                   .animate()

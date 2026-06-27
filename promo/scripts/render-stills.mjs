@@ -9,7 +9,7 @@ const frames = (process.argv[2] ?? '40,120,165,215,300,380,430')
 
 const entryPoint = path.resolve('src/index.ts');
 console.log('Bundling…');
-const serveUrl = await bundle({ entryPoint });
+const serveUrl = await bundle({ entryPoint, publicDir: path.resolve('public') });
 const composition = await selectComposition({ serveUrl, id: 'WonderLensPromo' });
 
 for (const frame of frames) {

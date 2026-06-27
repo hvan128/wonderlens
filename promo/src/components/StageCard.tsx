@@ -1,9 +1,10 @@
+import { Img, staticFile } from 'remotion';
 import { COLORS, withAlpha, RADIUS } from '../theme';
 import { HEADING } from '../fonts';
 import { StageGlyph } from './Icons';
 import type { Stage } from '../content';
 
-/** Một chặng trong "hành trình". enter: 0..1 trượt vào + hiện. */
+/** Một chặng trong "hành trình": ảnh minh hoạ AI + tiêu đề. enter: 0..1 trượt vào + hiện. */
 export const StageCard = ({
   stage,
   index,
@@ -19,7 +20,7 @@ export const StageCard = ({
       alignItems: 'center',
       gap: 30,
       width: 820,
-      padding: '26px 36px',
+      padding: '24px 36px',
       borderRadius: RADIUS.card,
       background: '#FFFFFF',
       boxShadow: `0 16px 34px ${withAlpha(COLORS.ink, 0.12)}`,
@@ -28,37 +29,50 @@ export const StageCard = ({
       opacity: enter,
     }}
   >
-    <div
-      style={{
-        position: 'relative',
-        width: 118,
-        height: 118,
-        borderRadius: '50%',
-        background: withAlpha(stage.accent, 0.16),
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-      }}
-    >
-      <StageGlyph icon={stage.icon} size={92} />
+    <div style={{ position: 'relative', width: 132, height: 132, flexShrink: 0 }}>
+      {/* khung ảnh minh hoạ (bo góc) */}
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          borderRadius: 28,
+          overflow: 'hidden',
+          background: withAlpha(stage.accent, 0.16),
+          border: `3px solid ${withAlpha(stage.accent, 0.55)}`,
+          boxShadow: `0 8px 18px ${withAlpha(stage.accent, 0.3)}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {stage.image ? (
+          <Img
+            src={staticFile(stage.image)}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <StageGlyph icon={stage.icon} size={92} />
+        )}
+      </div>
+      {/* số thứ tự chặng */}
       <div
         style={{
           position: 'absolute',
-          top: -8,
-          left: -8,
-          width: 44,
-          height: 44,
+          top: -10,
+          left: -10,
+          width: 46,
+          height: 46,
           borderRadius: '50%',
           background: stage.accent,
           color: '#FFFFFF',
           fontFamily: HEADING,
           fontWeight: 800,
-          fontSize: 26,
+          fontSize: 27,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           boxShadow: `0 6px 14px ${withAlpha(stage.accent, 0.5)}`,
+          border: '3px solid #FFFFFF',
         }}
       >
         {index + 1}
