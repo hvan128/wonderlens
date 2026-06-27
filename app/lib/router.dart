@@ -7,7 +7,6 @@ import 'models/object_content.dart';
 import 'screens/badge_screen.dart';
 import 'screens/camera_screen.dart';
 import 'screens/collection_screen.dart';
-import 'screens/confirm_screen.dart';
 import 'screens/generating_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/share_screen.dart';
@@ -28,14 +27,6 @@ final appRouter = GoRouter(
       path: '/camera',
       pageBuilder: (context, state) =>
           wonderPage(key: state.pageKey, child: const CameraScreen()),
-    ),
-    GoRoute(
-      path: '/confirm',
-      pageBuilder: (context, state) => wonderPage(
-        key: state.pageKey,
-        type: SharedAxisTransitionType.scaled,
-        child: ConfirmScreen(args: state.extra as JourneyArgs?),
-      ),
     ),
     GoRoute(
       path: '/generating',

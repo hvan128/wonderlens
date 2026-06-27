@@ -20,6 +20,7 @@ import '../services/recognition_service.dart';
 import '../services/segmentation_service.dart';
 import '../ui/ui.dart';
 import '../widgets/dev_panel.dart';
+import '../widgets/object_avatar.dart';
 
 /// Màn 2 · Khung ngắm. Preview camera tràn màn hình + lớp điều khiển + mascot Tia.
 /// Nhận diện qua proxy; tách nền + lưu ảnh sản phẩm (offline) rồi sang màn Xác
@@ -44,6 +45,11 @@ class _CameraScreenState extends State<CameraScreen>
 
   String? _msgTitle;
   String? _msgBody;
+
+  // Kết quả nhận diện hiển thị dạng modal trong suốt đè lên camera (như cũ).
+  ObjectContent? _pendingContent;
+  bool _pendingConfident = false;
+  double? _pendingConfidence;
 
   final _service = RecognitionService();
   final _generate = GenerateService();
@@ -202,7 +208,7 @@ class _CameraScreenState extends State<CameraScreen>
       if (content != null) {
         await saveCapture(content.id);
         if (!mounted) return;
-        _toConfirm(
+        _present(
           content,
           confident: result.confidence >= _confidenceThreshold,
           confidence: result.confidence,
@@ -229,7 +235,7 @@ class _CameraScreenState extends State<CameraScreen>
       } else {
         await saveCapture(live.id);
         if (!mounted) return;
-        _toConfirm(live, confident: true, confidence: null);
+        _present(live, confident: true, confidence: null);
       }
     } catch (e) {
       debugPrint('Capture error: $e');
@@ -244,20 +250,37 @@ class _CameraScreenState extends State<CameraScreen>
     }
   }
 
-  void _toConfirm(
+  /// Hiện kết quả nhận diện thành modal trong suốt đè lên camera (giữ preview
+  /// chạy phía sau). Bấm "Tạo phim" mới điều hướng sang luồng dựng phim.
+  void _present(
     ObjectContent content, {
     required bool confident,
     required double? confidence,
   }) {
     HapticFeedback.mediumImpact();
-    context.push(
-      '/confirm',
-      extra: JourneyArgs(
-        content: content,
-        confident: confident,
-        confidence: confidence,
-      ),
+    setState(() {
+      _pendingContent = content;
+      _pendingConfident = confident;
+      _pendingConfidence = confidence;
+      _msgTitle = null;
+      _msgBody = null;
+    });
+  }
+
+  void _dismissDiscovery() {
+    setState(() => _pendingContent = null);
+  }
+
+  void _startFilm() {
+    final content = _pendingContent;
+    if (content == null) return;
+    final args = JourneyArgs(
+      content: content,
+      confident: _pendingConfident,
+      confidence: _pendingConfidence,
     );
+    setState(() => _pendingContent = null);
+    context.push('/generating', extra: args);
   }
 
   void _presentMessage(String title, String body) {
@@ -265,6 +288,7 @@ class _CameraScreenState extends State<CameraScreen>
     setState(() {
       _msgTitle = title;
       _msgBody = body;
+      _pendingContent = null;
     });
   }
 
@@ -292,7 +316,8 @@ class _CameraScreenState extends State<CameraScreen>
   @override
   Widget build(BuildContext context) {
     final cameraReady = _controller != null && !_initializing && _error == null;
-    final overlayUp = _msgTitle != null || _generating;
+    final overlayUp =
+        _pendingContent != null || _msgTitle != null || _generating;
     final discovered = CollectionRepository().discoveredIds().length;
     final total = heroCatalog.length;
 
@@ -347,6 +372,14 @@ class _CameraScreenState extends State<CameraScreen>
             ),
           ),
           if (_generating) const _GeneratingOverlay(),
+          if (_pendingContent != null)
+            _DiscoveryOverlay(
+              content: _pendingContent!,
+              confident: _pendingConfident,
+              confidence: _pendingConfidence,
+              onCreate: _startFilm,
+              onRetake: _dismissDiscovery,
+            ),
           if (_msgTitle != null)
             _MessageOverlay(
               title: _msgTitle!,
@@ -687,16 +720,11 @@ class _AutoPill extends StatelessWidget {
   }
 }
 
-class _MessageOverlay extends StatelessWidget {
-  final String title;
-  final String body;
-  final VoidCallback onRetake;
-
-  const _MessageOverlay({
-    required this.title,
-    required this.body,
-    required this.onRetake,
-  });
+/// Khung modal trong suốt: nền tối mờ (camera vẫn thấy phía sau) + thẻ canh đáy
+/// + hiệu ứng nảy nhẹ. Dùng chung cho modal kết quả & thông báo.
+class _OverlayShell extends StatelessWidget {
+  final Widget child;
+  const _OverlayShell({required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -710,44 +738,7 @@ class _MessageOverlay extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 460),
-                    child: GlassSurface(
-                      radius: WonderTokens.radiusLg,
-                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 18),
-                      tintOpacity: 0.42,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          const Center(child: TiaMascot(size: 64, tone: TiaTone.light)),
-                          const SizedBox(height: 12),
-                          Text(
-                            title,
-                            textAlign: TextAlign.center,
-                            style: WonderType.display(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            body,
-                            textAlign: TextAlign.center,
-                            style: WonderType.body(
-                              color: Colors.white.withValues(alpha: 0.9),
-                              fontSize: 15,
-                              height: 1.3,
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          WonderButton(
-                            label: 'Quét lại',
-                            icon: PhosphorIconsBold.arrowClockwise,
-                            onTap: onRetake,
-                          ),
-                        ],
-                      ),
-                    ),
+                    child: child,
                   ),
                 ),
               ),
@@ -762,6 +753,195 @@ class _MessageOverlay extends StatelessWidget {
           duration: WonderTokens.durSlow,
           curve: WonderTokens.curveEmphasized,
         );
+  }
+}
+
+/// Modal kết quả nhận diện (hiển thị tức thì sau khi chụp, đè lên camera).
+/// Hiện ảnh sản phẩm thật + tên + độ tin cậy; bấm "Tạo phim khám phá" để sang
+/// luồng dựng phim, hoặc "chọn lại" để đóng và quét tiếp.
+class _DiscoveryOverlay extends StatelessWidget {
+  final ObjectContent content;
+  final bool confident;
+  final double? confidence;
+  final VoidCallback onCreate;
+  final VoidCallback onRetake;
+
+  const _DiscoveryOverlay({
+    required this.content,
+    required this.confident,
+    required this.confidence,
+    required this.onCreate,
+    required this.onRetake,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isLive = content.source == 'live';
+    final pct = confidence == null ? null : (confidence! * 100).round();
+    return _OverlayShell(
+      child: GlassSurface(
+        radius: WonderTokens.radiusXl,
+        padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+        tintOpacity: 0.42,
+        shadows: WonderShadows.card,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                ObjectAvatar(
+                  objectId: content.id,
+                  emoji: content.emoji,
+                  diameter: 66,
+                  emojiSize: 34,
+                  glowOpacity: 0.45,
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          PhosphorIcon(
+                            confident
+                                ? PhosphorIconsFill.sealCheck
+                                : PhosphorIconsBold.question,
+                            size: 16,
+                            color: Colors.white.withValues(alpha: 0.9),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            confident ? 'Tia thấy rồi!' : 'Hình như là…',
+                            style: WonderType.body(
+                              color: Colors.white.withValues(alpha: 0.88),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        confident ? content.name : '${content.name}?',
+                        style: WonderType.display(
+                          color: Colors.white,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
+                          height: 1.1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                if (content.materialBadge.isNotEmpty)
+                  WonderChip(
+                    label: content.materialBadge,
+                    icon: PhosphorIconsBold.flask,
+                  ),
+                if (pct != null)
+                  WonderChip(
+                    label: '$pct%',
+                    icon: PhosphorIconsBold.magnifyingGlass,
+                  ),
+                if (isLive)
+                  WonderChip(
+                    label: 'Khám phá vui (AI)',
+                    icon: PhosphorIconsFill.sparkle,
+                    color: WonderColors.spark,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Cùng xem nó được tạo ra như thế nào nhé!',
+              style: WonderType.body(
+                color: Colors.white.withValues(alpha: 0.92),
+                fontSize: 15,
+                height: 1.3,
+              ),
+            ),
+            const SizedBox(height: 18),
+            WonderButton(
+              label: 'Tạo phim khám phá 🎬',
+              onTap: onCreate,
+            ),
+            const SizedBox(height: 4),
+            Center(
+              child: WonderTextButton(
+                label: 'Không phải — chọn lại',
+                color: Colors.white.withValues(alpha: 0.9),
+                onTap: onRetake,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MessageOverlay extends StatelessWidget {
+  final String title;
+  final String body;
+  final VoidCallback onRetake;
+
+  const _MessageOverlay({
+    required this.title,
+    required this.body,
+    required this.onRetake,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _OverlayShell(
+      child: GlassSurface(
+        radius: WonderTokens.radiusLg,
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 18),
+        tintOpacity: 0.42,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            const Center(child: TiaMascot(size: 64, tone: TiaTone.light)),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: WonderType.display(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              body,
+              textAlign: TextAlign.center,
+              style: WonderType.body(
+                color: Colors.white.withValues(alpha: 0.9),
+                fontSize: 15,
+                height: 1.3,
+              ),
+            ),
+            const SizedBox(height: 18),
+            WonderButton(
+              label: 'Quét lại',
+              icon: PhosphorIconsBold.arrowClockwise,
+              onTap: onRetake,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
