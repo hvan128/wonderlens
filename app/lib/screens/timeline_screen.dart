@@ -8,6 +8,7 @@ import '../models/object_content.dart';
 import '../services/narration_service.dart';
 import '../ui/ui.dart';
 import '../widgets/journey_video.dart';
+import '../widgets/object_avatar.dart';
 import '../widgets/share_sheet.dart';
 
 /// Origin Timeline: cuộn xem từng chặng "hành trình tạo ra vật", có giọng đọc +
@@ -246,17 +247,12 @@ class _Header extends StatelessWidget {
       shadows: WonderShadows.card,
       child: Row(
         children: <Widget>[
-          Container(
-            width: 62,
-            height: 62,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: WonderGradients.badge,
-              boxShadow: WonderShadows.glow(WonderColors.teal, opacity: 0.4),
-            ),
-            child: Center(
-              child: Text(content.emoji, style: const TextStyle(fontSize: 32)),
-            ),
+          ObjectAvatar(
+            objectId: content.id,
+            emoji: content.emoji,
+            diameter: 62,
+            emojiSize: 32,
+            glowOpacity: 0.4,
           ),
           const SizedBox(width: 14),
           Expanded(
