@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-import { generateJourney } from '../lib/openai-generate';
+import { generateJourney } from '../lib/openai-generate.js';
 
 /**
  * Sinh "hành trình tạo ra vật" kid-safe cho vật ngoài bộ hero.

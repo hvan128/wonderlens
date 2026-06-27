@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-import { recognizeWithOpenAI } from '../lib/openai-vision';
+import { recognizeWithOpenAI } from '../lib/openai-vision.js';
 
 /**
  * Nhận diện vật từ ảnh bằng OpenAI Vision, ép phân loại vào bộ "vật hero".

@@ -2,6 +2,7 @@
   "name": "wonderlens-proxy",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Vercel serverless proxy giấu OpenAI key cho WonderLens (recognize + generate).",
   "scripts": {
     "dev": "vercel dev",

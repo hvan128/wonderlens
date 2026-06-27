@@ -1,4 +1,4 @@
-import { KID_SAFE_SYSTEM, JOURNEY_SCHEMA } from './kid-safe-prompt';
+import { KID_SAFE_SYSTEM, JOURNEY_SCHEMA } from './kid-safe-prompt.js';
 
 export interface JourneyStage {
   title: string;

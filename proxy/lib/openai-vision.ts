@@ -1,4 +1,4 @@
-import { HERO_IDS, displayNameOf } from './hero-objects';
+import { HERO_IDS, displayNameOf } from './hero-objects.js';
 
 export interface VisionResult {
   object_id: string;
