@@ -47,15 +47,23 @@ abstract final class PhosphorIconsBold {
   static const IconData arrowRight = Symbols.arrow_forward;
   static const IconData books = Symbols.auto_stories;
   static const IconData camera = Symbols.photo_camera;
+  static const IconData caretRight = Symbols.chevron_right;
   static const IconData compass = Symbols.explore;
+  static const IconData dotsThree = Symbols.more_horiz;
+  static const IconData downloadSimple = Symbols.download;
   static const IconData flashlight = Symbols.flashlight_on;
   static const IconData flask = Symbols.science;
+  static const IconData floppyDisk = Symbols.save;
+  static const IconData gridFour = Symbols.grid_view;
   static const IconData houseSimple = Symbols.home;
   static const IconData lockSimple = Symbols.lock;
   static const IconData magnifyingGlass = Symbols.search;
   static const IconData question = Symbols.help;
+  static const IconData repeat = Symbols.replay;
   static const IconData shareNetwork = Symbols.share;
+  static const IconData star = Symbols.star;
   static const IconData stop = Symbols.stop_circle;
+  static const IconData x = Symbols.close;
 }
 
 /// Nét đặc (fill).
@@ -66,10 +74,12 @@ abstract final class PhosphorIconsFill {
   static const IconData lightbulb = Symbols.lightbulb;
   static const IconData lightning = Symbols.bolt;
   static const IconData medal = Symbols.workspace_premium;
+  static const IconData pause = Symbols.pause;
   static const IconData play = Symbols.play_arrow;
   static const IconData sealCheck = Symbols.verified;
   static const IconData sparkle = Symbols.auto_awesome;
   static const IconData speakerSimpleHigh = Symbols.volume_up;
+  static const IconData star = Symbols.star;
   static const IconData trophy = Symbols.emoji_events;
   static const IconData warningCircle = Symbols.error;
 }

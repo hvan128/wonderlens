@@ -6,21 +6,25 @@
   "stages": [
     {
       "title": "Bắt đầu từ quặng sắt ⛏️",
+      "chapter": "Quặng sắt",
       "kid_text": "Kẹp giấy làm bằng thép. Thép lại được làm ra từ quặng sắt đào lên từ trong lòng đất.",
       "fun_fact": "Quặng sắt trông giống những hòn đá màu nâu đỏ."
     },
     {
       "title": "Nấu chảy thành thép 🔥",
+      "chapter": "Thành thép",
       "kid_text": "Quặng sắt được nấu trong lò cực kỳ nóng cho chảy ra, rồi luyện thành thép cứng cáp.",
       "fun_fact": "Lò luyện thép nóng hơn cả dung nham núi lửa!"
     },
     {
       "title": "Kéo thành sợi dây mảnh 〰️",
+      "chapter": "Sợi thép",
       "kid_text": "Thép được kéo dài ra thành những sợi dây nhỏ và mảnh.",
       "fun_fact": "Sợi thép vừa mảnh vừa dẻo nên uốn cong được mà không gãy."
     },
     {
       "title": "Uốn thành hình kẹp 📎",
+      "chapter": "Uốn kẹp",
       "kid_text": "Một chiếc máy uốn sợi dây thép thành hình xoắn quen thuộc của kẹp giấy.",
       "fun_fact": "Chính hình xoắn đó giúp kẹp giữ chặt giấy mà không làm rách."
     }
