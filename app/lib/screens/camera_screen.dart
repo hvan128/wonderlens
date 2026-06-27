@@ -8,14 +8,18 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../data/collection_repository.dart';
 import '../data/content_repository.dart';
+import '../data/hero_catalog.dart';
+import '../models/journey_args.dart';
 import '../models/object_content.dart';
 import '../services/generate_service.dart';
 import '../services/recognition_service.dart';
 import '../ui/ui.dart';
 
-/// Màn khám phá kiểu "Apple lens" cho trẻ: preview camera tràn màn hình + lớp
-/// điều khiển liquid-glass. Toàn bộ logic camera/permission/nhận diện giữ nguyên.
+/// Màn 2 · Khung ngắm. Preview camera tràn màn hình + lớp điều khiển + mascot Tia.
+/// Nhận diện qua proxy; khi thấy vật → sang màn Xác nhận. Toàn bộ logic camera /
+/// permission / nhận diện giữ nguyên. Bám mockup `.s-cam`.
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
 
@@ -34,8 +38,6 @@ class _CameraScreenState extends State<CameraScreen>
   bool _torch = false;
   String? _error;
 
-  ObjectContent? _pendingContent;
-  bool _pendingConfident = false;
   String? _msgTitle;
   String? _msgBody;
 
@@ -159,7 +161,11 @@ class _CameraScreenState extends State<CameraScreen>
         if (!mounted) return;
       }
       if (content != null) {
-        _present(content, confident: result.confidence >= _confidenceThreshold);
+        _toConfirm(
+          content,
+          confident: result.confidence >= _confidenceThreshold,
+          confidence: result.confidence,
+        );
         return;
       }
 
@@ -180,7 +186,7 @@ class _CameraScreenState extends State<CameraScreen>
           'Thử một đồ vật khác nhé!',
         );
       } else {
-        _present(live, confident: true);
+        _toConfirm(live, confident: true, confidence: null);
       }
     } catch (e) {
       debugPrint('Capture error: $e');
@@ -195,14 +201,20 @@ class _CameraScreenState extends State<CameraScreen>
     }
   }
 
-  void _present(ObjectContent content, {required bool confident}) {
+  void _toConfirm(
+    ObjectContent content, {
+    required bool confident,
+    required double? confidence,
+  }) {
     HapticFeedback.mediumImpact();
-    setState(() {
-      _pendingContent = content;
-      _pendingConfident = confident;
-      _msgTitle = null;
-      _msgBody = null;
-    });
+    context.push(
+      '/confirm',
+      extra: JourneyArgs(
+        content: content,
+        confident: confident,
+        confidence: confidence,
+      ),
+    );
   }
 
   void _presentMessage(String title, String body) {
@@ -210,21 +222,14 @@ class _CameraScreenState extends State<CameraScreen>
     setState(() {
       _msgTitle = title;
       _msgBody = body;
-      _pendingContent = null;
     });
   }
 
-  void _dismissOverlay() {
+  void _dismissMessage() {
     setState(() {
-      _pendingContent = null;
       _msgTitle = null;
       _msgBody = null;
     });
-  }
-
-  void _openJourney(ObjectContent content) {
-    setState(() => _pendingContent = null);
-    context.push('/timeline', extra: content);
   }
 
   Future<void> _toggleTorch() async {
@@ -244,8 +249,9 @@ class _CameraScreenState extends State<CameraScreen>
   @override
   Widget build(BuildContext context) {
     final cameraReady = _controller != null && !_initializing && _error == null;
-    final overlayUp =
-        _pendingContent != null || _msgTitle != null || _generating;
+    final overlayUp = _msgTitle != null || _generating;
+    final discovered = CollectionRepository().discoveredIds().length;
+    final total = heroCatalog.length;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -254,18 +260,27 @@ class _CameraScreenState extends State<CameraScreen>
         children: <Widget>[
           _buildPreview(),
           const _Scrims(),
+          if (cameraReady) const IgnorePointer(child: _Reticle()),
           SafeArea(
-            child: WonderHeader(
-              branded: true,
-              tone: GlassTone.dark,
-              floating: false,
-              actions: <WonderHeaderAction>[
-                WonderHeaderAction(
-                  icon: PhosphorIconsBold.houseSimple,
-                  tooltip: 'Về màn hình chính',
-                  onTap: () => context.go('/onboarding'),
+            // Ghim hàng điều khiển lên đỉnh; nếu không, Stack(StackFit.expand)
+            // ép Row cao full màn hình và canh giữa dọc 2 nút (lỗi đã gặp).
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
+                child: Row(
+                  children: <Widget>[
+                    GlassIconButton(
+                      icon: PhosphorIconsBold.arrowLeft,
+                      semanticLabel: 'Về màn hình chính',
+                      size: 46,
+                      onTap: () => context.go('/onboarding'),
+                    ),
+                    const Spacer(),
+                    _TrophyPill(count: discovered, total: total),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
           Positioned(
@@ -288,18 +303,11 @@ class _CameraScreenState extends State<CameraScreen>
             ),
           ),
           if (_generating) const _GeneratingOverlay(),
-          if (_pendingContent != null)
-            _DiscoveryOverlay(
-              content: _pendingContent!,
-              confident: _pendingConfident,
-              onSeeJourney: () => _openJourney(_pendingContent!),
-              onRetake: _dismissOverlay,
-            ),
           if (_msgTitle != null)
             _MessageOverlay(
               title: _msgTitle!,
               body: _msgBody ?? '',
-              onRetake: _dismissOverlay,
+              onRetake: _dismissMessage,
             ),
         ],
       ),
@@ -400,6 +408,109 @@ class _Scrims extends StatelessWidget {
   }
 }
 
+/// Khung ngắm: 4 góc bạc-hà + quầng sáng nhẹ ở giữa, hơi cao hơn tâm.
+class _Reticle extends StatelessWidget {
+  const _Reticle();
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: const Alignment(0, -0.18),
+      child: SizedBox(
+        width: 220,
+        height: 220,
+        child: Stack(
+          alignment: Alignment.center,
+          children: <Widget>[
+            Container(
+              margin: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: <Color>[Color(0x402FD3BC), Color(0x002FD3BC)],
+                  stops: <double>[0.0, 0.62],
+                ),
+              ),
+            )
+                .animate(onPlay: (c) => c.repeat(reverse: true))
+                .scaleXY(begin: 0.92, end: 1.06, duration: 2200.ms, curve: Curves.easeInOut),
+            const _Corner(Alignment.topLeft),
+            const _Corner(Alignment.topRight),
+            const _Corner(Alignment.bottomLeft),
+            const _Corner(Alignment.bottomRight),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Corner extends StatelessWidget {
+  final Alignment align;
+  const _Corner(this.align);
+
+  @override
+  Widget build(BuildContext context) {
+    final top = align.y < 0;
+    final left = align.x < 0;
+    return Align(
+      alignment: align,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          border: Border(
+            top: top ? _side : BorderSide.none,
+            bottom: top ? BorderSide.none : _side,
+            left: left ? _side : BorderSide.none,
+            right: left ? BorderSide.none : _side,
+          ),
+          borderRadius: BorderRadius.only(
+            topLeft: top && left ? _r : Radius.zero,
+            topRight: top && !left ? _r : Radius.zero,
+            bottomLeft: !top && left ? _r : Radius.zero,
+            bottomRight: !top && !left ? _r : Radius.zero,
+          ),
+        ),
+      ),
+    );
+  }
+
+  static const BorderSide _side = BorderSide(color: WonderColors.mint, width: 4);
+  static const Radius _r = Radius.circular(8);
+}
+
+/// Pill huy hiệu góc phải: "🏆 Đã có 5/8".
+class _TrophyPill extends StatelessWidget {
+  final int count;
+  final int total;
+  const _TrophyPill({required this.count, required this.total});
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassSurface(
+      radius: WonderTokens.radiusSm,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      tintOpacity: 0.32,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const PhosphorIcon(PhosphorIconsFill.trophy, size: 15, color: WonderColors.spark),
+          const SizedBox(width: 6),
+          Text(
+            'Đã có $count/$total',
+            style: WonderType.body(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _BottomControls extends StatelessWidget {
   final bool busy;
   final bool torch;
@@ -424,8 +535,10 @@ class _BottomControls extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            _HintPill(busy: busy),
-            const SizedBox(height: 18),
+            _HintBubble(busy: busy),
+            const SizedBox(height: 14),
+            const _AutoPill(),
+            const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -446,27 +559,6 @@ class _BottomControls extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                PhosphorIcon(
-                  PhosphorIconsFill.sparkle,
-                  size: 13,
-                  color: Colors.white.withValues(alpha: 0.85),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'CHẾ ĐỘ KHÁM PHÁ',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.85),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 2,
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -474,34 +566,36 @@ class _BottomControls extends StatelessWidget {
   }
 }
 
-class _HintPill extends StatelessWidget {
+/// Bong bóng gợi ý có mascot Tia.
+class _HintBubble extends StatelessWidget {
   final bool busy;
-  const _HintPill({required this.busy});
+  const _HintBubble({required this.busy});
 
   @override
   Widget build(BuildContext context) {
-    return GlassSurface(
-      radius: WonderTokens.pill,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-      tintOpacity: 0.32,
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 280),
+      padding: const EdgeInsets.fromLTRB(10, 9, 14, 9),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: WonderShadows.soft,
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          PhosphorIcon(
-            busy ? PhosphorIconsBold.magnifyingGlass : PhosphorIconsBold.camera,
-            size: 17,
-            color: Colors.white,
-          ),
-          const SizedBox(width: 8),
+          const TiaMascot(size: 38, cheeks: false),
+          const SizedBox(width: 10),
           Flexible(
             child: Text(
-              busy ? 'Đang xem nào…' : 'Chĩa vào đồ vật & chạm để khám phá',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14.5,
-                fontWeight: FontWeight.w700,
+              busy
+                  ? 'Để Tia xem kỹ nào… 🔍'
+                  : 'Giữ yên nào — Tia sẽ kể chuyện đồ vật này! 📸',
+              style: WonderType.body(
+                color: WonderColors.textStrong,
+                fontSize: 13,
+                height: 1.35,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
@@ -511,123 +605,32 @@ class _HintPill extends StatelessWidget {
   }
 }
 
-/// Thẻ khám phá bật lên từ đáy với hiệu ứng nảy nhẹ.
-class _DiscoveryOverlay extends StatelessWidget {
-  final ObjectContent content;
-  final bool confident;
-  final VoidCallback onSeeJourney;
-  final VoidCallback onRetake;
-
-  const _DiscoveryOverlay({
-    required this.content,
-    required this.confident,
-    required this.onSeeJourney,
-    required this.onRetake,
-  });
+class _AutoPill extends StatelessWidget {
+  const _AutoPill();
 
   @override
   Widget build(BuildContext context) {
-    final isLive = content.source == 'live';
-    return _OverlayShell(
-      child: GlassSurface(
-        radius: WonderTokens.radiusXl,
-        padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
-        tintOpacity: 0.42,
-        shadows: WonderShadows.card,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                _EmojiBadge(emoji: content.emoji),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          PhosphorIcon(
-                            confident
-                                ? PhosphorIconsFill.sealCheck
-                                : PhosphorIconsBold.question,
-                            size: 16,
-                            color: Colors.white.withValues(alpha: 0.9),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            confident ? 'Tớ thấy rồi!' : 'Hình như là…',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.88),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        confident ? content.name : '${content.name}?',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w900,
-                          height: 1.1,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+      decoration: BoxDecoration(
+        color: WonderColors.mint.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: WonderColors.mint.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const PhosphorIcon(PhosphorIconsFill.lightning, size: 13, color: WonderColors.mint),
+          const SizedBox(width: 5),
+          Text(
+            'Chạm để khám phá',
+            style: WonderType.body(
+              color: WonderColors.mint,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
             ),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: <Widget>[
-                if (content.materialBadge.isNotEmpty)
-                  WonderChip(
-                    label: content.materialBadge,
-                    icon: PhosphorIconsBold.flask,
-                  ),
-                WonderChip(
-                  label: '${content.stages.length} chặng',
-                  icon: PhosphorIconsBold.compass,
-                ),
-                if (isLive)
-                  WonderChip(
-                    label: 'Khám phá vui (AI)',
-                    icon: PhosphorIconsFill.sparkle,
-                    color: WonderColors.sunny,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Cùng xem nó được tạo ra như thế nào nhé!',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.92),
-                fontSize: 15,
-                height: 1.3,
-              ),
-            ),
-            const SizedBox(height: 18),
-            WonderButton(
-              label: confident ? 'Xem hành trình' : 'Đúng rồi, xem nào',
-              trailingIcon: PhosphorIconsBold.arrowRight,
-              onTap: onSeeJourney,
-            ),
-            const SizedBox(height: 4),
-            Center(
-              child: WonderTextButton(
-                label: 'Quét lại',
-                color: Colors.white.withValues(alpha: 0.9),
-                onTap: onRetake,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -646,65 +649,9 @@ class _MessageOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _OverlayShell(
-      child: GlassSurface(
-        radius: WonderTokens.radiusLg,
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 18),
-        tintOpacity: 0.42,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            const Center(
-              child: PhosphorIcon(
-                PhosphorIconsDuotone.binoculars,
-                size: 40,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              body,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.9),
-                fontSize: 15,
-                height: 1.3,
-              ),
-            ),
-            const SizedBox(height: 18),
-            WonderButton(
-              label: 'Quét lại',
-              icon: PhosphorIconsBold.arrowClockwise,
-              onTap: onRetake,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Khung phủ tối + canh đáy + nảy lên cho các thẻ overlay.
-class _OverlayShell extends StatelessWidget {
-  final Widget child;
-  const _OverlayShell({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
     return Positioned.fill(
           child: ColoredBox(
-            color: Colors.black.withValues(alpha: 0.45),
+            color: Colors.black.withValues(alpha: 0.5),
             child: SafeArea(
               child: Align(
                 alignment: Alignment.bottomCenter,
@@ -712,7 +659,44 @@ class _OverlayShell extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 460),
-                    child: child,
+                    child: GlassSurface(
+                      radius: WonderTokens.radiusLg,
+                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 18),
+                      tintOpacity: 0.42,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          const Center(child: TiaMascot(size: 64, tone: TiaTone.light)),
+                          const SizedBox(height: 12),
+                          Text(
+                            title,
+                            textAlign: TextAlign.center,
+                            style: WonderType.display(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            body,
+                            textAlign: TextAlign.center,
+                            style: WonderType.body(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              fontSize: 15,
+                              height: 1.3,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          WonderButton(
+                            label: 'Quét lại',
+                            icon: PhosphorIconsBold.arrowClockwise,
+                            onTap: onRetake,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -730,6 +714,7 @@ class _OverlayShell extends StatelessWidget {
   }
 }
 
+/// Lớp phủ khi đang "tìm hiểu món lạ" (AI-live sinh nội dung).
 class _GeneratingOverlay extends StatelessWidget {
   const _GeneratingOverlay();
 
@@ -740,18 +725,20 @@ class _GeneratingOverlay extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
         child: ColoredBox(
           color: Colors.black.withValues(alpha: 0.5),
-          child: const Center(
+          child: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                ScanRingButton(busy: true, size: 104),
-                SizedBox(height: 22),
+                const TiaMascot(size: 96, tone: TiaTone.light)
+                    .animate(onPlay: (c) => c.repeat(reverse: true))
+                    .moveY(begin: -6, end: 6, duration: 1600.ms, curve: Curves.easeInOut),
+                const SizedBox(height: 18),
                 Text(
-                  'Đang tìm hiểu món này…',
-                  style: TextStyle(
+                  'Tia đang tìm hiểu món này…',
+                  style: WonderType.display(
                     color: Colors.white,
                     fontSize: 18,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -759,25 +746,6 @@ class _GeneratingOverlay extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _EmojiBadge extends StatelessWidget {
-  final String emoji;
-  const _EmojiBadge({required this.emoji});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 66,
-      height: 66,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: WonderGradients.badge,
-        boxShadow: WonderShadows.glow(WonderColors.teal, opacity: 0.45),
-      ),
-      child: Center(child: Text(emoji, style: const TextStyle(fontSize: 34))),
     );
   }
 }
@@ -805,13 +773,7 @@ class _StatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: <Color>[Color(0xFF102036), WonderColors.ink],
-        ),
-      ),
+      decoration: const BoxDecoration(gradient: WonderGradients.camera),
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -823,17 +785,17 @@ class _StatusCard extends StatelessWidget {
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: WonderType.display(
                   color: Colors.white,
                   fontSize: 20,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 body,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: WonderType.body(
                   color: Colors.white.withValues(alpha: 0.82),
                   fontSize: 15,
                   height: 1.3,
@@ -842,7 +804,7 @@ class _StatusCard extends StatelessWidget {
               if (spinner) ...<Widget>[
                 const SizedBox(height: 24),
                 const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(WonderColors.cyan),
+                  valueColor: AlwaysStoppedAnimation<Color>(WonderColors.violet),
                 ),
               ],
               if (actionLabel != null && onAction != null) ...<Widget>[

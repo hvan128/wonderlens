@@ -6,21 +6,25 @@
   "stages": [
     {
       "title": "Bắt đầu từ dầu mỏ 🛢️",
+      "chapter": "Dầu mỏ",
       "kid_text": "Vỏ bút làm bằng nhựa. Nhựa lại được làm ra từ dầu mỏ — một chất lỏng nằm sâu dưới lòng đất.",
       "fun_fact": "Dầu mỏ hình thành từ xác sinh vật biển tí hon sống cách đây hàng triệu năm!"
     },
     {
       "title": "Biến thành hạt nhựa ⚪",
+      "chapter": "Hạt nhựa",
       "kid_text": "Dầu mỏ được chế biến thành những hạt nhựa nhỏ xíu. Người ta nấu chảy chúng rồi ép thành vỏ bút.",
       "fun_fact": "Hạt nhựa nhỏ như hạt gạo, nhưng nấu chảy ra là tạo được đủ hình dạng!"
     },
     {
       "title": "Pha mực màu 🎨",
+      "chapter": "Pha mực",
       "kid_text": "Mực là một chất lỏng sền sệt có màu. Mực được bơm vào một cái ống nhỏ nằm bên trong thân bút.",
       "fun_fact": "Mực bút bi đặc hơn nước nhiều nên không bị chảy lung tung."
     },
     {
       "title": "Viên bi thép tí hon ⚙️",
+      "chapter": "Viên bi",
       "kid_text": "Ở đầu bút có một viên bi kim loại nhỏ xíu. Khi viết, viên bi lăn tròn và kéo mực ra giấy.",
       "fun_fact": "Chính nhờ viên bi này mà nó có tên là bút 'bi' đấy!"
     }
