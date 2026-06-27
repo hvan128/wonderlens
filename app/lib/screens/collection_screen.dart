@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/collection_repository.dart';
+import '../data/content_repository.dart';
 import '../data/hero_catalog.dart';
 import '../ui/ui.dart';
 import '../widgets/share_sheet.dart';
@@ -93,6 +94,9 @@ class CollectionScreen extends StatelessWidget {
                 _ObjectCell(
                   item: heroCatalog[i],
                   found: discovered.contains(heroCatalog[i].id),
+                  onTap: discovered.contains(heroCatalog[i].id)
+                      ? () => _openHeroJourney(context, heroCatalog[i].id)
+                      : null,
                 )
                     .animate(delay: (i * 60).ms)
                     .fadeIn(duration: WonderTokens.durBase)
@@ -111,6 +115,14 @@ class CollectionScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Mở lại "hành trình" của một vật đã khám phá khi bấm vào ô trong bộ sưu tập.
+/// Nội dung vật hero đóng gói sẵn (offline) nên load gần như tức thì + có cache.
+Future<void> _openHeroJourney(BuildContext context, String id) async {
+  final content = await ContentRepository().load(id);
+  if (!context.mounted || content == null) return;
+  context.push('/timeline', extra: content);
 }
 
 class _SectionTitle extends StatelessWidget {
@@ -275,42 +287,47 @@ class _MaterialBadge extends StatelessWidget {
 class _ObjectCell extends StatelessWidget {
   final HeroItem item;
   final bool found;
-  const _ObjectCell({required this.item, required this.found});
+  final VoidCallback? onTap;
+  const _ObjectCell({required this.item, required this.found, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return GlassSurface(
-      tone: GlassTone.light,
-      radius: WonderTokens.radiusMd,
-      padding: const EdgeInsets.all(8),
-      tintOpacity: found ? null : 0.34,
-      shadows: WonderShadows.soft,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          if (found)
-            Text(item.emoji, style: const TextStyle(fontSize: 38))
-          else
-            PhosphorIcon(
-              PhosphorIconsBold.lockSimple,
-              size: 32,
-              color: WonderColors.textSoft.withValues(alpha: 0.55),
+    return Pressable(
+      onTap: onTap,
+      semanticLabel: found ? 'Xem hành trình ${item.name}' : null,
+      child: GlassSurface(
+        tone: GlassTone.light,
+        radius: WonderTokens.radiusMd,
+        padding: const EdgeInsets.all(8),
+        tintOpacity: found ? null : 0.34,
+        shadows: WonderShadows.soft,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            if (found)
+              Text(item.emoji, style: const TextStyle(fontSize: 38))
+            else
+              PhosphorIcon(
+                PhosphorIconsBold.lockSimple,
+                size: 32,
+                color: WonderColors.textSoft.withValues(alpha: 0.55),
+              ),
+            const SizedBox(height: 6),
+            Text(
+              found ? item.name : '???',
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: found
+                    ? WonderColors.textStrong
+                    : WonderColors.textSoft.withValues(alpha: 0.7),
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          const SizedBox(height: 6),
-          Text(
-            found ? item.name : '???',
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: found
-                  ? WonderColors.textStrong
-                  : WonderColors.textSoft.withValues(alpha: 0.7),
-              fontSize: 12.5,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
