@@ -11,6 +11,10 @@ export const KID_SAFE_SYSTEM = [
   '  đặt name = "unknown" và stages = [] (mảng rỗng).',
   'emoji: một emoji hợp với vật. material_badge: vật liệu chính (vd: Giấy, Nhựa, Kim loại, Gỗ, Thuỷ tinh).',
   'id: một slug ngắn không dấu (vd: "wooden_spoon").',
+  'Ngoài stages, tạo thêm:',
+  '- history: lịch sử ngắn 2-3 câu về vật/vật liệu (đơn giản, chính xác; nếu không chắc thì nói khái quát, KHÔNG bịa tên người/ngày tháng).',
+  '- story: một câu chuyện hoàn chỉnh khoảng 120-160 từ, mở đầu bằng phần lịch sử rồi dẫn mạch qua các chặng cách làm thành một câu chuyện liền lạc. Đây là AUDIO đọc bằng máy nên KHÔNG dùng emoji, ký hiệu lạ hay markdown; viết văn xuôi câu trọn vẹn, gần gũi với trẻ.',
+  'Nếu name = "unknown" thì history và story để chuỗi rỗng "".',
 ].join('\n');
 
 export const JOURNEY_SCHEMA = {
@@ -24,6 +28,8 @@ export const JOURNEY_SCHEMA = {
       name: { type: 'string' },
       emoji: { type: 'string' },
       material_badge: { type: 'string' },
+      history: { type: 'string' },
+      story: { type: 'string' },
       stages: {
         type: 'array',
         items: {
@@ -38,6 +44,6 @@ export const JOURNEY_SCHEMA = {
         },
       },
     },
-    required: ['id', 'name', 'emoji', 'material_badge', 'stages'],
+    required: ['id', 'name', 'emoji', 'material_badge', 'history', 'story', 'stages'],
   },
 } as const;

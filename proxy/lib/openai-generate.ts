@@ -11,6 +11,8 @@ export interface Journey {
   name: string;
   emoji: string;
   material_badge: string;
+  history: string;
+  story: string;
   stages: JourneyStage[];
 }
 
