@@ -1,82 +1,163 @@
 ---
 phase: 7
-title: Video Journey
+title: Research Summary + Video Journey
 status: planned
 priority: P1
 dependencies:
+  - 2
   - 3
-effort: D5
+effort: D7
 ---
 
-# Phase 7: Video Journey
+# Phase 7: Research Summary + Video Journey
 
 ## Overview
-Sau khi trẻ chụp đồ vật và xem Origin Timeline bằng text + audio, app mở thêm nhánh "Xem cách tạo ra": một video ngắn 30–60s giải thích quy trình tạo ra đồ vật bằng ngôn ngữ trẻ em. Với hero objects, video là asset curated/bundled để chạy offline và kiểm soát kid-safe. Với vật AI-live, chưa sinh video tự động; app chỉ hiển thị timeline text + audio và gợi ý "Video đang được chuẩn bị".
+
+Luồng mới sau khi chụp ảnh:
+
+1. **Thông tin + lịch sử** — lấy từ Wikipedia / trang chính thống, tóm tắt kid-safe qua proxy.
+2. **Timeline text + audio** — hành trình tạo ra vật (bundled hero hoặc AI live).
+3. **System prompt video "cách làm"** — sinh kịch bản scene 30–60s từ summary + stages; sau đó phát video (bundled hoặc gen).
+
+Khác với bản plan cũ (chỉ bundle video MP4): nội dung info/lịch sử **động từ nguồn**, video script **sinh có kiểm soát** bằng prompt riêng.
+
+---
 
 ## Complete User Flow
-1. Trẻ mở Camera và chụp một đồ vật.
-2. App gửi ảnh qua `/api/recognize`.
-3. Nếu nhận diện là hero object, app load `HeroContent` bundled.
-4. Timeline hiện ngay: tên vật, các chặng lịch sử/cách hình thành bằng text, fun fact, giọng đọc `flutter_tts`.
-5. Trên timeline có CTA "Xem cách tạo ra".
-6. Khi bấm CTA, app mở `VideoJourneyScreen`.
-7. Video tự hiện poster, nút play lớn, caption ngắn; không autoplay âm thanh để trẻ/phụ huynh chủ động.
-8. Khi trẻ bấm play, video phát fullscreen hoặc inline, có play/pause, replay, phụ đề/caption ngắn theo stage nếu asset có.
-9. Kết thúc video, app hiện "Con đã khám phá xong!" và nút "Nhận huy hiệu".
-10. App mở confetti, ghi nhận object vào Collection/Hive, mở huy hiệu vật liệu như flow hiện tại.
-11. Nếu video asset thiếu hoặc lỗi, app hiện poster + thông báo "Video đang được chuẩn bị" và vẫn cho hoàn thành khám phá bằng timeline text + audio.
-12. Nếu object là AI-live/unknown, app không gọi endpoint sinh video; chỉ render timeline AI + audio on-device, gắn nhãn "Khám phá vui (AI)".
 
-## Requirements
-- Functional: mỗi hero object có optional `video` metadata trong bundled content; `VideoJourneyScreen` phát được asset video; timeline có CTA vào video; collection/badge không phụ thuộc tuyệt đối vào video.
-- Non-functional: hero video chạy offline; nội dung đúng khoa học, kid-safe, tiếng Việt cho trẻ 6–10; video 30–60s; app không crash khi thiếu/lỗi video.
-- Content quality: video phải giải thích theo trình tự đơn giản "nguyên liệu → xử lý → tạo hình → kiểm tra/đóng gói → đến tay chúng ta"; tránh cảnh nguy hiểm, bạo lực, máy móc đáng sợ, hướng dẫn tự làm hóa chất/nhiệt/cắt sắc nhọn.
+```
+┌─────────┐    ┌────────────┐    ┌─────────────────────┐    ┌──────────────────┐
+│ Camera  │───►│ /recognize │───►│ /research-summary   │───►│ Object Info Card │
+│  chụp   │    │  object_id │    │ wiki + official     │    │ + Lịch sử        │
+└─────────┘    └────────────┘    │ → OpenAI summary    │    │ + Nguồn          │
+                                 └─────────────────────┘    └────────┬─────────┘
+                                                                      │
+                    ┌─────────────────────────────────────────────────┘
+                    ▼
+         ┌──────────────────────┐    ┌─────────────────────┐
+         │ Origin Timeline        │───►│ /generate-video-    │
+         │ stages + flutter_tts   │    │ script (system      │
+         └──────────────────────┘    │ prompt cách làm)    │
+                    │                 └──────────┬──────────┘
+                    │                            ▼
+                    │                 ┌─────────────────────┐
+                    └────────────────►│ Video Journey       │
+                                      │ script / video play │
+                                      └──────────┬──────────┘
+                                                 ▼
+                                      ┌─────────────────────┐
+                                      │ Badge + Collection  │
+                                      └─────────────────────┘
+```
+
+### Chi tiết từng bước
+
+| # | Bước | Actor | Mô tả |
+|---|------|-------|-------|
+| 1 | Chụp ảnh | Trẻ | Camera → JPEG base64 |
+| 2 | Nhận diện | App → Proxy | `POST /api/recognize` → `object_id`, `display_name`, `is_hero` |
+| 3 | Hiển thị nhanh (hero) | App | Load bundled JSON → timeline <5s (offline-first) |
+| 4 | Research | App → Proxy | `POST /api/research-summary` với `object_id`, `display_name`, `language: vi` |
+| 5 | Fetch nguồn | Proxy | Wikipedia API (vi) + optional URL whitelist (official/educational) |
+| 6 | Summarize | Proxy → OpenAI | System prompt `research-summary-prompt.ts` → structured JSON |
+| 7 | Hiển thị info | App | Card: **Vật này là gì?** (`object_info`) + **Lịch sử** (`history_summary`) + fun facts + link nguồn |
+| 8 | Timeline + audio | App | Stages bundled/AI; TTS đọc info → history → từng stage |
+| 9 | Video script | App → Proxy | `POST /api/generate-video-script` với research + stages |
+| 10 | System prompt | Proxy | `video-making-prompt.ts` → 4-6 scene, narration, visual_hint, 30-60s |
+| 11 | Xem video | App | CTA "Xem cách tạo ra" → phase 7a: scene preview; phase 7b: MP4 bundled/gen |
+| 12 | Hoàn thành | App | Confetti, badge, collection (hero only) |
+
+### Nhánh offline / lỗi
+
+| Tình huống | Hành vi |
+|------------|---------|
+| Hero + offline | Bundled timeline ngay; bỏ qua research; video script từ bundled nếu có |
+| Research timeout | Timeline vẫn hiện; toast "Chưa tìm thêm được thông tin" |
+| Wiki không có bài | Dùng `display_name` + AI tổng quát, `confidence: low` |
+| Video script rỗng | Poster + timeline text, vẫn nhận badge |
+| AI-live object | Research + summary + video script; nhãn "Khám phá vui (AI)"; không vào collection |
+
+---
+
+## System Prompts (đã định nghĩa)
+
+| File | Vai trò |
+|------|---------|
+| `proxy/lib/research-summary-prompt.ts` | Wiki/official → `object_info`, `history_summary`, `fun_facts`, `sources` |
+| `proxy/lib/video-making-prompt.ts` | Summary + stages → kịch bản video "cách làm" 30-60s |
+| `proxy/lib/kid-safe-prompt.ts` | (giữ) Sinh stages journey từ ảnh cho vật lạ |
+
+---
 
 ## Architecture
-- `HeroContent.video`: metadata optional gồm `asset`, `poster`, `duration_seconds`, `caption`.
-- `VideoJourneyScreen`: nhận `ObjectContent`, kiểm tra `video.asset`, phát bằng `video_player` hoặc package hiện có nếu đã có trong app.
-- `VideoJourneyController`: quản lý play/pause/replay, lifecycle pause khi app background, dispose đúng controller.
-- `ContentRepository`: parse optional video metadata; không làm hỏng hero content cũ nếu chưa có video.
-- Assets: `app/assets/videos/{object_id}_making.mp4`, poster ở `app/assets/images/{object_id}_video_poster.png`.
+
+### Proxy endpoints mới
+
+- `POST /api/research-summary` — fetch wiki/official + OpenAI summarize
+- `POST /api/generate-video-script` — research + stages → video script
+
+### App
+
+- `ObjectInfoCard` — info + history + sources
+- `TimelineScreen` — gắn info card phía trên stages
+- `VideoJourneyScreen` — hiển thị script scenes hoặc phát MP4
+
+### Cache
+
+- Proxy cache theo `object_id` (24h) để giảm gọi wiki + OpenAI lặp
+
+---
 
 ## Related Code Files
-- Modify: `app/lib/models/object_content.dart` (thêm `VideoContent? video`)
-- Modify: `app/lib/data/content_repository.dart` (parse video optional)
-- Modify: `app/lib/screens/timeline_screen.dart` (CTA "Xem cách tạo ra")
-- Create: `app/lib/screens/video_journey_screen.dart`
-- Create: `app/lib/services/video_journey_controller.dart` nếu logic controller đủ lớn
-- Modify: `app/pubspec.yaml` (khai báo video/poster assets, dependency nếu cần)
-- Add assets: `app/assets/videos/*_making.mp4`, `app/assets/images/*_video_poster.png`
+
+**Proxy (tạo/sửa):**
+- `proxy/lib/research-summary-prompt.ts` ✅
+- `proxy/lib/video-making-prompt.ts` ✅
+- `proxy/lib/wiki-fetch.ts` (mới)
+- `proxy/api/research-summary.ts` (mới)
+- `proxy/api/generate-video-script.ts` (mới)
+
+**App (sửa/tạo):**
+- `app/lib/models/object_research.dart` (mới)
+- `app/lib/models/video_script.dart` (mới)
+- `app/lib/services/research_service.dart` (mới)
+- `app/lib/widgets/object_info_card.dart` (mới)
+- `app/lib/screens/timeline_screen.dart`
+- `app/lib/screens/video_journey_screen.dart` (mới)
+
+---
 
 ## Implementation Steps
-1. Chốt content contract trong `specs/api-contracts.md` và cập nhật model `HeroContent`.
-2. Chọn package phát video theo Flutter best practice; nếu thêm dependency mới, tạo ADR hoặc cập nhật ADR liên quan trước.
-3. Dựng `VideoJourneyScreen` với trạng thái: ready, playing, ended, missing asset, error.
-4. Gắn CTA từ `TimelineScreen`; hero có video thì CTA nổi bật, hero chưa có video thì CTA vẫn mở fallback poster.
-5. Thêm metadata video cho 1–2 hero trước để kiểm chứng flow, sau đó mở rộng đủ 8 hero.
-6. Kiểm tra lifecycle: rời màn hình, khóa máy, background/resume không rò controller.
-7. Viết test cho parse schema và widget fallback khi thiếu video.
-8. QA nội dung video: đúng khoa học, kid-safe, dễ hiểu, không hướng dẫn hành vi nguy hiểm.
+
+1. ✅ Định nghĩa system prompts + contract trong `specs/api-contracts.md`
+2. Implement `wiki-fetch.ts` (Wikipedia REST API tiếng Việt)
+3. Implement `/api/research-summary` + unit test mock wiki response
+4. Implement `/api/generate-video-script`
+5. App: `ObjectInfoCard` + gọi research sau recognize
+6. App: CTA video + hiển thị script scenes
+7. (Phase 7b) Ghép video MP4 bundled hoặc tích hợp video gen API
+8. QA kid-safe + kiểm chứng nguồn wiki với 8 hero
+
+---
 
 ## Acceptance Criteria
-- [ ] Chụp hero object → timeline text + audio vẫn hiện <5s.
-- [ ] Timeline có CTA "Xem cách tạo ra".
-- [ ] Hero có `video.asset` → mở video, play/pause/replay hoạt động.
-- [ ] Hero thiếu/lỗi video → hiện poster/fallback, không crash, vẫn cho nhận huy hiệu.
-- [ ] AI-live/unknown không cố sinh video, chỉ hiện timeline + audio với nhãn AI.
-- [ ] Ít nhất 2 hero có video end-to-end; sau đó mở rộng đủ 8 hero trước release.
-- [ ] Widget/unit test phủ parse `VideoContent` và fallback missing asset.
 
-## Definition of Done
-- [ ] Code đúng spec + AC.
-- [ ] `flutter test` pass.
-- [ ] `flutter analyze` pass.
-- [ ] Video assets không chứa secret/license không rõ ràng.
-- [ ] Docs/contracts cập nhật nếu schema đổi.
-- [ ] PR reviewed & merged.
+- [ ] Chụp hero → timeline <5s; research summary hiện trong ≤15s khi có mạng
+- [ ] Hiển thị `object_info` + `history_summary` + ít nhất 1 nguồn wiki/official
+- [ ] Timeline + TTS đọc info, history, stages
+- [ ] `/api/generate-video-script` trả 4-6 scene, 30-60s, kid-safe
+- [ ] CTA "Xem cách tạo ra" mở video journey (script hoặc video)
+- [ ] Offline hero: bundled timeline, không crash
+- [ ] Research/script lỗi: fallback graceful
+
+---
 
 ## Risk Assessment
-- Video asset làm app nặng → nén 720p, 30–60s, cân nhắc tải theo gói ở bản sau.
-- Nội dung video sai hoặc không kid-safe → checklist review thủ công trước khi bundle.
-- Dependency video mới gây lỗi lifecycle → test pause/resume, dispose controller, không autoplay khi vào màn.
-- AI-generated video live tốn kém/khó kiểm duyệt → không làm trong phase này; chỉ curated hero video.
+
+| Rủi ro | Mitigation |
+|--------|------------|
+| Wiki không có bài tiếng Việt | Fallback en wiki hoặc AI tổng quát + `confidence: low` |
+| Nội dung wiki sai/lệch | Chỉ summarize từ snippet; gắn nguồn; không khẳng định như sách giáo khoa |
+| Latency research + script | Hero bundled trước; research nền; cache proxy |
+| Video gen đắt/chậm | Phase 7a chỉ script; 7b mới video thật |
+| Kid-safe | Prompt guardrail + nhãn tham khảo khi confidence thấp |

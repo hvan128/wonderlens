@@ -1,0 +1,68 @@
+---
+description: WonderLens workflow — bắt buộc đọc trước khi code bất cứ task nào
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# WonderLens — Workflow Rules (Cursor)
+
+## Đọc context theo thứ tự này TRƯỚC KHI code
+
+1. `docs/workflow.md` — quy trình & nguyên tắc
+2. `AGENTS.md` — luật repo (stack, Git, content schema)
+3. `specs/prd.md` — business goals, features, risks
+4. `specs/domains.md` — domain split, ownership, contracts
+5. `specs/api-contracts.md` — HTTP API + local schema
+6. `adrs/` — quyết định kiến trúc
+7. Task trong `tasks/` — Goal, AC, DoD
+
+**Không code khi thiếu bất kỳ bước nào trên.**
+
+## Quy tắc cứng
+
+- KHÔNG gọi OpenAI trực tiếp từ Flutter app — luôn qua `proxy/`
+- KHÔNG commit API key hoặc secret
+- KHÔNG thêm package/dependency mới mà không có ADR
+- KHÔNG push thẳng `main`
+- Business logic KHÔNG viết trong widget
+- Khi sửa API hoặc schema → cập nhật `specs/api-contracts.md`
+
+## Git convention
+
+- Branch: `feature/TASK-XXX-slug` hoặc `fix/TASK-XXX-slug`
+- Commit: `TASK-XXX: mô tả ngắn gọn`
+- PR bắt buộc review trước merge
+
+## Checklist trước push
+
+- [ ] `flutter analyze` sạch
+- [ ] `flutter test` pass
+- [ ] `tsc --noEmit` sạch (proxy TypeScript)
+- [ ] Contract/schema thay đổi → docs cập nhật
+
+## Domain ownership
+
+| Domain | Files |
+|--------|-------|
+| Camera & Recognition | `lib/screens/camera_screen.dart`, `lib/services/recognition_service.dart`, `proxy/api/recognize.ts` |
+| Timeline & Narration | `lib/screens/timeline_screen.dart`, `lib/services/content_service.dart`, `proxy/api/generate.ts` |
+| Collection & Badges | `lib/screens/collection_screen.dart`, `lib/services/collection_service.dart`, `lib/models/` |
+| Proxy | `proxy/api/`, `proxy/lib/` |
+
+Xem đầy đủ: `specs/domains.md`
+
+## Video Journey (feature đang build)
+
+- Video asset: `app/assets/videos/{object_id}_making.mp4`
+- Trường `video` là optional trong content schema
+- Nếu asset lỗi: fallback poster + timeline text, KHÔNG crash
+- AI live: không sinh video, chỉ text + audio
+
+## Definition of Done
+
+Task chỉ Done khi ALL pass:
+- Code đúng spec + AC trong `tasks/TASK-XXX.md`
+- Tests pass
+- Build pass
+- Docs/contracts cập nhật nếu cần
+- PR reviewed & merged

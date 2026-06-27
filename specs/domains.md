@@ -19,7 +19,9 @@
 ┌───────────────────────────────────┐
 │         Vercel Proxy              │
 │   /api/recognize                  │
+│   /api/research-summary           │
 │   /api/generate-journey           │
+│   /api/generate-video-script      │
 │   /api/tts                        │
 └───────────────────────────────────┘
         │
@@ -69,15 +71,21 @@
 - `lib/services/content_service.dart`
 - `app/assets/content/` (bundled JSON hero objects)
 - `proxy/api/generate.ts` (AI live journey)
+- `proxy/api/research-summary.ts` (wiki/official → summary)
+- `proxy/api/generate-video-script.ts` (kịch bản video cách làm)
 - `proxy/lib/openai-generate.ts`
 - `proxy/lib/kid-safe-prompt.ts`
+- `proxy/lib/research-summary-prompt.ts`
+- `proxy/lib/video-making-prompt.ts`
 
 **Contract in:** `RecognitionResult` từ Domain 1  
 **Contract out:** → Domain 3 nhận `DiscoveryEvent { objectId, objectName, completedAt }`
 
 **Business rules:**
 - Hero content: load từ bundled assets (offline, < 2s)
+- Có mạng: gọi `/api/research-summary` → hiển thị `object_info` + `history_summary` + sources
 - AI live content: gọi `/api/generate-journey` + TTS qua `flutter_tts`
+- Video: `/api/generate-video-script` từ research + stages → CTA "Xem cách tạo ra"
 - AI live content KHÔNG vào bộ sưu tập (chưa kiểm chứng)
 - Text mỗi stage ≤ 50 từ, ngôn ngữ trẻ 6–10
 - Giọng đọc tự chạy khi vào stage, không cần nhấn play

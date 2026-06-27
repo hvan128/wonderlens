@@ -1,0 +1,67 @@
+---
+description: Flutter/Dart coding rules cho WonderLens app
+globs: ["app/lib/**/*.dart", "app/test/**/*.dart"]
+alwaysApply: false
+---
+
+# Flutter Rules — WonderLens
+
+## Dart conventions
+
+- Null-safety bắt buộc — không dùng `!` trừ khi chắc chắn non-null
+- Tên file: `snake_case.dart`
+- Class: `PascalCase`
+- Variable/method: `camelCase`
+
+## Architecture
+
+- State management: **Riverpod** (đã chọn, xem ADR-001)
+- KHÔNG thêm bloc, redux, mobx
+- Business logic KHÔNG viết trong widget → tách ra `services/` hoặc `notifiers/`
+- Widget lớn (> ~100 dòng) → tách file riêng trong `lib/widgets/`
+
+## File structure
+
+```
+lib/
+├── screens/      # Screen widgets (camera, timeline, collection)
+├── widgets/      # Reusable widgets
+├── services/     # Business logic (recognition, content, narration, collection)
+├── models/       # Data models + Hive entities
+├── providers/    # Riverpod providers
+└── main.dart
+```
+
+## Camera lifecycle (critical)
+
+- Luôn check `mounted` sau mọi `await` trước khi gọi `setState`
+- Dispose `CameraController` trong `dispose()`
+- Handle background/resume: reinit camera khi app resume
+- Không race condition khi init
+
+```dart
+// Đúng:
+await _controller.initialize();
+if (!mounted) return;
+setState(() { _isInitialized = true; });
+```
+
+## Assets
+
+- Content hero: `assets/content/{object_id}.json`
+- Audio: `assets/audio/{object_id}_stage{n}.mp3`
+- Video: `assets/videos/{object_id}_making.mp4`
+- Poster: `assets/images/{object_id}_video_poster.png`
+- Trường `video` là optional — check null trước khi load
+
+## Proxy calls
+
+- KHÔNG gọi OpenAI trực tiếp
+- Timeout: 10s cho recognize, 30s cho generate
+- Luôn handle error gracefully (toast, không crash)
+
+## Tests
+
+- Unit test cho: `recognition_service`, `content_service`, `collection_service`
+- Widget test cho: `TimelineScreen`, `CollectionScreen`
+- Chạy `flutter test` trước push

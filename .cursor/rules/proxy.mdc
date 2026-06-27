@@ -1,0 +1,51 @@
+---
+description: Vercel proxy rules cho WonderLens
+globs: ["proxy/**/*.ts", "proxy/**/*.json"]
+alwaysApply: false
+---
+
+# Proxy Rules — WonderLens
+
+## Security (non-negotiable)
+
+- `OPENAI_API_KEY` chỉ đọc từ `process.env` — không hardcode, không log
+- Validate `APP_SHARED_SECRET` header trên mọi request
+- Giới hạn image size nhận vào (tránh payload lớn/abuse)
+- Không return raw OpenAI error message cho client (có thể leak info)
+
+## Structure
+
+```
+proxy/
+├── api/
+│   ├── recognize.ts        # POST /api/recognize
+│   └── generate.ts         # POST /api/generate-journey
+└── lib/
+    ├── openai-vision.ts
+    ├── openai-generate.ts
+    ├── hero-objects.ts
+    └── kid-safe-prompt.ts
+```
+
+## API contracts
+
+Xem `specs/api-contracts.md` — đây là source of truth.
+Khi sửa endpoint: cập nhật contract trước, rồi mới sửa code.
+
+## Kid-safe guardrail
+
+- `/api/generate-journey`: dùng `lib/kid-safe-prompt.ts`
+- Temperature thấp (≤ 0.5) cho generate
+- Prompt chỉ nói sự thật đơn giản, không chắc → nói tổng quát
+- Output AI live phải có nhãn "Khám phá vui (AI)" ở client
+
+## TypeScript
+
+- Strict mode bật
+- Luôn type request/response body
+- `tsc --noEmit` phải sạch trước push
+
+## Video
+
+- AI live fallback KHÔNG sinh video
+- `/api/recognize` trả `is_hero` để client biết có video bundled không

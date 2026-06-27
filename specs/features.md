@@ -146,6 +146,31 @@ Thay emoji placeholder bằng illustration thật cho mỗi stage. Trường `St
 
 ---
 
+## F-09: Research Summary + Video "cách làm" (Planned)
+
+**Priority:** P1 | **Status:** Planned | **Domain:** Timeline & Narration + Proxy  
+**Ref:** `TASK-007`, `phase-07-video-journey.md`
+
+**Description:**  
+Sau chụp ảnh, lấy thông tin + lịch sử từ Wikipedia/trang chính thống (tóm tắt kid-safe), hiển thị cùng timeline text + audio. Sau đó dùng system prompt sinh kịch bản video "cách làm".
+
+**User story:**  
+*Bé chụp bút bi → app kể "Bút bi được phát minh năm..." (từ wiki) → timeline các chặng sản xuất → bấm "Xem cách tạo ra" → video/script minh hoạ cách làm bút.*
+
+**Acceptance criteria:**
+- [ ] `/api/research-summary` trả `object_info`, `history_summary`, `sources`, `confidence`
+- [ ] UI hiển thị info + lịch sử + nguồn trước/song song timeline
+- [ ] Hero offline: bundled timeline <5s; research không chặn wow-factor
+- [ ] `/api/generate-video-script` trả 4-6 scene, 30-60s, kid-safe
+- [ ] System prompts trong `proxy/lib/research-summary-prompt.ts` và `video-making-prompt.ts`
+- [ ] Fallback khi research/script lỗi; không crash
+
+**Phases:**
+- **7a:** Research + summary UI + video script preview
+- **7b:** Ghép/phát video MP4 thật (bundled hoặc gen API)
+
+---
+
 ## F-08: Kid-safe runtime audit (Critical backlog)
 
 **Priority:** P0 (trước deploy thật) | **Status:** Backlog

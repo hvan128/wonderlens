@@ -19,25 +19,26 @@ Trẻ 6–10 tuổi tò mò về thế giới nhưng đồ vật quanh chúng "v
 ## Core experience (luồng chính)
 
 ```
-Camera → Nhận diện vật → Origin Timeline (text + audio) → Video "cách tạo ra" → Huy hiệu → Bộ sưu tập
+Camera → Nhận diện → Research (wiki/official) → Info + Lịch sử (summary) → Timeline (text + audio) → Video script "cách làm" → Huy hiệu → Bộ sưu tập
 ```
 
 1. Trẻ mở app, hướng camera vào đồ vật văn phòng
-2. Chụp → nhận diện → khớp hero object → hiện Origin Timeline **offline < 2s**
-3. Timeline hiển thị lịch sử/hành trình bằng text, kèm giọng kể tự động qua từng chặng (Narration)
-4. Trẻ bấm "Xem cách tạo ra" để xem video ngắn minh hoạ quy trình sản xuất theo ngôn ngữ trẻ em
-5. Khám phá xong → confetti + mở huy hiệu
-6. Vật vào Bộ sưu tập (local)
-7. Vật lạ (không phải hero) → AI live fallback qua proxy (cần mạng), chỉ sinh text + audio; video live là nâng cấp sau
+2. Chụp → nhận diện → hero load bundled timeline **offline < 2s**
+3. Song song (có mạng): proxy lấy snippet Wikipedia/trang chính thống → OpenAI tóm tắt **thông tin + lịch sử** kid-safe
+4. App hiển thị card "Vật này là gì?" + "Lịch sử" + nguồn tham khảo, kèm timeline stages + `flutter_tts`
+5. System prompt sinh **kịch bản video "cách làm"** (4-6 scene, 30-60s) từ summary + stages
+6. Trẻ bấm "Xem cách tạo ra" → xem script/scene hoặc video MP4 (phase sau)
+7. Khám phá xong → confetti + huy hiệu → Bộ sưu tập (hero only)
+8. Vật lạ → cùng pipeline research + AI journey; nhãn "Khám phá vui (AI)"
 
 ## Domains
 
 | Domain | Mô tả |
 |--------|-------|
 | **Recognition** | Nhận diện vật qua camera + OpenAI Vision |
-| **Content** | Nội dung origin timeline (curated + AI-generated) |
+| **Content** | Nội dung origin timeline + research summary từ wiki/official |
 | **Narration** | TTS audio tự động theo timeline |
-| **Video Journey** | Video ngắn minh hoạ cách tạo ra đồ vật, ưu tiên bundled assets cho hero |
+| **Video Journey** | System prompt → kịch bản video "cách làm"; sau đó phát MP4 bundled/gen |
 | **Collection** | Bộ sưu tập + huy hiệu local |
 | **Proxy** | Vercel serverless giấu API key |
 

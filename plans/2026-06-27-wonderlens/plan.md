@@ -57,7 +57,7 @@ P1 ──► P2 ──► P3 ──► P6
 - [ ] ≥ 8 vật hero hoạt động **offline** (nội dung + audio bundled).
 - [ ] Mở huy hiệu + vào bộ sưu tập sau mỗi khám phá.
 - [ ] Vật lạ (có mạng) → AI live sinh hành trình kid-safe + TTS, ≥1 lần thành công.
-- [ ] Vật hero → có nút "Xem cách tạo ra" → mở video 30–60s hoặc fallback poster nếu asset chưa sẵn.
+- [ ] Vật hero → research summary (wiki) + timeline + video script "cách làm"
 - [ ] Demo 90s chạy trọn vẹn **không cần wifi** cho phần hero.
 
 ## Constraints (non-negotiable)
