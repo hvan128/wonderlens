@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../app_route_observer.dart';
 import '../data/content_repository.dart';
 import '../models/object_content.dart';
 import '../services/generate_service.dart';
@@ -24,7 +25,7 @@ class CameraScreen extends StatefulWidget {
 }
 
 class _CameraScreenState extends State<CameraScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, RouteAware {
   CameraController? _controller;
   bool _initializing = true;
   bool _busy = false;
@@ -53,10 +54,34 @@ class _CameraScreenState extends State<CameraScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) appRouteObserver.subscribe(this, route);
+  }
+
+  @override
   void dispose() {
+    appRouteObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _controller?.dispose();
     super.dispose();
+  }
+
+  /// Bị màn khác (timeline) phủ lên → nhả camera để khỏi giữ AVCaptureSession
+  /// (tránh xung đột với video player) và để preview không đen khi quay lại.
+  @override
+  void didPushNext() {
+    final c = _controller;
+    _controller = null;
+    c?.dispose();
+    if (mounted) setState(() {});
+  }
+
+  /// Quay lại màn camera → mở lại camera.
+  @override
+  void didPopNext() {
+    _setup();
   }
 
   /// Thu hồi/khởi tạo lại camera theo vòng đời app để tránh preview đen khi

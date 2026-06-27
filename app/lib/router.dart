@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 
+import 'app_route_observer.dart';
 import 'models/object_content.dart';
 import 'screens/camera_screen.dart';
 import 'screens/collection_screen.dart';
@@ -9,6 +10,7 @@ import 'ui/ui.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/onboarding',
+  observers: [appRouteObserver],
   routes: <RouteBase>[
     GoRoute(
       path: '/onboarding',
