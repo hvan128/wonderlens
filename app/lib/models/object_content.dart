@@ -1,10 +1,6 @@
 /// Một chặng trong "hành trình tạo ra vật".
 class Stage {
   final String title;
-
-  /// Nhãn chương ngắn gọn (vd "Dầu mỏ") cho chip ở màn Generating & Video.
-  /// Optional — thiếu thì UI tự rút gọn từ [title].
-  final String? chapter;
   final String? illustration; // tên asset hoặc URL
   final String kidText;
   final String? funFact;
@@ -12,7 +8,6 @@ class Stage {
 
   const Stage({
     required this.title,
-    this.chapter,
     this.illustration,
     required this.kidText,
     this.funFact,
@@ -21,7 +16,6 @@ class Stage {
 
   factory Stage.fromJson(Map<String, dynamic> json) => Stage(
         title: (json['title'] ?? '') as String,
-        chapter: json['chapter'] as String?,
         illustration: json['illustration'] as String?,
         kidText: (json['kid_text'] ?? '') as String,
         funFact: json['fun_fact'] as String?,

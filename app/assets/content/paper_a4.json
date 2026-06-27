@@ -6,25 +6,21 @@
   "stages": [
     {
       "title": "Bắt đầu từ cây gỗ 🌳",
-      "chapter": "Cây gỗ",
       "kid_text": "Giấy được làm từ gỗ của cây. Người ta trồng những khu rừng riêng để lấy gỗ làm giấy.",
       "fun_fact": "Trồng rừng để làm giấy giúp có cây mới thay cho cây đã dùng."
     },
     {
       "title": "Nấu gỗ thành bột giấy 🪵",
-      "chapter": "Bột giấy",
       "kid_text": "Gỗ được băm nhỏ rồi nấu với nước cho mềm ra, thành một thứ sền sệt gọi là bột giấy.",
       "fun_fact": "Bột giấy lúc này nhão như cháo loãng vậy!"
     },
     {
       "title": "Làm sạch và cán mỏng ⬜",
-      "chapter": "Cán mỏng",
       "kid_text": "Bột giấy được làm sạch, trải thật mỏng trên lưới, ép cho ráo nước rồi sấy khô.",
       "fun_fact": "Cán càng mỏng và đều thì tờ giấy càng phẳng đẹp."
     },
     {
       "title": "Cắt thành tờ A4 📄",
-      "chapter": "Tờ A4",
       "kid_text": "Cuộn giấy lớn được cắt thành từng tờ vuông vắn đúng kích thước A4.",
       "fun_fact": "Cỡ A4 là cỡ chuẩn để máy in và máy photo khắp thế giới dùng chung."
     }

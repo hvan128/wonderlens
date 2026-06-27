@@ -7,15 +7,12 @@ export 'package:material_symbols_icons/symbols.dart';
 export 'phosphor_compat.dart';
 
 export '../theme/wonder_tokens.dart';
-export '../theme/wonder_typography.dart';
 export 'glass_surface.dart';
 export 'pressable.dart';
 export 'scan_ring_button.dart';
-export 'tia_mascot.dart';
 export 'wonder_background.dart';
 export 'wonder_button.dart';
 export 'wonder_chip.dart';
 export 'wonder_header.dart';
-export 'wonder_progress.dart';
 export 'wonder_scaffold.dart';
 export 'wonder_transitions.dart';

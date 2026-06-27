@@ -162,7 +162,6 @@ Mở rộng cho video journey + ảnh minh hoạ từng chặng:
 ```
 
 Quy ước:
-- `stages[].chapter` là optional — nhãn chương ngắn (vd "Dầu mỏ") cho chip ở màn Generating & Video Player. Thiếu thì UI tự rút gọn từ `title`. Nội dung AI-live (`/api/generate`) không sinh `chapter`, app tự fallback.
 - `video` là optional để app có thể hiển thị timeline trước khi đủ video assets.
 - Hero objects ưu tiên video bundled trong app để chạy offline.
 - AI live fallback chưa sinh video; app hiển thị nhãn "Khám phá vui (AI)" và chỉ dùng text + audio on-device.

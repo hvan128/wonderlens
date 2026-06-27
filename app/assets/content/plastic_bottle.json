@@ -6,25 +6,21 @@
   "stages": [
     {
       "title": "Bắt đầu từ dầu mỏ 🛢️",
-      "chapter": "Dầu mỏ",
       "kid_text": "Chai nhựa làm từ một loại nhựa tên là PET, mà PET được làm ra từ dầu mỏ dưới lòng đất.",
       "fun_fact": "Nhựa PET trong suốt nên ta nhìn thấy nước bên trong chai."
     },
     {
       "title": "Tạo hạt nhựa PET ⚪",
-      "chapter": "Hạt nhựa",
       "kid_text": "Dầu mỏ được chế biến thành những hạt nhựa PET nhỏ xíu, trong veo.",
       "fun_fact": "Một nắm hạt nhựa nhỏ có thể làm ra nhiều chai đấy!"
     },
     {
       "title": "Thổi phồng thành chai 💨",
-      "chapter": "Thổi chai",
       "kid_text": "Hạt nhựa được nung mềm thành một ống nhỏ, rồi bơm hơi thổi phồng lên trong khuôn thành hình chai.",
       "fun_fact": "Trước khi thổi, chai chỉ là một ống nhỏ xíu giống ống nghiệm!"
     },
     {
       "title": "Rót nước và đóng nắp 💧",
-      "chapter": "Đóng nắp",
       "kid_text": "Chai được rửa sạch, rót nước vào rồi vặn nắp thật kín.",
       "fun_fact": "Nhớ bỏ chai đã dùng vào thùng tái chế để làm ra đồ mới nhé!"
     }

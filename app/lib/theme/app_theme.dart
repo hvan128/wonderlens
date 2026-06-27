@@ -1,38 +1,21 @@
 import 'package:flutter/material.dart';
 
-import 'wonder_tokens.dart';
-import 'wonder_typography.dart';
-
-/// Theme trẻ em v2: tông **tím kỳ diệu**, bo góc lớn, chữ Fredoka/Nunito thân
-/// thiện. Đồng bộ với `wonderlens-mockup.html`.
+/// Theme trẻ em: màu vui tươi, bo góc lớn, chữ đậm dễ đọc.
 ThemeData buildAppTheme() {
   final scheme = ColorScheme.fromSeed(
-    seedColor: WonderColors.wonder, // tím kỳ diệu
+    seedColor: const Color(0xFF26C6DA), // teal vui mắt
     brightness: Brightness.light,
-  ).copyWith(
-    primary: WonderColors.wonder,
-    secondary: WonderColors.spark,
-    surface: Colors.white,
   );
 
-  final base = ThemeData(
+  return ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
-    scaffoldBackgroundColor: WonderColors.canvasTop, // oải hương dịu
-  );
-
-  final textTheme = buildWonderTextTheme(base.textTheme);
-
-  return base.copyWith(
-    textTheme: textTheme,
-    primaryTextTheme: textTheme,
+    scaffoldBackgroundColor: const Color(0xFFFFFDF7), // giấy ấm
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: WonderColors.wonder,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-        textStyle: WonderType.display(fontSize: 18, fontWeight: FontWeight.w600),
+        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
       ),
     ),
     cardTheme: CardThemeData(
