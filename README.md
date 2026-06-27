@@ -18,12 +18,14 @@ hackathon_codex/
 ```bash
 cd app
 flutter pub get
-flutter run                     # dùng mock offline (chụp luôn ra "Cốc giấy")
+flutter run                     # Mock offline: chụp lần lượt ra 8 vật hero (xoay tua)
 # Khi đã deploy proxy:
 flutter run --dart-define=PROXY_BASE_URL=https://<your-proxy>.vercel.app
 ```
 
-> Phase 1: `RecognitionService` mặc định trả **mock** khi `PROXY_BASE_URL` rỗng hoặc lỗi mạng → app/demo không bao giờ vỡ.
+> `RecognitionService` mặc định **Mock offline** (xoay tua lần lượt 8 vật hero) khi build không có `PROXY_BASE_URL`, và tự rớt về mock khi proxy lỗi → app/demo không bao giờ vỡ.
+>
+> Đổi **Mock ↔ API thật ngay trong app** (không cần build lại) bằng **Dev panel ẩn**: **nhấn giữ** logo "WonderLens" (màn chào) hoặc nhãn "CHẾ ĐỘ KHÁM PHÁ" (màn camera). Panel cho bật/tắt API thật + nhập Proxy URL/token (lưu Hive).
 
 ## Chạy proxy (dev)
 

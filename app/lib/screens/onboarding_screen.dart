@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../ui/ui.dart';
+import '../widgets/dev_panel.dart';
 
 /// Màn chào: hero badge kính lúp phát sáng dẫn dắt + 1 nút bắt đầu khám phá.
 class OnboardingScreen extends StatelessWidget {
@@ -20,21 +21,26 @@ class OnboardingScreen extends StatelessWidget {
               children: <Widget>[
                 const _HeroBadge(),
                 const SizedBox(height: 28),
-                ShaderMask(
-                  shaderCallback: (rect) => const LinearGradient(
-                    colors: <Color>[
-                      WonderColors.tealDeep,
-                      WonderColors.sky,
-                      WonderColors.grape,
-                    ],
-                  ).createShader(rect),
-                  child: const Text(
-                    'WonderLens',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 40,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.3,
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  // Cử chỉ ẩn: nhấn giữ logo để mở Dev panel (Mock ↔ API thật).
+                  onLongPress: () => showDevPanel(context),
+                  child: ShaderMask(
+                    shaderCallback: (rect) => const LinearGradient(
+                      colors: <Color>[
+                        WonderColors.tealDeep,
+                        WonderColors.sky,
+                        WonderColors.grape,
+                      ],
+                    ).createShader(rect),
+                    child: const Text(
+                      'WonderLens',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 40,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.3,
+                      ),
                     ),
                   ),
                 ).animate().fadeIn(duration: WonderTokens.durSlow).slideY(

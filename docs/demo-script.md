@@ -23,6 +23,6 @@
 - Sự cố thiết bị → phát **clip dự phòng**.
 
 ## Trạng thái hiện tại (cho người trình bày)
-- Nhận diện: **mock offline** (chụp ra "Cốc giấy") trừ khi build với `--dart-define=PROXY_BASE_URL=...` để gọi OpenAI thật.
+- Nhận diện: **mock offline xoay tua** — mỗi lần chụp ra lần lượt 1 trong 8 vật hero (lần chụp đầu sau khi mở app = Cốc giấy). Bật **API thật** (OpenAI Vision) bằng `--dart-define=PROXY_BASE_URL=...` lúc build, hoặc bật ngay trong app qua **Dev panel ẩn** (nhấn giữ logo "WonderLens" / nhãn "CHẾ ĐỘ KHÁM PHÁ").
 - 8 vật hero có nội dung + giọng đọc chạy offline.
 - AI live + kid-safe guardrail là **prompt-based**, cần red-team output thật trước khi cho trẻ dùng công khai.

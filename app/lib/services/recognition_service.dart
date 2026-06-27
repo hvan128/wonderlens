@@ -3,6 +3,9 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:http/http.dart' as http;
 
+import '../data/app_settings.dart';
+import '../data/hero_catalog.dart';
+
 /// Kết quả nhận diện vật từ proxy (OpenAI Vision) hoặc mock offline.
 class RecognitionResult {
   final String objectId;
@@ -18,29 +21,22 @@ class RecognitionResult {
   });
 }
 
-/// Gọi Vercel proxy để nhận diện ảnh. Nếu chưa cấu hình proxy thì trả mock
-/// (mock_offline). Nếu có proxy nhưng lỗi mạng/parse thì trả mock_error +
-/// log để dễ phát hiện proxy hỏng (không nuốt lỗi âm thầm).
+/// Gọi Vercel proxy để nhận diện ảnh khi [AppSettings.useLiveApi] bật. Khi tắt
+/// (Mock offline) thì trả mock_offline. Nếu đang bật API nhưng lỗi mạng/parse
+/// thì trả mock_error + log để dễ phát hiện proxy hỏng (không nuốt lỗi âm thầm).
+/// Mock **xoay tua** qua bộ hero để demo offline không kẹt một vật.
 class RecognitionService {
-  /// Override khi chạy: flutter run --dart-define=PROXY_BASE_URL=https://...
-  static const String _baseUrl =
-      String.fromEnvironment('PROXY_BASE_URL', defaultValue: '');
-
-  /// Shared secret khớp APP_SHARED_SECRET ở proxy.
-  static const String _appToken =
-      String.fromEnvironment('APP_TOKEN', defaultValue: 'dev-wonderlens');
-
   Future<RecognitionResult> recognize(List<int> imageBytes) async {
-    if (_baseUrl.isEmpty) {
+    if (!AppSettings.useLiveApi) {
       return _mock('mock_offline');
     }
     try {
       final res = await http
           .post(
-            Uri.parse('$_baseUrl/api/recognize'),
+            Uri.parse('${AppSettings.baseUrl}/api/recognize'),
             headers: {
               'Content-Type': 'application/json',
-              'x-app-token': _appToken,
+              'x-app-token': AppSettings.appToken,
             },
             body: jsonEncode({'image_base64': base64Encode(imageBytes)}),
           )
@@ -62,10 +58,17 @@ class RecognitionService {
     }
   }
 
-  RecognitionResult _mock(String source) => RecognitionResult(
-        objectId: 'paper_cup',
-        confidence: 0.96,
-        displayName: 'Cốc giấy',
-        source: source,
-      );
+  /// Con trỏ xoay tua dùng chung — mỗi lần mock trả vật hero kế tiếp.
+  static int _mockTurn = 0;
+
+  RecognitionResult _mock(String source) {
+    final item = heroCatalog[_mockTurn % heroCatalog.length];
+    _mockTurn = (_mockTurn + 1) % heroCatalog.length;
+    return RecognitionResult(
+      objectId: item.id,
+      confidence: 0.96,
+      displayName: item.name,
+      source: source,
+    );
+  }
 }

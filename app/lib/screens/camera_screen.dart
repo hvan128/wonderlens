@@ -14,6 +14,7 @@ import '../models/object_content.dart';
 import '../services/generate_service.dart';
 import '../services/recognition_service.dart';
 import '../ui/ui.dart';
+import '../widgets/dev_panel.dart';
 
 /// Màn khám phá kiểu "Apple lens" cho trẻ: preview camera tràn màn hình + lớp
 /// điều khiển liquid-glass. Toàn bộ logic camera/permission/nhận diện giữ nguyên.
@@ -472,25 +473,30 @@ class _BottomControls extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 14),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                PhosphorIcon(
-                  PhosphorIconsFill.sparkle,
-                  size: 13,
-                  color: Colors.white.withValues(alpha: 0.85),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'CHẾ ĐỘ KHÁM PHÁ',
-                  style: TextStyle(
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              // Cử chỉ ẩn: nhấn giữ nhãn để mở Dev panel (Mock ↔ API thật).
+              onLongPress: () => showDevPanel(context),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  PhosphorIcon(
+                    PhosphorIconsFill.sparkle,
+                    size: 13,
                     color: Colors.white.withValues(alpha: 0.85),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 2,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 6),
+                  Text(
+                    'CHẾ ĐỘ KHÁM PHÁ',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.85),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
