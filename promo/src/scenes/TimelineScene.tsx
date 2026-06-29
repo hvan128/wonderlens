@@ -8,9 +8,10 @@ import { Badge } from '../components/Badge';
 import { IconCup } from '../components/Icons';
 import { CUP_STAGES, OBJECT_NAME } from '../content';
 
-const CARD_TOP = 392;
-const CARD_GAP = 188;
-const SPINE_X = 225;
+const CARD_TOP = 356;
+const CARD_GAP = 300;
+const CARD_LEFT = 110;
+const SPINE_X = 256;
 
 const ease = (f: number, a: number, b: number) =>
   interpolate(f, [a, b], [0, 1], {
@@ -78,7 +79,7 @@ export const TimelineScene = () => {
           style={{
             position: 'absolute',
             left: SPINE_X - 4,
-            top: CARD_TOP + 88,
+            top: CARD_TOP + 134,
             width: 8,
             height: (3 * CARD_GAP) * spineGrow,
             borderRadius: 4,
@@ -93,7 +94,7 @@ export const TimelineScene = () => {
           return (
             <div
               key={stage.icon}
-              style={{ position: 'absolute', left: 130, top: CARD_TOP + i * CARD_GAP }}
+              style={{ position: 'absolute', left: CARD_LEFT, top: CARD_TOP + i * CARD_GAP }}
             >
               <StageCard stage={stage} index={i} enter={enter} />
             </div>
@@ -106,7 +107,7 @@ export const TimelineScene = () => {
             position: 'absolute',
             left: 0,
             right: 0,
-            top: 1230,
+            top: 1632,
             display: 'flex',
             justifyContent: 'center',
           }}
@@ -115,7 +116,7 @@ export const TimelineScene = () => {
         </div>
 
         {/* confetti khi mở huy hiệu */}
-        <Confetti originXRatio={0.5} originYRatio={0.62} startFrame={130} count={90} />
+        <Confetti originXRatio={0.5} originYRatio={0.74} startFrame={130} count={90} />
       </AbsoluteFill>
     </AbsoluteFill>
   );

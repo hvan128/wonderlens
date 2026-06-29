@@ -18,9 +18,9 @@ export const StageCard = ({
     style={{
       display: 'flex',
       alignItems: 'center',
-      gap: 30,
-      width: 820,
-      padding: '24px 36px',
+      gap: 34,
+      width: 860,
+      padding: '26px 38px',
       borderRadius: RADIUS.card,
       background: '#FFFFFF',
       boxShadow: `0 16px 34px ${withAlpha(COLORS.ink, 0.12)}`,
@@ -29,13 +29,13 @@ export const StageCard = ({
       opacity: enter,
     }}
   >
-    <div style={{ position: 'relative', width: 132, height: 132, flexShrink: 0 }}>
+    <div style={{ position: 'relative', width: 220, height: 220, flexShrink: 0 }}>
       {/* khung ảnh minh hoạ (bo góc) */}
       <div
         style={{
           width: '100%',
           height: '100%',
-          borderRadius: 28,
+          borderRadius: 36,
           overflow: 'hidden',
           background: withAlpha(stage.accent, 0.16),
           border: `3px solid ${withAlpha(stage.accent, 0.55)}`,
@@ -58,16 +58,16 @@ export const StageCard = ({
       <div
         style={{
           position: 'absolute',
-          top: -10,
-          left: -10,
-          width: 46,
-          height: 46,
+          top: -12,
+          left: -12,
+          width: 56,
+          height: 56,
           borderRadius: '50%',
           background: stage.accent,
           color: '#FFFFFF',
           fontFamily: HEADING,
           fontWeight: 800,
-          fontSize: 27,
+          fontSize: 32,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

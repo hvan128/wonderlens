@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WonderLens — Chụp đồ vật, khám phá hành trình tạo ra nó</title>
+  <meta name="description" content="WonderLens: bé chụp một đồ vật, AI kể lại hành trình tạo ra nó bằng hình ảnh + lồng tiếng. Video giới thiệu 16 giây." />
+  <!-- link preview -->
+  <meta property="og:title" content="WonderLens — Khám phá hành trình tạo ra mọi đồ vật" />
+  <meta property="og:description" content="Bé chụp một đồ vật, AI kể lại lịch sử hình thành của nó. Video giới thiệu 16 giây." />
+  <meta property="og:image" content="poster.png" />
+  <meta property="og:type" content="video.other" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <style>
+    :root {
+      --teal: #26C6DA;
+      --teal-dark: #0E97AD;
+      --ink: #1F3A43;
+      --paper: #FFFDF7;
+      --paper-warm: #FBF1DD;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(120% 80% at 50% -10%, #EAFBFE 0%, var(--paper-warm) 55%, #F3E4C6 100%);
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 20px 56px;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 6px;
+    }
+    .brand .lens {
+      width: 46px; height: 46px; flex: 0 0 auto;
+      border-radius: 50%;
+      background: var(--teal);
+      box-shadow: 0 8px 20px rgba(38,198,218,.45);
+      display: grid; place-items: center;
+    }
+    .brand .lens svg { width: 26px; height: 26px; }
+    .brand h1 {
+      font-size: clamp(28px, 6vw, 44px);
+      font-weight: 800; letter-spacing: -.5px;
+      color: var(--teal-dark);
+    }
+    .tagline {
+      font-size: clamp(15px, 3.6vw, 19px);
+      font-weight: 600; color: #5A6E75;
+      text-align: center; max-width: 560px;
+      margin-bottom: 26px;
+    }
+    .stage {
+      width: 100%;
+      max-width: 420px;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .frame {
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      border-radius: 28px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 30px 70px rgba(10,42,48,.32), 0 0 0 1px rgba(255,255,255,.5) inset;
+    }
+    .frame video { width: 100%; height: 100%; display: block; object-fit: cover; }
+    .actions {
+      margin-top: 22px;
+      display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 9px;
+      font-size: 16px; font-weight: 700;
+      padding: 13px 22px; border-radius: 999px;
+      text-decoration: none; cursor: pointer; border: 0;
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .btn:active { transform: translateY(1px) scale(.99); }
+    .btn-primary {
+      background: var(--teal); color: #fff;
+      box-shadow: 0 10px 24px rgba(38,198,218,.45);
+    }
+    .btn-ghost {
+      background: #fff; color: var(--teal-dark);
+      box-shadow: 0 6px 16px rgba(10,42,48,.12);
+    }
+    .meta {
+      margin-top: 26px; font-size: 13px; color: #84979E;
+      text-align: center; line-height: 1.6;
+    }
+    .meta b { color: #5A6E75; }
+  </style>
+</head>
+<body>
+  <div class="brand">
+    <span class="lens">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="10.5" cy="10.5" r="6.5"></circle>
+        <line x1="15.5" y1="15.5" x2="21" y2="21"></line>
+      </svg>
+    </span>
+    <h1>WonderLens</h1>
+  </div>
+  <p class="tagline">Chụp một đồ vật — khám phá hành trình tạo ra nó, có hình minh hoạ &amp; lồng tiếng cho bé.</p>
+
+  <div class="stage">
+    <div class="frame">
+      <video src="wonderlens-promo.mp4" poster="poster.png"
+             autoplay muted loop playsinline controls preload="auto"></video>
+    </div>
+    <div class="actions">
+      <a class="btn btn-primary" href="wonderlens-promo.mp4" download="WonderLens-promo.mp4">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v12"></path><path d="M7 11l5 5 5-5"></path><path d="M5 21h14"></path>
+        </svg>
+        Tải video (MP4)
+      </a>
+      <a class="btn btn-ghost" href="wonderlens-promo.mp4" target="_blank" rel="noopener">Mở toàn màn hình</a>
+    </div>
+  </div>
+
+  <p class="meta">
+    Video giới thiệu · 1080×1920 · 30fps · ~16 giây<br />
+    <b>WonderLens</b> — khoa học khám phá cho trẻ 6–10 tuổi
+  </p>
+</body>
+</html>
