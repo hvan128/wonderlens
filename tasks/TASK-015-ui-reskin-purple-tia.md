@@ -30,13 +30,17 @@ OUT (không làm trong task này):
 - Gộp track Learn & Play (`integration/truc-c-d`).
 - Đổi luồng video/share của main.
 
-## Bổ sung trong phiên (UX nhỏ, cùng luồng camera)
+## Bổ sung trong phiên (UX nhỏ)
 
 - Header camera bị canh giữa → ghim `WonderHeader` lên đỉnh bằng `Positioned`.
 - Vật **AI-live (vật lạ)**: hiển thị **emoji do AI chọn** (icon) thay vì ảnh chụp —
   bỏ `saveCapture(live.id)` trong `camera_screen` để `ObjectAvatar` rớt về emoji.
   Proxy **đã** trả `emoji` sẵn (`JOURNEY_SCHEMA` bắt buộc) nên không đụng proxy/contract.
   Hero objects giữ nguyên ảnh cutout.
+- **Màn Bộ sưu tập** (UI/UX): thêm **empty-state** (Tia dẫn quét vật đầu tiên),
+  **huy hiệu vật liệu đổi màu theo từng vật liệu** (`WonderColors.material`),
+  **level card** hiện bậc kế tiếp + `count/total`. Giữ nguyên feature/hành vi
+  (huy hiệu, lưới vật, share, mở lại hành trình).
 
 ## Acceptance Criteria
 
