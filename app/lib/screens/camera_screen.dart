@@ -298,18 +298,26 @@ class _CameraScreenState extends State<CameraScreen>
         children: <Widget>[
           _buildPreview(),
           const _Scrims(),
-          SafeArea(
-            child: WonderHeader(
-              branded: true,
-              tone: GlassTone.dark,
-              floating: false,
-              actions: <WonderHeaderAction>[
-                WonderHeaderAction(
-                  icon: PhosphorIconsBold.houseSimple,
-                  tooltip: 'Về màn hình chính',
-                  onTap: () => context.go('/onboarding'),
-                ),
-              ],
+          // Header ghim lên đỉnh: trong Stack(fit: expand) widget không-positioned
+          // bị kéo cao full màn khiến nội dung header canh giữa. Positioned (chỉ
+          // top/left/right) cho header lấy đúng chiều cao tự nhiên ở trên cùng.
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: WonderHeader(
+                branded: true,
+                tone: GlassTone.dark,
+                floating: false,
+                actions: <WonderHeaderAction>[
+                  WonderHeaderAction(
+                    icon: PhosphorIconsBold.houseSimple,
+                    tooltip: 'Về màn hình chính',
+                    onTap: () => context.go('/onboarding'),
+                  ),
+                ],
+              ),
             ),
           ),
           Positioned(
