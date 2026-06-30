@@ -143,6 +143,22 @@ String _nextLevelHint(int count, int total) {
   return 'Còn ${total - count} vật nữa → ${levelTitle(total)}';
 }
 
+/// Emoji đại diện cho từng nhóm vật liệu (dùng cho huy hiệu đã mở khoá).
+String _materialEmoji(String material) {
+  switch (material) {
+    case 'Giấy':
+      return '📄';
+    case 'Nhựa':
+      return '🧴';
+    case 'Kim loại':
+      return '🔩';
+    case 'Gỗ':
+      return '🪵';
+    default:
+      return '🏅';
+  }
+}
+
 /// Trạng thái rỗng: Tia dẫn dắt trẻ quét vật đầu tiên (thay cho lưới khoá trơ).
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
@@ -339,18 +355,22 @@ class _MaterialBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: earned ? 0.18 : 0.1),
+        color: color.withValues(alpha: earned ? 0.22 : 0.1),
         borderRadius: BorderRadius.circular(WonderTokens.radiusSm),
-        border: Border.all(color: color.withValues(alpha: earned ? 0.45 : 0.25)),
+        border: Border.all(
+          color: color.withValues(alpha: earned ? 0.6 : 0.25),
+          width: earned ? 1.5 : 1,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          PhosphorIcon(
-            earned ? PhosphorIconsFill.medal : PhosphorIconsBold.lockSimple,
-            size: 16,
-            color: color,
-          ),
+          // Đã mở khoá: emoji vật liệu (dễ nhận, phân biệt Giấy/Gỗ rõ ràng).
+          // Chưa: ổ khoá.
+          if (earned)
+            Text(_materialEmoji(material), style: const TextStyle(fontSize: 15))
+          else
+            PhosphorIcon(PhosphorIconsBold.lockSimple, size: 16, color: color),
           const SizedBox(width: 7),
           Text(
             material,

@@ -38,9 +38,10 @@ OUT (không làm trong task này):
   Proxy **đã** trả `emoji` sẵn (`JOURNEY_SCHEMA` bắt buộc) nên không đụng proxy/contract.
   Hero objects giữ nguyên ảnh cutout.
 - **Màn Bộ sưu tập** (UI/UX): thêm **empty-state** (Tia dẫn quét vật đầu tiên),
-  **huy hiệu vật liệu đổi màu theo từng vật liệu** (`WonderColors.material`),
-  **level card** hiện bậc kế tiếp + `count/total`. Giữ nguyên feature/hành vi
-  (huy hiệu, lưới vật, share, mở lại hành trình).
+  **huy hiệu vật liệu đổi màu + emoji theo từng vật liệu** (📄/🧴/🔩/🪵 qua
+  `WonderColors.material`), **level card** hiện bậc kế tiếp + `count/total`. Đã chạy
+  trên máy Android thật để duyệt mắt. Giữ nguyên feature/hành vi (lưới vật, share,
+  mở lại hành trình).
 
 ## Acceptance Criteria
 
