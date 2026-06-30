@@ -30,6 +30,14 @@ OUT (không làm trong task này):
 - Gộp track Learn & Play (`integration/truc-c-d`).
 - Đổi luồng video/share của main.
 
+## Bổ sung trong phiên (UX nhỏ, cùng luồng camera)
+
+- Header camera bị canh giữa → ghim `WonderHeader` lên đỉnh bằng `Positioned`.
+- Vật **AI-live (vật lạ)**: hiển thị **emoji do AI chọn** (icon) thay vì ảnh chụp —
+  bỏ `saveCapture(live.id)` trong `camera_screen` để `ObjectAvatar` rớt về emoji.
+  Proxy **đã** trả `emoji` sẵn (`JOURNEY_SCHEMA` bắt buộc) nên không đụng proxy/contract.
+  Hero objects giữ nguyên ảnh cutout.
+
 ## Acceptance Criteria
 
 - [ ] App đổi sang tông tím `#6B4EE6` ở tất cả màn hiện có (onboarding/camera/timeline/collection).

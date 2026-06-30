@@ -222,7 +222,8 @@ class _CameraScreenState extends State<CameraScreen>
           'Thử một đồ vật khác nhé!',
         );
       } else {
-        await saveCapture(live.id);
+        // Vật AI-live: KHÔNG lưu ảnh cutout → ObjectAvatar hiện emoji do AI chọn
+        // (icon thay vì ảnh chụp). Hero objects vẫn lưu ảnh thật như cũ.
         if (!mounted) return;
         _present(live, confident: true);
       }
