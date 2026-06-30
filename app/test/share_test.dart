@@ -86,7 +86,9 @@ void main() {
     expect(find.text('Nhà khám phá 🧭'), findsOneWidget);
     expect(find.text('Đã khám phá 3/8 đồ vật'), findsOneWidget);
     expect(find.text('WonderLens'), findsOneWidget);
-    expect(find.text('🏅 Giấy'), findsOneWidget);
+    // Huy hiệu vật liệu render dạng pill (icon medal + tên), không phải emoji
+    // "🏅". Khớp với `_Pill` trong share_card.dart (nguồn sự thật trên main).
+    expect(find.text('Giấy'), findsOneWidget);
   });
 
   test('collectionCaption gồm cấp độ và tiến độ', () {

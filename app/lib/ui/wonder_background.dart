@@ -21,17 +21,17 @@ class WonderBackground extends StatelessWidget {
           const Positioned(
             top: -60,
             left: -50,
-            child: _Blob(color: WonderColors.teal, size: 230, dy: 22),
+            child: _Blob(color: WonderColors.wonder, size: 230, dy: 22),
           ),
           const Positioned(
             top: 120,
             right: -70,
-            child: _Blob(color: WonderColors.grape, size: 200, dy: -26, delayMs: 600),
+            child: _Blob(color: WonderColors.mint, size: 200, dy: -26, delayMs: 600),
           ),
           const Positioned(
             bottom: -40,
             left: 30,
-            child: _Blob(color: WonderColors.sunny, size: 210, dy: 18, delayMs: 1200),
+            child: _Blob(color: WonderColors.spark, size: 210, dy: 18, delayMs: 1200),
           ),
           Positioned.fill(child: child),
         ],
