@@ -24,4 +24,26 @@ void main() {
       expect(allMaterials, contains(h.material));
     }
   });
+
+  group('normalizeMaterial (huy hiệu động AI — ADR-011)', () {
+    test('đồng nghĩa & hoa/thường gộp về tên canonical', () {
+      expect(normalizeMaterial('nhựa'), 'Nhựa');
+      expect(normalizeMaterial('Chất dẻo'), 'Nhựa');
+      expect(normalizeMaterial('PLASTIC'), 'Nhựa');
+      expect(normalizeMaterial('thủy tinh'), 'Thuỷ tinh');
+      expect(normalizeMaterial('Kính'), 'Thuỷ tinh');
+      expect(normalizeMaterial('  gỗ  '), 'Gỗ');
+      expect(normalizeMaterial('inox'), 'Kim loại');
+    });
+
+    test('rỗng/space → ""', () {
+      expect(normalizeMaterial(''), '');
+      expect(normalizeMaterial('   '), '');
+    });
+
+    test('vật liệu lạ giữ nguyên nhưng title-case', () {
+      expect(normalizeMaterial('silicone'), 'Silicone');
+      expect(normalizeMaterial('sợi carbon'), 'Sợi Carbon');
+    });
+  });
 }

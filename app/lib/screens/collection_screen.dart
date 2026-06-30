@@ -27,6 +27,9 @@ class CollectionScreen extends StatelessWidget {
       for (final h in heroCatalog)
         if (discovered.contains(h.id)) h.emoji,
     ];
+    // Track "khám phá AI" (vật lạ) — huy hiệu động, tách khỏi lõi verified.
+    final aiDiscoveries = repo.aiDiscoveries();
+    final aiBadges = repo.aiBadges();
 
     void share() => showCollectionShareSheet(
       context,
@@ -59,7 +62,7 @@ class CollectionScreen extends StatelessWidget {
               .animate()
               .fadeIn(duration: WonderTokens.durBase)
               .slideY(begin: 0.12, end: 0),
-          if (count == 0) ...<Widget>[
+          if (count == 0 && aiDiscoveries.isEmpty) ...<Widget>[
             const SizedBox(height: 16),
             const _EmptyState(),
           ] else ...<Widget>[
@@ -112,6 +115,30 @@ class CollectionScreen extends StatelessWidget {
                         begin: 0.86, end: 1, curve: WonderTokens.curveEmphasized),
             ],
           ),
+          if (aiDiscoveries.isNotEmpty) ...<Widget>[
+            const SizedBox(height: 24),
+            const _SectionTitle('Khám phá thêm 🤖  ·  vui (AI)'),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                for (final m in aiBadges)
+                  _MaterialBadge(material: m, earned: true),
+              ],
+            ),
+            const SizedBox(height: 12),
+            GridView.count(
+              crossAxisCount: 3,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              children: <Widget>[
+                for (final d in aiDiscoveries) _AiCell(d),
+              ],
+            ),
+          ],
           const SizedBox(height: 24),
           WonderButton(
             label: count == 0 ? 'Bắt đầu quét đồ vật' : 'Đi khám phá tiếp',
@@ -154,8 +181,18 @@ String _materialEmoji(String material) {
       return '🔩';
     case 'Gỗ':
       return '🪵';
+    case 'Thuỷ tinh':
+      return '🥃';
+    case 'Cao su':
+      return '🛞';
+    case 'Vải':
+      return '🧵';
+    case 'Gốm':
+      return '🏺';
+    case 'Da':
+      return '👜';
     default:
-      return '🏅';
+      return '🧪'; // vật liệu lạ (AI) — biểu tượng chung
   }
 }
 
@@ -378,6 +415,52 @@ class _MaterialBadge extends StatelessWidget {
               color: earned ? WonderColors.textStrong : WonderColors.textSoft,
               fontSize: 13.5,
               fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Ô vật AI-live đã khám phá (track "vui AI"): emoji trên nền tím. Không mở lại
+/// hành trình được vì chỉ lưu `{id,name,emoji,material}` (xem `ADR-011`).
+class _AiCell extends StatelessWidget {
+  final AiDiscovery discovery;
+  const _AiCell(this.discovery);
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassSurface(
+      tone: GlassTone.light,
+      radius: WonderTokens.radiusMd,
+      padding: const EdgeInsets.all(8),
+      shadows: WonderShadows.soft,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: WonderGradients.badge,
+              boxShadow: WonderShadows.glow(WonderColors.grape, opacity: 0.3),
+            ),
+            child: Center(
+              child: Text(discovery.emoji, style: const TextStyle(fontSize: 30)),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            discovery.name,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: WonderType.body(
+              color: WonderColors.textStrong,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],

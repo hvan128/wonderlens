@@ -42,7 +42,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
     _confetti = ConfettiController(duration: const Duration(seconds: 2));
     final c = widget.content;
     if (c != null) {
-      _result = CollectionRepository().record(c.id);
+      _result = CollectionRepository().record(c);
       if (_result?.isNewObject ?? false) {
         _confetti.play();
         HapticFeedback.heavyImpact();
@@ -159,7 +159,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   .slideY(begin: 0.12, end: 0),
               if (_result?.newBadge != null) ...<Widget>[
                 const SizedBox(height: 12),
-                _BadgeBanner(material: _result!.newBadge!)
+                _BadgeBanner(material: _result!.newBadge!, isAi: _result!.isAi)
                     .animate(delay: 150.ms)
                     .fadeIn()
                     .scaleXY(
@@ -335,13 +335,14 @@ class _Header extends StatelessWidget {
 
 class _BadgeBanner extends StatelessWidget {
   final String material;
-  const _BadgeBanner({required this.material});
+  final bool isAi; // huy hiệu track khám phá AI → nhãn "vui (AI)"
+  const _BadgeBanner({required this.material, this.isAi = false});
 
   @override
   Widget build(BuildContext context) {
     return GlassSurface(
       tone: GlassTone.light,
-      tint: WonderColors.sunny,
+      tint: isAi ? WonderColors.grape : WonderColors.sunny,
       tintOpacity: 0.32,
       padding: const EdgeInsets.all(14),
       child: Row(
@@ -354,7 +355,9 @@ class _BadgeBanner extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Huy hiệu mới: Vật liệu $material!',
+              isAi
+                  ? 'Huy hiệu mới: $material ✨ (vui AI)'
+                  : 'Huy hiệu mới: Vật liệu $material!',
               style: WonderType.display(
                 color: WonderColors.textStrong,
                 fontSize: 16,

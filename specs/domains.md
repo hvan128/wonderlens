@@ -78,7 +78,9 @@
 **Business rules:**
 - Hero content: load từ bundled assets (offline, < 2s)
 - AI live content: gọi `/api/generate-journey` + TTS qua `flutter_tts`
-- AI live content KHÔNG vào bộ sưu tập (chưa kiểm chứng)
+- AI live content vào bộ sưu tập ở **track "khám phá AI" riêng + nhãn "vui (AI)"**
+  (xem `ADR-011`); track lõi (hero, verified) vẫn tách biệt. Chưa red-team kid-safe
+  runtime (F-08) → giữ nhãn AI tới khi audit xong
 - Text mỗi stage ≤ 50 từ, ngôn ngữ trẻ 6–10
 - Giọng đọc tự chạy khi vào stage, không cần nhấn play
 
@@ -98,7 +100,9 @@
 **Contract out:** (cuối chain — không out)
 
 **Business rules:**
-- Chỉ hero objects được lưu vào bộ sưu tập
+- Hero objects → track lõi verified (4 huy hiệu vật liệu cố định). Vật AI-live →
+  track "khám phá AI" riêng, huy hiệu **động** theo `material_badge` AI, nhãn "vui (AI)"
+  (xem `ADR-011`). Cấp độ chỉ tính theo hero verified; AI là bonus
 - Mỗi object lưu 1 lần (dedup theo `objectId`)
 - Badge unlock ngay sau khi timeline xem xong
 - Confetti + haptics khi badge mở lần đầu
