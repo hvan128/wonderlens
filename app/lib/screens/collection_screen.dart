@@ -134,10 +134,10 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(
+      style: WonderType.display(
         color: WonderColors.textStrong,
         fontSize: 17,
-        fontWeight: FontWeight.w900,
+        fontWeight: FontWeight.w700,
       ),
     );
   }
@@ -181,7 +181,7 @@ class _LevelCard extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       'Cấp độ của bạn',
-                      style: TextStyle(
+                      style: WonderType.body(
                         color: WonderColors.textSoft,
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -190,10 +190,10 @@ class _LevelCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       levelTitle(count),
-                      style: const TextStyle(
+                      style: WonderType.display(
                         color: WonderColors.textStrong,
                         fontSize: 22,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -208,7 +208,7 @@ class _LevelCard extends StatelessWidget {
             done
                 ? 'Bạn đã khám phá hết — tuyệt vời!'
                 : 'Khám phá $total đồ vật để lên bậc thầy!',
-            style: TextStyle(
+            style: WonderType.body(
               color: WonderColors.textStrong.withValues(alpha: 0.85),
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -273,7 +273,7 @@ class _MaterialBadge extends StatelessWidget {
           const SizedBox(width: 7),
           Text(
             material,
-            style: TextStyle(
+            style: WonderType.body(
               color: earned ? WonderColors.textStrong : WonderColors.textSoft,
               fontSize: 13.5,
               fontWeight: FontWeight.w800,
@@ -325,7 +325,7 @@ class _ObjectCell extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
+              style: WonderType.body(
                 color: found
                     ? WonderColors.textStrong
                     : WonderColors.textSoft.withValues(alpha: 0.7),

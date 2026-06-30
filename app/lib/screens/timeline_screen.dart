@@ -217,10 +217,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
               Text(
                 'Bạn vừa khám phá xong! 🎉',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: WonderType.display(
                   color: WonderColors.textStrong,
                   fontSize: 18,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 14),
@@ -298,10 +298,10 @@ class _Header extends StatelessWidget {
               children: <Widget>[
                 Text(
                   content.name,
-                  style: const TextStyle(
+                  style: WonderType.display(
                     color: WonderColors.textStrong,
                     fontSize: 22,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -355,10 +355,10 @@ class _BadgeBanner extends StatelessWidget {
           Expanded(
             child: Text(
               'Huy hiệu mới: Vật liệu $material!',
-              style: const TextStyle(
+              style: WonderType.display(
                 color: WonderColors.textStrong,
                 fontSize: 16,
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -398,12 +398,12 @@ class _HistoryCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              const Text(
+              Text(
                 'Một chút lịch sử',
-                style: TextStyle(
+                style: WonderType.display(
                   color: WonderColors.textStrong,
                   fontSize: 17,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
@@ -411,7 +411,7 @@ class _HistoryCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             history,
-            style: TextStyle(
+            style: WonderType.body(
               color: WonderColors.textStrong.withValues(alpha: 0.9),
               fontSize: 15,
               height: 1.45,
@@ -471,8 +471,8 @@ class _StageTile extends StatelessWidget {
                 child: Center(
                   child: Text(
                     '${index + 1}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
+                    style: WonderType.display(
+                      fontWeight: FontWeight.w700,
                       fontSize: 16,
                       color: active ? Colors.white : WonderColors.tealDeep,
                     ),
@@ -510,10 +510,10 @@ class _StageTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             stage.title,
-                            style: const TextStyle(
+                            style: WonderType.display(
                               color: WonderColors.textStrong,
                               fontSize: 16.5,
-                              fontWeight: FontWeight.w900,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
@@ -538,7 +538,7 @@ class _StageTile extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       stage.kidText,
-                      style: TextStyle(
+                      style: WonderType.body(
                         color: WonderColors.textStrong.withValues(alpha: 0.9),
                         fontSize: 15,
                         height: 1.4,
@@ -570,7 +570,7 @@ class _StageTile extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 stage.funFact!,
-                                style: TextStyle(
+                                style: WonderType.body(
                                   color: WonderColors.textStrong.withValues(
                                     alpha: 0.88,
                                   ),
