@@ -58,6 +58,7 @@ abstract final class PhosphorIconsBold {
   static const IconData houseSimple = Symbols.home;
   static const IconData lockSimple = Symbols.lock;
   static const IconData magnifyingGlass = Symbols.search;
+  static const IconData puzzlePiece = Symbols.extension;
   static const IconData question = Symbols.help;
   static const IconData repeat = Symbols.replay;
   static const IconData shareNetwork = Symbols.share;

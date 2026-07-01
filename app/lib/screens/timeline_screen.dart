@@ -223,6 +223,15 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
+              // A3: mời chơi mini-game về CHÍNH vật vừa khám phá — đúng lúc trẻ
+              // đang hứng thú. Chỉ hiện trò có dữ liệu (quiz / ghép ngược).
+              if (c.quiz.isNotEmpty || c.assembly != null) ...<Widget>[
+                const SizedBox(height: 16),
+                _PlayNextSection(content: c)
+                    .animate(delay: 120.ms)
+                    .fadeIn(duration: WonderTokens.durBase)
+                    .slideY(begin: 0.1, end: 0),
+              ],
               const SizedBox(height: 14),
               WonderButton(
                 label: 'Khám phá vật khác',
@@ -647,5 +656,76 @@ class _StageImage extends StatelessWidget {
           duration: 1200.ms,
           color: Colors.white.withValues(alpha: 0.55),
         );
+  }
+}
+
+/// A3 — thẻ "Chơi tiếp": mời chơi mini-game về chính vật vừa khám phá (đố vui /
+/// ghép ngược). Chỉ hiện trò có dữ liệu; củng cố kiến thức ngay lúc trẻ hứng thú.
+/// Điều hướng sang route game (Domain 5) kèm `ObjectContent` qua `extra`.
+class _PlayNextSection extends StatelessWidget {
+  final ObjectContent content;
+  const _PlayNextSection({required this.content});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasQuiz = content.quiz.isNotEmpty;
+    final hasAssembly = content.assembly != null;
+    return GlassSurface(
+      tone: GlassTone.light,
+      padding: const EdgeInsets.all(WonderTokens.space16),
+      shadows: WonderShadows.soft,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              const Text('🎮', style: TextStyle(fontSize: 22)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Chơi tiếp với ${content.name}',
+                  style: WonderType.display(
+                    color: WonderColors.textStrong,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Củng cố điều vừa khám phá bằng một trò chơi nhỏ nhé!',
+            style: WonderType.body(
+              color: WonderColors.textSoft,
+              fontSize: 13.5,
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 14),
+          if (hasQuiz) ...<Widget>[
+            WonderButton(
+              label: 'Đố vui ${content.quiz.length} câu',
+              icon: PhosphorIconsBold.question,
+              gradient: WonderGradients.sunny,
+              foreground: WonderColors.onSpark,
+              glowColor: WonderColors.spark,
+              onTap: () => context.push('/quiz', extra: content),
+            ),
+            if (hasAssembly) const SizedBox(height: 10),
+          ],
+          if (hasAssembly)
+            WonderButton(
+              label: 'Ghép ngược ${content.name}',
+              icon: PhosphorIconsBold.puzzlePiece,
+              gradient: const LinearGradient(
+                colors: <Color>[WonderColors.grape, WonderColors.indigo],
+              ),
+              glowColor: WonderColors.grape,
+              onTap: () => context.push('/assembly', extra: content),
+            ),
+        ],
+      ),
+    );
   }
 }

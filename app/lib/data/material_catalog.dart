@@ -40,6 +40,9 @@ class MaterialCatalog {
     _instance = MaterialCatalog.fromJsonString(raw);
   }
 
+  /// Hook cho test — gán singleton mà không cần AssetBundle.
+  static set debugInstance(MaterialCatalog c) => _instance = c;
+
   // ---- Danh mục ----
   List<WonderMaterial> get all => List<WonderMaterial>.unmodifiable(_order);
   WonderMaterial? byId(String id) => _byId[id];
