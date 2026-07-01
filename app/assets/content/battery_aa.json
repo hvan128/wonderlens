@@ -26,5 +26,30 @@
     }
   ],
   "history": "Từ hơn hai trăm năm trước, con người đã phát hiện một điều thú vị: khi đặt vài loại kim loại cùng với hoá chất, chúng có thể tạo ra dòng điện. Từ phát hiện đó, người ta dần làm ra những viên pin nhỏ gọn để mang điện theo bên mình.",
-  "story": "Bạn nhỏ ơi, từ hơn hai trăm năm trước, con người đã phát hiện một điều thú vị: khi đặt vài loại kim loại cùng với hoá chất, chúng có thể tạo ra dòng điện. Từ đó, người ta nghĩ ra cách làm những viên pin nhỏ xinh để mang điện theo bên mình. Để làm một viên pin AA, trước tiên người ta tạo một lớp vỏ kim loại thật cứng, giúp giữ an toàn mọi thứ bên trong. Bên trong lớp vỏ ấy là các hoá chất đặc biệt. Khi chúng gặp nhau và phản ứng, một dòng điện nhỏ liền sinh ra. Mỗi viên pin có một đầu cộng và một đầu trừ, và dòng điện sẽ chạy từ đầu này sang đầu kia để thắp sáng đồ chơi của bạn. Cuối cùng, người ta bịt thật kín viên pin, để hoá chất không rò ra ngoài. Thế là viên pin tí hon đã sẵn sàng mang năng lượng đến cho bạn rồi đấy!"
+  "story": "Bạn nhỏ ơi, từ hơn hai trăm năm trước, con người đã phát hiện một điều thú vị: khi đặt vài loại kim loại cùng với hoá chất, chúng có thể tạo ra dòng điện. Từ đó, người ta nghĩ ra cách làm những viên pin nhỏ xinh để mang điện theo bên mình. Để làm một viên pin AA, trước tiên người ta tạo một lớp vỏ kim loại thật cứng, giúp giữ an toàn mọi thứ bên trong. Bên trong lớp vỏ ấy là các hoá chất đặc biệt. Khi chúng gặp nhau và phản ứng, một dòng điện nhỏ liền sinh ra. Mỗi viên pin có một đầu cộng và một đầu trừ, và dòng điện sẽ chạy từ đầu này sang đầu kia để thắp sáng đồ chơi của bạn. Cuối cùng, người ta bịt thật kín viên pin, để hoá chất không rò ra ngoài. Thế là viên pin tí hon đã sẵn sàng mang năng lượng đến cho bạn rồi đấy!",
+  "materials": [
+    "steel"
+  ],
+  "quiz": [
+    {
+      "question": "Cái gì bên trong pin tạo ra điện?",
+      "options": [
+        "Hoá chất phản ứng với nhau",
+        "Nước lọc",
+        "Không khí"
+      ],
+      "answer_index": 0,
+      "explain": "Các chất hoá học bên trong pin phản ứng với nhau và sinh ra dòng điện."
+    },
+    {
+      "question": "Pin AA có mấy đầu?",
+      "options": [
+        "Hai đầu: cộng (+) và trừ (−)",
+        "Chỉ một đầu",
+        "Ba đầu"
+      ],
+      "answer_index": 0,
+      "explain": "Pin có đầu cộng và đầu trừ; lắp đúng chiều thì đồ vật mới chạy."
+    }
+  ]
 }

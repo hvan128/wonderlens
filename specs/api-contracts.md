@@ -179,3 +179,92 @@ Quy ước:
 - `object_id = "unknown"` + offline: hiện "Khám phá sau nhé!"
 - Video asset lỗi/không tồn tại: hiện "Video đang được chuẩn bị" + vẫn cho nghe timeline
 - Ảnh chặng lỗi/không có: tile chặng hiển thị không-ảnh (không placeholder vỡ), timeline vẫn đầy đủ chữ + audio
+
+---
+
+# Trục C/D — Schema mở rộng game (Tích hợp)
+
+> Gộp từ nhánh `integration/truc-c-d` vào main-lineage (2026-07-01, TASK-017).
+> Nền: [ADR-012](../adrs/ADR-012-material-graph-model.md) · [ADR-013](../adrs/ADR-013-learn-play-domain.md) · [ADR-014](../adrs/ADR-014-missions-and-teacher-parent.md) · [specs/materials.md](./materials.md).
+> **Mọi trường mới đều OPTIONAL** — content thiếu vẫn chạy, app không crash. Union với schema
+> hero/video/ảnh-chặng ở trên (không thay thế). Phần Learn & Play AI-live (why-tree `/api/explain-deeper`)
+> và chế độ Giáo viên/Phụ huynh (`lessons.json`) **ngoài phạm vi đợt này** — xem ADR-014.
+
+## ObjectContent / HeroContent — trường mới (mỗi hero object)
+
+```json
+{
+  "materials": ["plastic", "steel"],
+  "quiz": [
+    {
+      "question": "Bút bi bắt đầu từ đâu nào?",
+      "options": ["Dầu mỏ", "Nước biển", "Gỗ"],
+      "answer_index": 0,
+      "explain": "Vỏ bút làm từ nhựa, mà nhựa làm từ dầu mỏ!"
+    }
+  ],
+  "assembly": {
+    "target": "Bút bi",
+    "steps": [
+      { "from": "petroleum", "to": "plastic", "label": "Dầu mỏ → hạt nhựa" },
+      { "from": "plastic", "to": "ball_pen", "label": "Hạt nhựa → vỏ bút" }
+    ]
+  }
+}
+```
+
+- `materials[]` (**optional**): id trỏ vào `materials.json` (F-09, ADR-012). Quan hệ many-to-many → mạng lưới. Vật thiếu trường này vẫn chạy (fallback `material_badge`/`category` cũ).
+- `quiz[]` (**optional**): F-10 (ADR-013). `answer_index` 0-based. Hero offline; AI-live **không** sinh quiz. Thiếu `quiz` → không hiện đố vui, luồng chính không đổi.
+- `assembly` (**optional**): F-13 (ADR-013). `steps[].from/to` là material id hoặc object id (mắt cuối = chính object). Thiếu `assembly` → không hiện game ghép ngược.
+
+## Bundled file mới — `assets/content/materials.json` (F-09)
+
+```json
+{
+  "materials": [
+    {
+      "id": "petroleum", "name": "Dầu mỏ", "emoji": "🛢️",
+      "kind": "source", "category": "Nhựa", "derived_from": [],
+      "blurb": "Chất lỏng nằm sâu dưới lòng đất, từ xác sinh vật biển cổ.",
+      "fun_facts": ["..."]
+    },
+    {
+      "id": "plastic", "name": "Nhựa", "emoji": "🧴",
+      "kind": "derived", "category": "Nhựa", "derived_from": ["petroleum"],
+      "blurb": "...", "fun_facts": ["..."]
+    }
+  ]
+}
+```
+
+`kind` ∈ `source | derived`. `category` ∈ `Giấy | Nhựa | Kim loại | Gỗ | Thuỷ tinh` (tương thích badge cũ). Danh mục đầy đủ: `specs/materials.md`. File thiếu → app fallback badge thô cũ, không crash.
+
+## Bundled file mới — `assets/content/missions.json` (F-12)
+
+```json
+{
+  "missions": [
+    {
+      "id": "metal_hunt", "title": "Thợ săn kim loại", "emoji": "🧲",
+      "goal": { "type": "material_count", "category": "Kim loại", "count": 3 },
+      "reward_badge": "Huy hiệu Thợ săn kim loại"
+    },
+    { "id": "office_set", "title": "Bộ bàn làm việc", "emoji": "🗂️",
+      "goal": { "type": "discover_set", "object_ids": ["ball_pen", "pencil", "paper_a4"] },
+      "reward_badge": "Huy hiệu Bàn gọn gàng" }
+  ]
+}
+```
+
+`goal.type` ∈ `material_count` (theo `category` hoặc `material` id — dựa material graph ADR-012) · `discover_set` (`object_ids`) · `collect_card` (`material_ids`). File thiếu → không có nhiệm vụ, app vẫn chạy.
+
+## Local data schema — Hive box mới `wonderlens_progress`
+
+| Key | Kiểu | Dùng cho |
+|-----|------|----------|
+| `completed_missions` | `List<String>` (mission id) | F-12 |
+| `quiz_badges` | `List<String>` (object id đã pass quiz) | F-10 |
+
+- Ưu tiên **key-value đơn giản** (như box `wonderlens_collection`), tránh `build_runner`/TypeAdapter mới.
+- Box/khoá thiếu → coi như rỗng (migrate mềm), app không crash.
+- Thẻ vật liệu + badge thô **không** lưu ở đây — suy ra từ `discoveredIds` (ADR-012).

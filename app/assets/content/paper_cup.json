@@ -27,5 +27,31 @@
   ],
   "video": "assets/videos/paper_cup.mp4",
   "history": "Từ hơn một trăm năm trước, mọi người thường dùng chung một chiếc cốc bằng kim loại ở nơi lấy nước công cộng. Vì dùng chung như vậy rất dễ lây bệnh, người ta đã nghĩ ra chiếc cốc giấy dùng một lần để ai cũng có một chiếc cốc sạch của riêng mình.",
-  "story": "Bạn nhỏ ơi, bạn có biết không, từ hơn một trăm năm trước, mọi người thường dùng chung một chiếc cốc bằng kim loại ở nơi lấy nước công cộng. Vì dùng chung như vậy rất dễ lây bệnh, người ta đã nghĩ ra chiếc cốc giấy dùng một lần để ai cũng có một chiếc cốc sạch của riêng mình. Vậy chiếc cốc giấy ra đời như thế nào nhỉ? Tất cả bắt đầu từ một cái cây cao lớn. Người ta lấy gỗ của cây, băm thành mảnh nhỏ rồi nấu với nước cho mềm nhũn, biến thành một thứ sền sệt gọi là bột giấy. Bột giấy được trải thật mỏng, ép cho ráo nước rồi sấy khô thành những tấm giấy phẳng phiu. Sau đó, giấy được cuộn tròn lại thành hình cốc và tráng thêm một lớp màng mỏng bên trong để nước không thấm ra ngoài. Thế là chiếc cốc giấy xinh xắn đã sẵn sàng đựng nước mát cho bạn rồi. Thật kỳ diệu phải không nào?"
+  "story": "Bạn nhỏ ơi, bạn có biết không, từ hơn một trăm năm trước, mọi người thường dùng chung một chiếc cốc bằng kim loại ở nơi lấy nước công cộng. Vì dùng chung như vậy rất dễ lây bệnh, người ta đã nghĩ ra chiếc cốc giấy dùng một lần để ai cũng có một chiếc cốc sạch của riêng mình. Vậy chiếc cốc giấy ra đời như thế nào nhỉ? Tất cả bắt đầu từ một cái cây cao lớn. Người ta lấy gỗ của cây, băm thành mảnh nhỏ rồi nấu với nước cho mềm nhũn, biến thành một thứ sền sệt gọi là bột giấy. Bột giấy được trải thật mỏng, ép cho ráo nước rồi sấy khô thành những tấm giấy phẳng phiu. Sau đó, giấy được cuộn tròn lại thành hình cốc và tráng thêm một lớp màng mỏng bên trong để nước không thấm ra ngoài. Thế là chiếc cốc giấy xinh xắn đã sẵn sàng đựng nước mát cho bạn rồi. Thật kỳ diệu phải không nào?",
+  "materials": [
+    "paper_pulp",
+    "plastic"
+  ],
+  "quiz": [
+    {
+      "question": "Vì sao cốc giấy đựng nước mà không bị rỉ ra ngoài?",
+      "options": [
+        "Có một lớp màng mỏng chống thấm bên trong",
+        "Vì giấy rất dày",
+        "Vì luôn có nắp đậy"
+      ],
+      "answer_index": 0,
+      "explain": "Bên trong cốc có một lớp màng mỏng giúp nước không thấm ra ngoài."
+    },
+    {
+      "question": "Cốc giấy bắt đầu từ đâu?",
+      "options": [
+        "Từ cây gỗ",
+        "Từ dầu mỏ",
+        "Từ cát"
+      ],
+      "answer_index": 0,
+      "explain": "Cốc giấy làm từ giấy, mà giấy làm từ gỗ của cây."
+    }
+  ]
 }

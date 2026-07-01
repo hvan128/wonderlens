@@ -4,14 +4,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'data/app_settings.dart';
 import 'data/capture_store.dart';
 import 'data/collection_repository.dart';
+import 'data/material_catalog.dart';
+import 'data/mission_repository.dart';
 import 'router.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await CollectionRepository.init();
+  await CollectionRepository.init(); // khởi tạo Hive (initFlutter) + box sưu tập
   await AppSettings.init();
   await CaptureStore.init();
+  // Nền game (Trục C/D): nạp mạng lưới vật liệu + nhiệm vụ (offline, bundled).
+  await MaterialCatalog.init();
+  await MissionRepository.init(); // mở box 'wonderlens_progress' (sau Hive init)
   runApp(const ProviderScope(child: WonderLensApp()));
 }
 

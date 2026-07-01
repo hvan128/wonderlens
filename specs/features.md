@@ -156,3 +156,83 @@ Red-team AI live output với nhiều object types để đảm bảo không có
 **Why deferred:** Cần OpenAI key + deployed proxy. Hackathon scope không cover.
 
 **Blocker:** F-05 (AI live) không được dùng cho trẻ thật trước khi F-08 done.
+
+---
+
+# Trục C/D — Tích hợp game (Học sâu & Chơi)
+
+> Gộp từ nhánh `integration/truc-c-d` vào main-lineage.
+> Nền: [ADR-012](../adrs/ADR-012-material-graph-model.md) · [ADR-013](../adrs/ADR-013-learn-play-domain.md) · [ADR-014](../adrs/ADR-014-missions-and-teacher-parent.md) · [specs/materials.md](./materials.md).
+> Nền dữ liệu/model tích hợp ở **TASK-017**; UI game ở các task sau (TASK-018..021).
+
+## F-09: Thẻ Vật Liệu & Mạng lưới
+
+**Priority:** P1 | **Status:** Planned | **Domain:** Collection, Cards & Missions | **Task:** TASK-017 (nền) + TASK-019 (UI) | **ADR:** ADR-012
+
+**Description:**
+Mỗi vật liệu (Dầu mỏ, Thép, Gỗ, Cát→Thuỷ tinh…) là một **thẻ sưu tầm**. Khám phá đồ vật → mở thẻ. Chạm thẻ → thấy **mạng lưới**: các vật khác cùng vật liệu đó.
+
+**User story:** *Bé khám phá bút bi và chai nước → mở thẻ "Dầu mỏ" → thấy cả hai đều bắt đầu từ dầu mỏ.*
+
+**Acceptance criteria:** Cốt lõi (ADR-012): graph object↔material, thẻ mờ khi chưa mở, thẻ chi tiết có blurb + fun_facts + danh sách vật cùng vật liệu, suy ra từ `discoveredIds` (không Hive field mới), AI-live không vào mạng lưới.
+
+---
+
+## F-10: Đố vui sau timeline
+
+**Priority:** P1 | **Status:** Planned | **Domain:** Learn & Play | **Task:** TASK-018 | **ADR:** ADR-013
+
+**Description:** Sau timeline hero → 1–3 câu đố ("Bút bi bắt đầu từ đâu nào?") → củng cố + huy hiệu nhỏ.
+
+**Acceptance criteria:** Cốt lõi: `quiz[]` trong content (optional), offline cho hero, bỏ qua được (không chặn Collection), AI-live không sinh quiz.
+
+---
+
+## F-12: Nhiệm vụ khám phá
+
+**Priority:** P2 | **Status:** Planned | **Domain:** Collection, Cards & Missions | **Task:** TASK-019 | **Depends:** F-09 | **ADR:** ADR-014
+
+**Description:** "Tìm 3 vật làm từ kim loại trong nhà!" → khám phá đủ → hoàn thành + huy hiệu.
+
+**Acceptance criteria:** `missions.json`, Hive box `wonderlens_progress` persist, tự cập nhật theo khám phá (đếm qua material graph ADR-012), offline.
+
+---
+
+## F-13: Game ghép ngược
+
+**Priority:** P2 | **Status:** Planned | **Domain:** Learn & Play | **Task:** TASK-018 | **Depends:** F-09 | **ADR:** ADR-013
+
+**Description:** Kéo nguyên liệu để lắp ra đồ vật theo chuỗi biến đổi (dầu mỏ → hạt nhựa → vỏ bút → bút bi).
+
+**Acceptance criteria:** `assembly` trong content (optional), `Draggable`/`DragTarget` core (không package mới), offline ≥ 4 hero.
+
+---
+
+## F-17: Sân chơi (điểm vào game & bottom-nav tab)
+
+**Priority:** P1 | **Status:** Planned (mới) | **Domain:** Cross-cutting (UI shell) | **Task:** TASK-021
+
+**Description:** Tab "Sân chơi" trên bottom-nav gom các điểm vào game (đố vui, ghép ngược, nhiệm vụ, thẻ vật liệu) + CTA sau timeline. Là lớp điều hướng, không chứa business logic.
+
+**Acceptance criteria:** Tab điều hướng tới các màn Learn & Play + Missions; CTA "Chơi tiếp" sau khi xem timeline (A3); ẩn mượt khi content thiếu (không vỡ UI).
+
+---
+
+## F-18: Chuỗi ngày khám phá (daily streak)
+
+**Priority:** P2 | **Status:** Planned (mới) | **Domain:** Collection, Cards & Missions | **Task:** TASK-020
+
+**Description:** Đếm số ngày liên tiếp bé mở app khám phá → khích lệ quay lại. Lưu ở Hive (key-value đơn giản), offline.
+
+**Acceptance criteria:** Tăng streak khi khám phá trong ngày mới liên tiếp; reset khi bỏ ngày; persist qua restart; không PII, không account.
+
+---
+
+## Ngoài phạm vi đợt tích hợp này (backlog Trục C/D)
+
+Các feature sau đã có trong backlog nhánh `integration/truc-c-d` nhưng **chưa** thuộc đợt tích hợp hiện tại — giữ số hiệu để không đụng:
+
+- **F-11: So sánh 2 vật** — Learn & Play, dùng `sharedMaterials(a,b)` (ADR-012). *Planned, chưa lên lịch.*
+- **F-14: Cây "Tại sao?"** — Learn & Play + Proxy; nhánh AI-live qua `/api/explain-deeper` **bị chặn bởi F-08**. *Planned, chưa lên lịch.*
+- **F-15: Chế độ Giáo viên/Phụ huynh (B2B)** — **DEFERRED** (Domain 6, ADR-014 §Phạm vi tích hợp).
+- **F-16: Album chung gia đình/lớp** — **DEFERRED**, cần backend + **ADR riêng** đảo non-goal (PRD §6).
