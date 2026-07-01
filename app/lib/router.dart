@@ -5,6 +5,8 @@ import 'models/object_content.dart';
 import 'screens/assembly_game_screen.dart';
 import 'screens/camera_screen.dart';
 import 'screens/collection_screen.dart';
+import 'screens/material_cards_screen.dart';
+import 'screens/missions_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/quiz_screen.dart';
 import 'screens/timeline_screen.dart';
@@ -50,6 +52,17 @@ final appRouter = GoRouter(
         key: state.pageKey,
         child: AssemblyGameScreen(content: state.extra as ObjectContent?),
       ),
+    ),
+    // Nhiệm vụ khám phá (TASK-019 / D1) + Thẻ vật liệu (nền mạng lưới ADR-012).
+    GoRoute(
+      path: '/missions',
+      pageBuilder: (context, state) =>
+          wonderPage(key: state.pageKey, child: const MissionsScreen()),
+    ),
+    GoRoute(
+      path: '/material-cards',
+      pageBuilder: (context, state) =>
+          wonderPage(key: state.pageKey, child: const MaterialCardsScreen()),
     ),
   ],
 );

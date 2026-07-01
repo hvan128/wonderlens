@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../data/collection_repository.dart';
 import '../data/content_repository.dart';
 import '../data/hero_catalog.dart';
+import '../data/material_catalog.dart';
+import '../data/mission_repository.dart';
 import '../ui/ui.dart';
 import '../widgets/object_avatar.dart';
 import '../widgets/share_sheet.dart';
@@ -30,6 +32,8 @@ class CollectionScreen extends StatelessWidget {
     // Track "khám phá AI" (vật lạ) — huy hiệu động, tách khỏi lõi verified.
     final aiDiscoveries = repo.aiDiscoveries();
     final aiBadges = repo.aiBadges();
+    // A2 — khu "Thử thách": tóm tắt nhiệm vụ + thẻ vật liệu (nền game TASK-019).
+    final challenges = _challengeSummary(discovered);
 
     void share() => showCollectionShareSheet(
       context,
@@ -62,6 +66,27 @@ class CollectionScreen extends StatelessWidget {
               .animate()
               .fadeIn(duration: WonderTokens.durBase)
               .slideY(begin: 0.12, end: 0),
+          // A2 — "cửa vào" game từ Bộ sưu tập: nhiệm vụ + thẻ vật liệu.
+          if (challenges.ready) ...<Widget>[
+            const SizedBox(height: 18),
+            const _SectionTitle('Thử thách'),
+            const SizedBox(height: 10),
+            _ChallengeTile(
+              emoji: '🗺️',
+              title: 'Nhiệm vụ khám phá',
+              subtitle: '${challenges.missionsDone}/${challenges.missionsTotal} hoàn thành',
+              accent: WonderColors.spark,
+              onTap: () => context.push('/missions'),
+            ),
+            const SizedBox(height: 10),
+            _ChallengeTile(
+              emoji: '🃏',
+              title: 'Thẻ vật liệu',
+              subtitle: 'Đã mở ${challenges.cardsOpen}/${challenges.cardsTotal} thẻ',
+              accent: WonderColors.mint,
+              onTap: () => context.push('/material-cards'),
+            ),
+          ],
           if (count == 0 && aiDiscoveries.isEmpty) ...<Widget>[
             const SizedBox(height: 16),
             const _EmptyState(),
@@ -160,6 +185,42 @@ Future<void> _openHeroJourney(BuildContext context, String id) async {
   context.push('/timeline', extra: content);
 }
 
+/// Tóm tắt "Thử thách" cho Bộ sưu tập (A2): số nhiệm vụ đã hoàn thành + số thẻ
+/// vật liệu đã mở. Tiến độ suy trực tiếp từ bộ sưu tập (không lưu thêm) — logic ở
+/// [MissionRepository]/[MaterialCatalog], không nằm trong widget (AGENTS.md).
+/// `ready=false` nếu catalog chưa nạp → ẩn section (không crash).
+({bool ready, int missionsDone, int missionsTotal, int cardsOpen, int cardsTotal})
+    _challengeSummary(Set<String> discovered) {
+  if (!MaterialCatalog.isReady) {
+    return (
+      ready: false,
+      missionsDone: 0,
+      missionsTotal: 0,
+      cardsOpen: 0,
+      cardsTotal: 0,
+    );
+  }
+  final catalog = MaterialCatalog.instance;
+  final repo = MissionRepository();
+  final unlocked = catalog.unlockedCards(discovered);
+  final missionsDone = repo.missions
+      .where((m) => MissionRepository.progressOf(
+            m,
+            discovered: discovered,
+            unlockedCards: unlocked,
+            catalog: catalog,
+          ).done)
+      .length;
+  final cardsOpen = catalog.all.where((m) => unlocked.contains(m.id)).length;
+  return (
+    ready: true,
+    missionsDone: missionsDone,
+    missionsTotal: repo.missions.length,
+    cardsOpen: cardsOpen,
+    cardsTotal: catalog.all.length,
+  );
+}
+
 /// Gợi ý cấp độ kế tiếp: còn bao nhiêu vật nữa để lên bậc sau. Ngưỡng đồng bộ
 /// với [levelTitle] (collection_repository) để hai chỗ không lệch nhau.
 String _nextLevelHint(int count, int total) {
@@ -249,6 +310,81 @@ class _SectionTitle extends StatelessWidget {
         color: WonderColors.textStrong,
         fontSize: 17,
         fontWeight: FontWeight.w700,
+      ),
+    );
+  }
+}
+
+/// Ô "cửa vào" một trò chơi/nhiệm vụ từ Bộ sưu tập (A2): emoji + tên + tiến độ.
+class _ChallengeTile extends StatelessWidget {
+  final String emoji;
+  final String title;
+  final String subtitle;
+  final Color accent;
+  final VoidCallback onTap;
+
+  const _ChallengeTile({
+    required this.emoji,
+    required this.title,
+    required this.subtitle,
+    required this.accent,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassSurface(
+      tone: GlassTone.light,
+      radius: WonderTokens.radiusMd,
+      padding: const EdgeInsets.all(14),
+      shadows: WonderShadows.soft,
+      onTap: onTap,
+      semanticLabel: title,
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: accent.withValues(alpha: 0.18),
+              border: Border.all(color: accent.withValues(alpha: 0.4)),
+            ),
+            child: Center(
+              child: Text(emoji, style: const TextStyle(fontSize: 22)),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  title,
+                  style: WonderType.display(
+                    color: WonderColors.textStrong,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: WonderType.body(
+                    color: WonderColors.textSoft,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const PhosphorIcon(
+            PhosphorIconsBold.caretRight,
+            size: 20,
+            color: WonderColors.textFaint,
+          ),
+        ],
       ),
     );
   }
