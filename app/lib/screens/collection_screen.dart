@@ -59,7 +59,10 @@ class CollectionScreen extends StatelessWidget {
               .animate()
               .fadeIn(duration: WonderTokens.durBase)
               .slideY(begin: 0.12, end: 0),
-          if (count > 0) ...<Widget>[
+          if (count == 0) ...<Widget>[
+            const SizedBox(height: 16),
+            const _EmptyState(),
+          ] else ...<Widget>[
             const SizedBox(height: 12),
             WonderButton(
               label: 'Khoe bộ sưu tập',
@@ -69,20 +72,24 @@ class CollectionScreen extends StatelessWidget {
               ),
               onTap: share,
             ),
+            const SizedBox(height: 22),
+            const _SectionTitle('Huy hiệu vật liệu'),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                for (final m in allMaterials)
+                  _MaterialBadge(material: m, earned: badges.contains(m)),
+              ],
+            ),
           ],
-          const SizedBox(height: 22),
-          const _SectionTitle('Huy hiệu vật liệu'),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: <Widget>[
-              for (final m in allMaterials)
-                _MaterialBadge(material: m, earned: badges.contains(m)),
-            ],
-          ),
           const SizedBox(height: 24),
-          _SectionTitle('Đồ vật đã khám phá ($count/$total)'),
+          _SectionTitle(
+            count == 0
+                ? 'Có $total điều chờ khám phá ✨'
+                : 'Đồ vật đã khám phá ($count/$total)',
+          ),
           const SizedBox(height: 10),
           GridView.count(
             crossAxisCount: 3,
@@ -107,7 +114,7 @@ class CollectionScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           WonderButton(
-            label: 'Đi khám phá tiếp',
+            label: count == 0 ? 'Bắt đầu quét đồ vật' : 'Đi khám phá tiếp',
             icon: PhosphorIconsBold.magnifyingGlass,
             trailingIcon: PhosphorIconsBold.arrowRight,
             onTap: () => context.go('/camera'),
@@ -126,6 +133,73 @@ Future<void> _openHeroJourney(BuildContext context, String id) async {
   context.push('/timeline', extra: content);
 }
 
+/// Gợi ý cấp độ kế tiếp: còn bao nhiêu vật nữa để lên bậc sau. Ngưỡng đồng bộ
+/// với [levelTitle] (collection_repository) để hai chỗ không lệch nhau.
+String _nextLevelHint(int count, int total) {
+  if (count >= total) return 'Bạn đã sưu tầm đủ bộ — tuyệt vời! 🎉';
+  for (final t in const <int>[1, 3, 5]) {
+    if (count < t) return 'Còn ${t - count} vật nữa → ${levelTitle(t)}';
+  }
+  return 'Còn ${total - count} vật nữa → ${levelTitle(total)}';
+}
+
+/// Emoji đại diện cho từng nhóm vật liệu (dùng cho huy hiệu đã mở khoá).
+String _materialEmoji(String material) {
+  switch (material) {
+    case 'Giấy':
+      return '📄';
+    case 'Nhựa':
+      return '🧴';
+    case 'Kim loại':
+      return '🔩';
+    case 'Gỗ':
+      return '🪵';
+    default:
+      return '🏅';
+  }
+}
+
+/// Trạng thái rỗng: Tia dẫn dắt trẻ quét vật đầu tiên (thay cho lưới khoá trơ).
+class _EmptyState extends StatelessWidget {
+  const _EmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassSurface(
+      tone: GlassTone.light,
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
+      shadows: WonderShadows.card,
+      child: Column(
+        children: <Widget>[
+          const TiaMascot(size: 76)
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .moveY(begin: -4, end: 4, duration: 2400.ms, curve: Curves.easeInOut),
+          const SizedBox(height: 12),
+          Text(
+            'Bộ sưu tập còn trống!',
+            style: WonderType.display(
+              color: WonderColors.textStrong,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Quét đồ vật đầu tiên để Tia kể chuyện nó ra đời và mở huy hiệu nhé!',
+            textAlign: TextAlign.center,
+            style: WonderType.body(
+              color: WonderColors.textSoft,
+              fontSize: 14,
+              height: 1.45,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SectionTitle extends StatelessWidget {
   final String text;
   const _SectionTitle(this.text);
@@ -134,10 +208,10 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(
+      style: WonderType.display(
         color: WonderColors.textStrong,
         fontSize: 17,
-        fontWeight: FontWeight.w900,
+        fontWeight: FontWeight.w700,
       ),
     );
   }
@@ -151,7 +225,6 @@ class _LevelCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progress = total == 0 ? 0.0 : count / total;
-    final done = count >= total;
     return GlassSurface(
       tone: GlassTone.light,
       padding: const EdgeInsets.all(18),
@@ -181,7 +254,7 @@ class _LevelCard extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       'Cấp độ của bạn',
-                      style: TextStyle(
+                      style: WonderType.body(
                         color: WonderColors.textSoft,
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -190,10 +263,10 @@ class _LevelCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       levelTitle(count),
-                      style: const TextStyle(
+                      style: WonderType.display(
                         color: WonderColors.textStrong,
                         fontSize: 22,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -202,17 +275,40 @@ class _LevelCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          _ProgressBar(value: progress),
+          Row(
+            children: <Widget>[
+              Expanded(child: _ProgressBar(value: progress)),
+              const SizedBox(width: 10),
+              Text(
+                '$count/$total',
+                style: WonderType.display(
+                  color: WonderColors.wonder,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
-          Text(
-            done
-                ? 'Bạn đã khám phá hết — tuyệt vời!'
-                : 'Khám phá $total đồ vật để lên bậc thầy!',
-            style: TextStyle(
-              color: WonderColors.textStrong.withValues(alpha: 0.85),
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: <Widget>[
+              const PhosphorIcon(
+                PhosphorIconsFill.sparkle,
+                size: 15,
+                color: WonderColors.spark,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  _nextLevelHint(count, total),
+                  style: WonderType.body(
+                    color: WonderColors.textStrong.withValues(alpha: 0.85),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -254,26 +350,31 @@ class _MaterialBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = earned ? WonderColors.sunny : WonderColors.textSoft;
+    // Mỗi vật liệu một màu riêng (Giấy/Nhựa/Kim loại/Gỗ) khi đã mở khoá.
+    final color = earned ? WonderColors.material(material) : WonderColors.textSoft;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: earned ? 0.18 : 0.1),
+        color: color.withValues(alpha: earned ? 0.22 : 0.1),
         borderRadius: BorderRadius.circular(WonderTokens.radiusSm),
-        border: Border.all(color: color.withValues(alpha: earned ? 0.45 : 0.25)),
+        border: Border.all(
+          color: color.withValues(alpha: earned ? 0.6 : 0.25),
+          width: earned ? 1.5 : 1,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          PhosphorIcon(
-            earned ? PhosphorIconsFill.medal : PhosphorIconsBold.lockSimple,
-            size: 16,
-            color: earned ? const Color(0xFFE08A00) : WonderColors.textSoft,
-          ),
+          // Đã mở khoá: emoji vật liệu (dễ nhận, phân biệt Giấy/Gỗ rõ ràng).
+          // Chưa: ổ khoá.
+          if (earned)
+            Text(_materialEmoji(material), style: const TextStyle(fontSize: 15))
+          else
+            PhosphorIcon(PhosphorIconsBold.lockSimple, size: 16, color: color),
           const SizedBox(width: 7),
           Text(
             material,
-            style: TextStyle(
+            style: WonderType.body(
               color: earned ? WonderColors.textStrong : WonderColors.textSoft,
               fontSize: 13.5,
               fontWeight: FontWeight.w800,
@@ -325,7 +426,7 @@ class _ObjectCell extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
+              style: WonderType.body(
                 color: found
                     ? WonderColors.textStrong
                     : WonderColors.textSoft.withValues(alpha: 0.7),

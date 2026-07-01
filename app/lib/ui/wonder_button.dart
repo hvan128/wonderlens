@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'phosphor_compat.dart';
 
 import '../theme/wonder_tokens.dart';
+import '../theme/wonder_typography.dart';
 import 'pressable.dart';
 
 /// Nút hành động chính: nền gradient thương hiệu, glow mềm, phản hồi chạm mềm,
@@ -15,6 +16,12 @@ class WonderButton extends StatelessWidget {
   final Gradient gradient;
   final double height;
 
+  /// Màu chữ/icon (mặc định trắng). Đặt mực nâu cho nút vàng tia sáng.
+  final Color foreground;
+
+  /// Màu glow dưới nút (mặc định tím). Đổi sang vàng cho CTA tia sáng.
+  final Color glowColor;
+
   const WonderButton({
     super.key,
     required this.label,
@@ -24,6 +31,8 @@ class WonderButton extends StatelessWidget {
     this.expand = true,
     this.gradient = WonderGradients.cta,
     this.height = 56,
+    this.foreground = Colors.white,
+    this.glowColor = WonderColors.wonder,
   });
 
   @override
@@ -38,31 +47,31 @@ class WonderButton extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: gradient,
           borderRadius: BorderRadius.circular(WonderTokens.radiusMd),
-          boxShadow: WonderShadows.glow(WonderColors.teal, opacity: 0.45),
+          boxShadow: WonderShadows.glow(glowColor, opacity: 0.45),
         ),
         child: Row(
           mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             if (icon != null) ...<Widget>[
-              PhosphorIcon(icon!, size: 20, color: Colors.white),
+              PhosphorIcon(icon!, size: 20, color: foreground),
               const SizedBox(width: WonderTokens.space8),
             ],
             Flexible(
               child: Text(
                 label,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: WonderType.display(
+                  color: foreground,
                   fontSize: 17,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w600,
                   letterSpacing: 0.2,
                 ),
               ),
             ),
             if (trailingIcon != null) ...<Widget>[
               const SizedBox(width: WonderTokens.space8),
-              PhosphorIcon(trailingIcon!, size: 20, color: Colors.white),
+              PhosphorIcon(trailingIcon!, size: 20, color: foreground),
             ],
           ],
         ),

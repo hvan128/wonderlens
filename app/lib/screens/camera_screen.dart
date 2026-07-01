@@ -222,7 +222,8 @@ class _CameraScreenState extends State<CameraScreen>
           'Thử một đồ vật khác nhé!',
         );
       } else {
-        await saveCapture(live.id);
+        // Vật AI-live: KHÔNG lưu ảnh cutout → ObjectAvatar hiện emoji do AI chọn
+        // (icon thay vì ảnh chụp). Hero objects vẫn lưu ảnh thật như cũ.
         if (!mounted) return;
         _present(live, confident: true);
       }
@@ -298,18 +299,26 @@ class _CameraScreenState extends State<CameraScreen>
         children: <Widget>[
           _buildPreview(),
           const _Scrims(),
-          SafeArea(
-            child: WonderHeader(
-              branded: true,
-              tone: GlassTone.dark,
-              floating: false,
-              actions: <WonderHeaderAction>[
-                WonderHeaderAction(
-                  icon: PhosphorIconsBold.houseSimple,
-                  tooltip: 'Về màn hình chính',
-                  onTap: () => context.go('/onboarding'),
-                ),
-              ],
+          // Header ghim lên đỉnh: trong Stack(fit: expand) widget không-positioned
+          // bị kéo cao full màn khiến nội dung header canh giữa. Positioned (chỉ
+          // top/left/right) cho header lấy đúng chiều cao tự nhiên ở trên cùng.
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: WonderHeader(
+                branded: true,
+                tone: GlassTone.dark,
+                floating: false,
+                actions: <WonderHeaderAction>[
+                  WonderHeaderAction(
+                    icon: PhosphorIconsBold.houseSimple,
+                    tooltip: 'Về màn hình chính',
+                    onTap: () => context.go('/onboarding'),
+                  ),
+                ],
+              ),
             ),
           ),
           Positioned(
@@ -603,6 +612,8 @@ class _DiscoveryOverlay extends StatelessWidget {
                     children: <Widget>[
                       Row(
                         children: <Widget>[
+                          const TiaMascot(size: 26, tone: TiaTone.light),
+                          const SizedBox(width: 6),
                           PhosphorIcon(
                             confident
                                 ? PhosphorIconsFill.sealCheck
@@ -613,7 +624,7 @@ class _DiscoveryOverlay extends StatelessWidget {
                           const SizedBox(width: 6),
                           Text(
                             confident ? 'Tớ thấy rồi!' : 'Hình như là…',
-                            style: TextStyle(
+                            style: WonderType.body(
                               color: Colors.white.withValues(alpha: 0.88),
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
@@ -624,10 +635,10 @@ class _DiscoveryOverlay extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         confident ? content.name : '${content.name}?',
-                        style: const TextStyle(
+                        style: WonderType.display(
                           color: Colors.white,
                           fontSize: 26,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w700,
                           height: 1.1,
                         ),
                       ),
@@ -661,7 +672,7 @@ class _DiscoveryOverlay extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'Cùng xem nó được tạo ra như thế nào nhé!',
-              style: TextStyle(
+              style: WonderType.body(
                 color: Colors.white.withValues(alpha: 0.92),
                 fontSize: 15,
                 height: 1.3,
@@ -711,27 +722,23 @@ class _MessageOverlay extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             const Center(
-              child: PhosphorIcon(
-                PhosphorIconsDuotone.binoculars,
-                size: 40,
-                color: Colors.white,
-              ),
+              child: TiaMascot(size: 56, tone: TiaTone.light),
             ),
             const SizedBox(height: 12),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: WonderType.display(
                 color: Colors.white,
                 fontSize: 20,
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               body,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: WonderType.body(
                 color: Colors.white.withValues(alpha: 0.9),
                 fontSize: 15,
                 height: 1.3,
@@ -795,15 +802,15 @@ class _GeneratingOverlay extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
         child: ColoredBox(
           color: Colors.black.withValues(alpha: 0.5),
-          child: const Center(
+          child: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                ScanRingButton(busy: true, size: 104),
-                SizedBox(height: 22),
+                const ScanRingButton(busy: true, size: 104),
+                const SizedBox(height: 22),
                 Text(
                   'Đang tìm hiểu món này…',
-                  style: TextStyle(
+                  style: WonderType.body(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
