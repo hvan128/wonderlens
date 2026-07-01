@@ -6,6 +6,7 @@ import '../data/content_repository.dart';
 import '../data/hero_catalog.dart';
 import '../data/material_catalog.dart';
 import '../data/mission_repository.dart';
+import '../data/streak_repository.dart';
 import '../ui/ui.dart';
 import '../widgets/object_avatar.dart';
 import '../widgets/share_sheet.dart';
@@ -34,6 +35,8 @@ class CollectionScreen extends StatelessWidget {
     final aiBadges = repo.aiBadges();
     // A2 — khu "Thử thách": tóm tắt nhiệm vụ + thẻ vật liệu (nền game TASK-019).
     final challenges = _challengeSummary(discovered);
+    // D2 — chuỗi ngày khám phá (chỉ hiển thị; ghi nhận diễn ra ở Timeline).
+    final streak = StreakRepository().current;
 
     void share() => showCollectionShareSheet(
       context,
@@ -62,7 +65,7 @@ class CollectionScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
         children: <Widget>[
-          _LevelCard(count: count, total: total)
+          _LevelCard(count: count, total: total, streak: streak)
               .animate()
               .fadeIn(duration: WonderTokens.durBase)
               .slideY(begin: 0.12, end: 0),
@@ -393,7 +396,12 @@ class _ChallengeTile extends StatelessWidget {
 class _LevelCard extends StatelessWidget {
   final int count;
   final int total;
-  const _LevelCard({required this.count, required this.total});
+  final int streak;
+  const _LevelCard({
+    required this.count,
+    required this.total,
+    this.streak = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -445,6 +453,7 @@ class _LevelCard extends StatelessWidget {
                   ],
                 ),
               ),
+              if (streak > 0) _StreakChip(days: streak),
             ],
           ),
           const SizedBox(height: 14),
@@ -508,6 +517,39 @@ class _ProgressBar extends StatelessWidget {
             child: Container(
               height: 14,
               decoration: const BoxDecoration(gradient: WonderGradients.cta),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Chip nhỏ hiện chuỗi ngày khám phá hiện tại (D2) trên thẻ cấp độ.
+class _StreakChip extends StatelessWidget {
+  final int days;
+  const _StreakChip({required this.days});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: WonderColors.spark.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(WonderTokens.pill),
+        border: Border.all(color: WonderColors.spark.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const Text('🔥', style: TextStyle(fontSize: 15)),
+          const SizedBox(width: 5),
+          Text(
+            '$days ngày',
+            style: WonderType.body(
+              color: WonderColors.onSpark,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],

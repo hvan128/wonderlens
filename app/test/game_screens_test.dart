@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wonderlens/data/material_catalog.dart';
 import 'package:wonderlens/data/mission_repository.dart';
+import 'package:wonderlens/data/streak_repository.dart';
 import 'package:wonderlens/models/assembly.dart';
 import 'package:wonderlens/models/mission.dart';
 import 'package:wonderlens/models/object_content.dart';
@@ -13,6 +14,7 @@ import 'package:wonderlens/models/quiz.dart';
 import 'package:wonderlens/screens/assembly_game_screen.dart';
 import 'package:wonderlens/screens/missions_screen.dart';
 import 'package:wonderlens/screens/quiz_screen.dart';
+import 'package:wonderlens/widgets/streak_celebration.dart';
 
 void main() {
   setUpAll(() async {
@@ -102,5 +104,34 @@ void main() {
     expect(find.text('Thợ săn kim loại'), findsOneWidget);
     // Chưa khám phá vật nào → tiến độ 0/3.
     expect(find.text('Tiến độ 0/3'), findsOneWidget);
+  });
+
+  testWidgets('showStreakCelebration hiện "Chuỗi N ngày" (D2)', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () => showStreakCelebration(
+                  context,
+                  const StreakResult(current: 3, best: 3, advancedToday: true),
+                ),
+                child: const Text('go'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('go'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Chuỗi 3 ngày! 🔥'), findsOneWidget);
+    // Nút đóng hoạt động (chờ animation đóng dialog chạy hết).
+    await tester.tap(find.text('Tuyệt vời!'));
+    await tester.pump(); // xử lý pop
+    await tester.pump(const Duration(seconds: 1)); // chạy hết animation đóng
+    expect(find.text('Chuỗi 3 ngày! 🔥'), findsNothing);
   });
 }

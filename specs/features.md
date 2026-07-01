@@ -220,11 +220,11 @@ Mỗi vật liệu (Dầu mỏ, Thép, Gỗ, Cát→Thuỷ tinh…) là một **
 
 ## F-18: Chuỗi ngày khám phá (daily streak)
 
-**Priority:** P2 | **Status:** Planned (mới) | **Domain:** Collection, Cards & Missions | **Task:** TASK-020
+**Priority:** P2 | **Status:** In Progress (mới) | **Domain:** Collection, Cards & Missions | **Task:** TASK-020 | **ADR:** ADR-015
 
-**Description:** Đếm số ngày liên tiếp bé mở app khám phá → khích lệ quay lại. Lưu ở Hive (key-value đơn giản), offline.
+**Description:** Đếm số ngày liên tiếp bé khám phá ≥1 vật → khích lệ quay lại. Lưu ở Hive box `wonderlens_streak` (key-value đơn giản), offline. Ghi nhận khi mở hành trình một vật (Timeline); chuỗi sang ngày mới (≥2) → màn "Chuỗi N ngày! 🔥". Bộ sưu tập hiện chip 🔥. **Không** cấp huy hiệu, **không** phạt khi đứt (khởi động lại về 1).
 
-**Acceptance criteria:** Tăng streak khi khám phá trong ngày mới liên tiếp; reset khi bỏ ngày; persist qua restart; không PII, không account.
+**Acceptance criteria:** Tăng streak khi khám phá trong ngày mới liên tiếp; reset về 1 khi bỏ ngày; persist qua restart; không PII, không account.
 
 ---
 

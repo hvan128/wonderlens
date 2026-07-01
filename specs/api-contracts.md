@@ -268,3 +268,14 @@ Quy ước:
 - Ưu tiên **key-value đơn giản** (như box `wonderlens_collection`), tránh `build_runner`/TypeAdapter mới.
 - Box/khoá thiếu → coi như rỗng (migrate mềm), app không crash.
 - Thẻ vật liệu + badge thô **không** lưu ở đây — suy ra từ `discoveredIds` (ADR-012).
+
+## Local data schema — Hive box mới `wonderlens_streak` (F-18 / ADR-015)
+
+| Key | Kiểu | Dùng cho |
+|-----|------|----------|
+| `last_day` | `String` (`yyyy-mm-dd`) | ngày khám phá gần nhất (lịch địa phương) |
+| `streak_count` | `int` | số ngày liên tiếp hiện tại |
+| `best_streak` | `int` | chuỗi dài nhất từng đạt |
+
+- Ghi khi mở hành trình một vật (Timeline). Cùng ngày → không đổi; ngày liền kề → +1; đứt → về 1.
+- Box/khoá thiếu → streak = 0 (migrate mềm). Không PII, không account, offline.

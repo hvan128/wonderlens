@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/collection_repository.dart';
+import '../data/streak_repository.dart';
 import '../models/object_content.dart';
 import '../services/journey_image_service.dart';
 import '../services/narration_service.dart';
@@ -13,6 +14,7 @@ import '../ui/ui.dart';
 import '../widgets/journey_video.dart';
 import '../widgets/object_avatar.dart';
 import '../widgets/share_sheet.dart';
+import '../widgets/streak_celebration.dart';
 
 /// Origin Timeline: cuộn xem từng chặng "hành trình tạo ra vật", có giọng đọc +
 /// phim hành trình + chia sẻ. Khi mở: ghi nhận vào bộ sưu tập + confetti/huy hiệu.
@@ -46,6 +48,14 @@ class _TimelineScreenState extends State<TimelineScreen> {
       if (_result?.isNewObject ?? false) {
         _confetti.play();
         HapticFeedback.heavyImpact();
+      }
+      // D2 — ghi nhận "khám phá hôm nay"; nếu chuỗi vừa sang ngày mới (≥2 ngày)
+      // thì mừng bằng màn "Chuỗi N ngày! 🔥" (một lần/ngày, tắt được ngay).
+      final streak = StreakRepository().recordVisit();
+      if (streak.advancedToday && streak.current >= 2) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) showStreakCelebration(context, streak);
+        });
       }
       // Tự đọc to CÂU CHUYỆN hoàn chỉnh (lịch sử + cách làm) ngay khi mở trang;
       // dừng được bằng nút "Dừng đọc" hoặc khi chạm phát video. Hoãn sau frame
