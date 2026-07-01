@@ -13,7 +13,9 @@ import 'package:wonderlens/models/object_content.dart';
 import 'package:wonderlens/models/quiz.dart';
 import 'package:wonderlens/screens/assembly_game_screen.dart';
 import 'package:wonderlens/screens/missions_screen.dart';
+import 'package:wonderlens/screens/playground_screen.dart';
 import 'package:wonderlens/screens/quiz_screen.dart';
+import 'package:wonderlens/ui/wonder_bottom_nav.dart';
 import 'package:wonderlens/widgets/streak_celebration.dart';
 
 void main() {
@@ -133,5 +135,33 @@ void main() {
     await tester.pump(); // xử lý pop
     await tester.pump(const Duration(seconds: 1)); // chạy hết animation đóng
     expect(find.text('Chuỗi 3 ngày! 🔥'), findsNothing);
+  });
+
+  testWidgets('PlaygroundScreen (Sân chơi) hiện 4 trò (A1)', (tester) async {
+    await pumpScreen(tester, const PlaygroundScreen());
+    expect(find.text('Nhiệm vụ'), findsOneWidget);
+    expect(find.text('Thẻ vật liệu'), findsOneWidget);
+    expect(find.text('Đố vui'), findsOneWidget);
+    expect(find.text('Ghép ngược'), findsOneWidget);
+  });
+
+  testWidgets('WonderBottomNav: render + chọn tab (A1)', (tester) async {
+    int? selected;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          bottomNavigationBar: WonderBottomNav(
+            currentIndex: 0,
+            onSelect: (i) => selected = i,
+            onScan: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('Sân chơi'), findsOneWidget);
+    expect(find.text('Bộ sưu tập'), findsOneWidget);
+    await tester.tap(find.text('Bộ sưu tập'));
+    expect(selected, 1);
   });
 }

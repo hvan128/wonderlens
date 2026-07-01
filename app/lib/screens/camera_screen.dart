@@ -315,7 +315,11 @@ class _CameraScreenState extends State<CameraScreen>
                   WonderHeaderAction(
                     icon: PhosphorIconsBold.houseSimple,
                     tooltip: 'Về màn hình chính',
-                    onTap: () => context.go('/onboarding'),
+                    // Pop về shell nếu camera được mở chồng lên (giữ tab đang xem);
+                    // nếu camera là gốc (từ onboarding) → về Sân chơi.
+                    onTap: () => context.canPop()
+                        ? context.pop()
+                        : context.go('/playground'),
                   ),
                 ],
               ),
@@ -335,7 +339,7 @@ class _CameraScreenState extends State<CameraScreen>
                   torch: _torch,
                   onScan: _busy ? null : _capture,
                   onTorch: _toggleTorch,
-                  onCollection: () => context.push('/collection'),
+                  onCollection: () => context.go('/collection'),
                 ),
               ),
             ),

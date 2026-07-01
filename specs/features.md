@@ -210,11 +210,11 @@ Mỗi vật liệu (Dầu mỏ, Thép, Gỗ, Cát→Thuỷ tinh…) là một **
 
 ## F-17: Sân chơi (điểm vào game & bottom-nav tab)
 
-**Priority:** P1 | **Status:** Planned (mới) | **Domain:** Cross-cutting (UI shell) | **Task:** TASK-021
+**Priority:** P1 | **Status:** In Progress (mới) | **Domain:** Cross-cutting (UI shell) | **Task:** TASK-021 | **ADR:** ADR-016
 
-**Description:** Tab "Sân chơi" trên bottom-nav gom các điểm vào game (đố vui, ghép ngược, nhiệm vụ, thẻ vật liệu) + CTA sau timeline. Là lớp điều hướng, không chứa business logic.
+**Description:** Bottom-nav 2 tab **Sân chơi** + **Bộ sưu tập**, nút giữa 📷 mở camera toàn màn hình (hành động quét). Sân chơi gom điểm vào game (đố vui, ghép ngược, nhiệm vụ, thẻ vật liệu). Camera + timeline + game là route toàn màn hình push **trên** shell (giữ nguyên vòng đời camera). Lớp điều hướng, không chứa business logic.
 
-**Acceptance criteria:** Tab điều hướng tới các màn Learn & Play + Missions; CTA "Chơi tiếp" sau khi xem timeline (A3); ẩn mượt khi content thiếu (không vỡ UI).
+**Acceptance criteria:** Tab điều hướng tới Learn & Play + Missions; nút giữa mở camera; Đố vui/Ghép ngược chọn vật đã khám phá phù hợp (gợi ý nếu chưa có); vòng đời camera (RouteObserver) không hồi quy.
 
 ---
 

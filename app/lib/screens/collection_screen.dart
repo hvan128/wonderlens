@@ -51,8 +51,8 @@ class CollectionScreen extends StatelessWidget {
       header: WonderHeader(
         title: 'Bộ sưu tập',
         subtitle: 'Đã khám phá $count/$total',
-        showBack: true,
-        onBack: () => context.canPop() ? context.pop() : context.go('/camera'),
+        // Là tab của bottom-nav (A1) → không cần nút back.
+        showBack: false,
         actions: <WonderHeaderAction>[
           if (count > 0)
             WonderHeaderAction(
