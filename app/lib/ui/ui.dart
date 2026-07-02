@@ -13,6 +13,7 @@ export 'pressable.dart';
 export 'scan_ring_button.dart';
 export 'tia_mascot.dart';
 export 'wonder_background.dart';
+export 'wonder_bottom_nav.dart';
 export 'wonder_button.dart';
 export 'wonder_chip.dart';
 export 'wonder_header.dart';

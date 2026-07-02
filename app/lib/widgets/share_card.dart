@@ -4,12 +4,15 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../data/capture_store.dart';
 import '../models/object_content.dart';
 import '../theme/wonder_tokens.dart';
+import '../theme/wonder_typography.dart';
+import '../ui/wonder_progress.dart';
 
-/// Khung thẻ chia sẻ chung: nền tối sang trọng + vệt spotlight + thương hiệu
+/// Khung thẻ chia sẻ chung: nền tím kỳ diệu + vệt spotlight + thương hiệu
 /// WonderLens ở đỉnh + tagline ở chân. Bề rộng cố định → chụp PNG luôn gọn, nét.
 ///
 /// Lưu ý: thẻ này được render để chụp PNG (RepaintBoundary.toImage) nên KHÔNG
-/// dùng BackdropFilter/glass (backdrop không chụp được) — chỉ gradient đặc.
+/// dùng GlassSurface/BackdropFilter (backdrop không chụp được vào ảnh) — chỉ
+/// dùng gradient đặc để PNG ra đúng như xem trước.
 const double kShareCardWidth = 340;
 
 class _WonderCardShell extends StatelessWidget {
@@ -25,11 +28,11 @@ class _WonderCardShell extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: <Color>[Color(0xFF15405A), Color(0xFF0B1220)],
+          colors: <Color>[WonderColors.wonderDeep, WonderColors.ink],
         ),
         boxShadow: <BoxShadow>[
           BoxShadow(
-            color: WonderColors.teal.withValues(alpha: 0.30),
+            color: WonderColors.wonder.withValues(alpha: 0.30),
             blurRadius: 36,
             spreadRadius: -8,
             offset: const Offset(0, 14),
@@ -40,7 +43,7 @@ class _WonderCardShell extends StatelessWidget {
         borderRadius: BorderRadius.circular(32),
         child: Stack(
           children: <Widget>[
-            // Vệt sáng "spotlight" dịu ở đỉnh cho khối có chiều sâu.
+            // Vệt sáng "spotlight" tím dịu ở đỉnh cho khối có chiều sâu.
             Positioned(
               top: -90,
               left: -30,
@@ -50,7 +53,7 @@ class _WonderCardShell extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: RadialGradient(
                     colors: <Color>[
-                      WonderColors.teal.withValues(alpha: 0.28),
+                      WonderColors.violet.withValues(alpha: 0.30),
                       Colors.transparent,
                     ],
                   ),
@@ -102,10 +105,10 @@ class ShareCard extends StatelessWidget {
           child: Text(
             content.name,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: WonderType.display(
               color: Colors.white,
               fontSize: 27,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.w700,
               height: 1.1,
             ),
           ),
@@ -121,7 +124,8 @@ class ShareCard extends StatelessWidget {
                 _Pill(
                   icon: Symbols.science,
                   text: content.materialBadge,
-                  color: WonderColors.teal,
+                  // Màu pill theo mã màu vật liệu → đồng bộ huy hiệu bộ sưu tập.
+                  color: WonderColors.material(content.materialBadge),
                 ),
               if (content.source == 'live')
                 const _Pill(
@@ -144,11 +148,10 @@ class ShareCard extends StatelessWidget {
             padding: const EdgeInsets.only(left: 38, top: 2),
             child: Text(
               '… và $hiddenCount chặng nữa',
-              style: TextStyle(
+              style: WonderType.body(
                 color: Colors.white.withValues(alpha: 0.6),
                 fontSize: 13,
-                fontStyle: FontStyle.italic,
-              ),
+              ).copyWith(fontStyle: FontStyle.italic),
             ),
           ),
       ],
@@ -190,7 +193,7 @@ class CollectionShareCard extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: WonderGradients.badge,
-              boxShadow: WonderShadows.glow(WonderColors.teal, opacity: 0.5),
+              boxShadow: WonderShadows.glow(WonderColors.wonder, opacity: 0.5),
             ),
             child: Icon(
               complete ? Symbols.trophy : Symbols.science,
@@ -206,10 +209,10 @@ class CollectionShareCard extends StatelessWidget {
           child: Text(
             levelTitle,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: WonderType.display(
               color: Colors.white,
               fontSize: 24,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.w700,
               height: 1.1,
             ),
           ),
@@ -218,27 +221,33 @@ class CollectionShareCard extends StatelessWidget {
         Center(
           child: Text(
             'Đã khám phá $discoveredCount/$totalCount đồ vật',
-            style: TextStyle(
+            style: WonderType.body(
               color: Colors.white.withValues(alpha: 0.85),
               fontSize: 15,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
         const SizedBox(height: 12),
-        _ProgressBar(value: value),
+        // Chụp PNG tức thời → tắt animation để fill luôn đúng giá trị thật.
+        WonderProgressBar(value: value, onDark: true, animate: Duration.zero),
         const SizedBox(height: 20),
         const _Divider(),
         const SizedBox(height: 16),
         if (earnedMaterials.isNotEmpty) ...<Widget>[
-          const _Label(icon: Symbols.workspace_premium, text: 'HUY HIỆU VẬT LIỆU'),
+          const _Label(
+              icon: Symbols.workspace_premium, text: 'HUY HIỆU VẬT LIỆU'),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: <Widget>[
               for (final m in earnedMaterials)
-                _Pill(icon: Symbols.workspace_premium, text: m, color: WonderColors.sunny),
+                _Pill(
+                  icon: Symbols.workspace_premium,
+                  text: m,
+                  color: WonderColors.sunny,
+                ),
             ],
           ),
           const SizedBox(height: 18),
@@ -285,11 +294,12 @@ class _HeroPhoto extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
         gradient: file != null
             ? const RadialGradient(
-                colors: <Color>[Color(0xFFFFFFFF), Color(0xFFD9EEF4)],
+                colors: <Color>[Colors.white, WonderColors.wonderSoft],
               )
             : WonderGradients.badge,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.92), width: 3),
-        boxShadow: WonderShadows.glow(WonderColors.teal, opacity: 0.55),
+        border:
+            Border.all(color: Colors.white.withValues(alpha: 0.92), width: 3),
+        boxShadow: WonderShadows.glow(WonderColors.wonder, opacity: 0.55),
       ),
       child: file != null
           ? Padding(
@@ -299,8 +309,8 @@ class _HeroPhoto extends StatelessWidget {
                 fit: BoxFit.contain,
                 filterQuality: FilterQuality.high,
                 gaplessPlayback: true,
-                errorBuilder: (_, _, _) =>
-                    Center(child: Text(emoji, style: const TextStyle(fontSize: 70))),
+                errorBuilder: (_, _, _) => Center(
+                    child: Text(emoji, style: const TextStyle(fontSize: 70))),
               ),
             )
           : Center(child: Text(emoji, style: const TextStyle(fontSize: 78))),
@@ -331,19 +341,19 @@ class _Brand extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              const Text(
+              Text(
                 'WonderLens',
-                style: TextStyle(
+                style: WonderType.display(
                   color: Colors.white,
                   fontSize: 18,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               Text(
                 'Khám phá khoa học cho bé',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
+                style: WonderType.body(
                   color: Colors.white.withValues(alpha: 0.6),
                   fontSize: 11,
                 ),
@@ -365,7 +375,7 @@ class _Tagline extends StatelessWidget {
       child: Text(
         'Quét đồ vật • Nghe kể chuyện • Sưu tầm huy hiệu',
         textAlign: TextAlign.center,
-        style: TextStyle(
+        style: WonderType.body(
           color: Colors.white.withValues(alpha: 0.55),
           fontSize: 12,
           fontWeight: FontWeight.w600,
@@ -388,10 +398,10 @@ class _Label extends StatelessWidget {
         const SizedBox(width: 7),
         Text(
           text,
-          style: const TextStyle(
+          style: WonderType.display(
             color: WonderColors.mint,
             fontSize: 12,
-            fontWeight: FontWeight.w900,
+            fontWeight: FontWeight.w600,
             letterSpacing: 0.8,
           ),
         ),
@@ -406,31 +416,6 @@ class _Divider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(height: 1, color: Colors.white.withValues(alpha: 0.12));
-  }
-}
-
-class _ProgressBar extends StatelessWidget {
-  final double value; // 0..1
-  const _ProgressBar({required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        height: 12,
-        color: Colors.white.withValues(alpha: 0.14),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: FractionallySizedBox(
-            widthFactor: value.clamp(0.0, 1.0),
-            child: Container(
-              decoration: const BoxDecoration(gradient: WonderGradients.cta),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
 
@@ -456,7 +441,7 @@ class _Pill extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             text,
-            style: const TextStyle(
+            style: WonderType.body(
               color: Colors.white,
               fontSize: 13,
               fontWeight: FontWeight.w700,
@@ -511,10 +496,10 @@ class _StageRow extends StatelessWidget {
             ),
             child: Text(
               '${index + 1}',
-              style: const TextStyle(
+              style: WonderType.display(
                 color: Colors.white,
                 fontSize: 13,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -524,7 +509,7 @@ class _StageRow extends StatelessWidget {
               padding: const EdgeInsets.only(top: 3),
               child: Text(
                 title,
-                style: const TextStyle(
+                style: WonderType.body(
                   color: Colors.white,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,

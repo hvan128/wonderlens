@@ -133,6 +133,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
   Widget build(BuildContext context) {
     final c = widget.content;
     if (c == null) {
+      // Fallback khi mở trang mà không có dữ liệu (deep-link lỗi…): Tia xuất
+      // hiện trấn an + lời nhắn dịu + đường quay lại — không để màn trống trơn.
       return WonderScaffold(
         header: WonderHeader(
           title: 'Hành trình',
@@ -140,7 +142,39 @@ class _TimelineScreenState extends State<TimelineScreen> {
           onBack: () =>
               context.canPop() ? context.pop() : context.go('/camera'),
         ),
-        body: const Center(child: Text('Chưa có dữ liệu hành trình.')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: WonderTokens.space32,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const TiaMascot(size: 120),
+                const SizedBox(height: WonderTokens.space16),
+                Text(
+                  'Chưa có dữ liệu hành trình.\nQuét một vật để bắt đầu khám phá nhé!',
+                  textAlign: TextAlign.center,
+                  style: WonderType.body(
+                    color: WonderColors.textSoft,
+                    fontSize: 15,
+                    height: 1.45,
+                  ),
+                ),
+                const SizedBox(height: WonderTokens.space8),
+                WonderTextButton(
+                  label: 'Quay lại',
+                  color: WonderColors.wonder,
+                  onTap: () =>
+                      context.canPop() ? context.pop() : context.go('/camera'),
+                ),
+              ],
+            )
+                .animate()
+                .fadeIn(duration: WonderTokens.durBase)
+                .slideY(begin: 0.08, end: 0),
+          ),
+        ),
       );
     }
 
@@ -185,7 +219,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     .fadeIn(duration: WonderTokens.durBase)
                     .slideY(begin: 0.1, end: 0),
               ],
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
               WonderButton(
                 label: _playing ? 'Dừng đọc' : 'Nghe kể chuyện',
                 icon: _playing
@@ -193,7 +227,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     : PhosphorIconsFill.speakerSimpleHigh,
                 onTap: _playing ? _stop : () => _playStory(c.narrationText),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 20),
               for (var i = 0; i < c.stages.length; i++)
                 _StageTile(
                       index: i,
@@ -242,22 +276,26 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     .fadeIn(duration: WonderTokens.durBase)
                     .slideY(begin: 0.1, end: 0),
               ],
-              const SizedBox(height: 14),
+              // Cụm hành động cuối trang — hierarchy rõ: primary (khám phá
+              // tiếp) > secondary (chia sẻ, thấp hơn) > text (bộ sưu tập).
+              const SizedBox(height: WonderTokens.space16),
               WonderButton(
                 label: 'Khám phá vật khác',
                 icon: PhosphorIconsBold.magnifyingGlass,
                 onTap: () => context.go('/camera'),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: WonderTokens.space12),
               WonderButton(
                 label: 'Chia sẻ khám phá',
                 icon: PhosphorIconsBold.shareNetwork,
+                height: 52,
                 gradient: const LinearGradient(
                   colors: <Color>[WonderColors.grape, WonderColors.indigo],
                 ),
+                glowColor: WonderColors.grape,
                 onTap: () => showDiscoveryShareSheet(context, c),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: WonderTokens.space12),
               Center(
                 child: WonderTextButton(
                   label: 'Xem bộ sưu tập',
@@ -277,7 +315,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
               minBlastForce: 6,
               emissionFrequency: 0.05,
               colors: const <Color>[
-                WonderColors.teal,
+                WonderColors.wonder,
                 WonderColors.sky,
                 WonderColors.grape,
                 WonderColors.sunny,
@@ -310,7 +348,7 @@ class _Header extends StatelessWidget {
             emojiSize: 32,
             glowOpacity: 0.4,
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,8 +363,8 @@ class _Header extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
+                  spacing: 8,
+                  runSpacing: 8,
                   children: <Widget>[
                     if (content.materialBadge.isNotEmpty)
                       WonderChip(
@@ -363,13 +401,13 @@ class _BadgeBanner extends StatelessWidget {
       tone: GlassTone.light,
       tint: isAi ? WonderColors.grape : WonderColors.sunny,
       tintOpacity: 0.32,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(WonderTokens.space16),
       child: Row(
         children: <Widget>[
           const PhosphorIcon(
             PhosphorIconsFill.medal,
             size: 30,
-            color: Color(0xFFE08A00),
+            color: WonderColors.honey,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -419,7 +457,7 @@ class _HistoryCard extends StatelessWidget {
                       size: 20, color: Colors.white),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Text(
                 'Một chút lịch sử',
                 style: WonderType.display(
@@ -430,7 +468,7 @@ class _HistoryCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Text(
             history,
             style: WonderType.body(
@@ -483,11 +521,11 @@ class _StageTile extends StatelessWidget {
                   border: Border.all(
                     color: active
                         ? Colors.transparent
-                        : WonderColors.teal.withValues(alpha: 0.4),
+                        : WonderColors.wonder.withValues(alpha: 0.4),
                     width: 2,
                   ),
                   boxShadow: active
-                      ? WonderShadows.glow(WonderColors.teal, opacity: 0.4)
+                      ? WonderShadows.glow(WonderColors.wonder, opacity: 0.4)
                       : null,
                 ),
                 child: Center(
@@ -496,7 +534,7 @@ class _StageTile extends StatelessWidget {
                     style: WonderType.display(
                       fontWeight: FontWeight.w700,
                       fontSize: 16,
-                      color: active ? Colors.white : WonderColors.tealDeep,
+                      color: active ? Colors.white : WonderColors.wonderDeep,
                     ),
                   ),
                 ),
@@ -506,7 +544,7 @@ class _StageTile extends StatelessWidget {
                   child: Container(
                     width: 3,
                     margin: const EdgeInsets.symmetric(vertical: 2),
-                    color: WonderColors.teal.withValues(alpha: 0.22),
+                    color: WonderColors.wonder.withValues(alpha: 0.22),
                   ),
                 ),
             ],
@@ -517,7 +555,7 @@ class _StageTile extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 16),
               child: GlassSurface(
                 tone: GlassTone.light,
-                tint: active ? WonderColors.teal : null,
+                tint: active ? WonderColors.wonder : null,
                 tintOpacity: active ? 0.2 : null,
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -534,7 +572,7 @@ class _StageTile extends StatelessWidget {
                             stage.title,
                             style: WonderType.display(
                               color: WonderColors.textStrong,
-                              fontSize: 16.5,
+                              fontSize: 17,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -542,22 +580,32 @@ class _StageTile extends StatelessWidget {
                         Pressable(
                           onTap: onSpeak,
                           semanticLabel: 'Nghe chặng này',
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: WonderColors.teal.withValues(alpha: 0.12),
-                            ),
-                            child: const PhosphorIcon(
-                              PhosphorIconsFill.speakerSimpleHigh,
-                              size: 18,
-                              color: WonderColors.tealDeep,
+                          // Vùng chạm 44×44 (chuẩn ngón tay trẻ) — vòng tròn
+                          // hiển thị nhỏ hơn nhưng bấm quanh vẫn ăn.
+                          child: SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: Center(
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: WonderColors.wonder.withValues(
+                                    alpha: 0.12,
+                                  ),
+                                ),
+                                child: const PhosphorIcon(
+                                  PhosphorIconsFill.speakerSimpleHigh,
+                                  size: 18,
+                                  color: WonderColors.wonderDeep,
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
                     Text(
                       stage.kidText,
                       style: WonderType.body(
@@ -568,9 +616,9 @@ class _StageTile extends StatelessWidget {
                     ),
                     if (stage.funFact != null &&
                         stage.funFact!.isNotEmpty) ...<Widget>[
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
                       Container(
-                        padding: const EdgeInsets.all(11),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: WonderColors.sunny.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(
@@ -586,7 +634,7 @@ class _StageTile extends StatelessWidget {
                             const PhosphorIcon(
                               PhosphorIconsFill.lightbulb,
                               size: 17,
-                              color: Color(0xFFE08A00),
+                              color: WonderColors.honey,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -596,7 +644,7 @@ class _StageTile extends StatelessWidget {
                                   color: WonderColors.textStrong.withValues(
                                     alpha: 0.88,
                                   ),
-                                  fontSize: 13.5,
+                                  fontSize: 14,
                                   height: 1.35,
                                 ),
                               ),
@@ -652,12 +700,12 @@ class _StageImage extends StatelessWidget {
 
   Widget _placeholder({required bool shimmer}) {
     final box = Container(
-      color: WonderColors.teal.withValues(alpha: 0.1),
+      color: WonderColors.wonder.withValues(alpha: 0.1),
       child: Center(
         child: PhosphorIcon(
           PhosphorIconsFill.image,
           size: 26,
-          color: WonderColors.teal.withValues(alpha: 0.5),
+          color: WonderColors.wonder.withValues(alpha: 0.5),
         ),
       ),
     );
@@ -689,7 +737,11 @@ class _PlayNextSection extends StatelessWidget {
         children: <Widget>[
           Row(
             children: <Widget>[
-              const Text('🎮', style: TextStyle(fontSize: 22)),
+              const PhosphorIcon(
+                PhosphorIconsFill.gameController,
+                size: 22,
+                color: WonderColors.grape,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -703,16 +755,16 @@ class _PlayNextSection extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
             'Củng cố điều vừa khám phá bằng một trò chơi nhỏ nhé!',
             style: WonderType.body(
               color: WonderColors.textSoft,
-              fontSize: 13.5,
+              fontSize: 14,
               height: 1.35,
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           if (hasQuiz) ...<Widget>[
             WonderButton(
               label: 'Đố vui ${content.quiz.length} câu',
@@ -722,7 +774,7 @@ class _PlayNextSection extends StatelessWidget {
               glowColor: WonderColors.spark,
               onTap: () => context.push('/quiz', extra: content),
             ),
-            if (hasAssembly) const SizedBox(height: 10),
+            if (hasAssembly) const SizedBox(height: 12),
           ],
           if (hasAssembly)
             WonderButton(

@@ -28,13 +28,23 @@ class _StreakCelebrationDialog extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: WonderGradients.magic,
           borderRadius: BorderRadius.circular(WonderTokens.radiusXl),
+          // Mốc chuỗi đặc biệt → viền vàng tia sáng quanh dialog ghi nhận thành tích.
+          border: result.isMilestone
+              ? Border.all(color: WonderColors.sunny, width: 2)
+              : null,
           boxShadow: WonderShadows.card,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const TiaMascot(size: 72, tone: TiaTone.light),
-            const SizedBox(height: 12),
+            // Choreography mở màn: Tia nhún vào → tiêu đề hiện → đốm lửa cháy dần.
+            const TiaMascot(size: 72, tone: TiaTone.light).animate().scaleXY(
+                  begin: 0.4,
+                  end: 1,
+                  duration: const Duration(milliseconds: 320),
+                  curve: WonderTokens.curveEmphasized,
+                ),
+            const SizedBox(height: WonderTokens.space12),
             Text(
               'Chuỗi ${result.current} ngày! 🔥',
               textAlign: TextAlign.center,
@@ -43,8 +53,12 @@ class _StreakCelebrationDialog extends StatelessWidget {
                 fontSize: 26,
                 fontWeight: FontWeight.w700,
               ),
-            ),
-            const SizedBox(height: 8),
+            ).animate().fadeIn(
+                  delay: const Duration(milliseconds: 120),
+                  duration: WonderTokens.durBase,
+                  curve: Curves.easeOut,
+                ),
+            const SizedBox(height: WonderTokens.space8),
             Text(
               result.isMilestone
                   ? 'Giỏi quá! Ngọn lửa của Tia đang cháy rực rỡ!'
@@ -52,14 +66,18 @@ class _StreakCelebrationDialog extends StatelessWidget {
               textAlign: TextAlign.center,
               style: WonderType.body(
                 color: Colors.white.withValues(alpha: 0.88),
-                fontSize: 14.5,
+                fontSize: 15,
                 height: 1.4,
                 fontWeight: FontWeight.w600,
               ),
-            ),
-            const SizedBox(height: 18),
+            ).animate().fadeIn(
+                  delay: const Duration(milliseconds: 200),
+                  duration: WonderTokens.durBase,
+                  curve: Curves.easeOut,
+                ),
+            const SizedBox(height: WonderTokens.space20),
             _FlameRow(current: result.current),
-            const SizedBox(height: 22),
+            const SizedBox(height: WonderTokens.space24),
             WonderButton(
               label: 'Tuyệt vời!',
               icon: PhosphorIconsFill.sparkle,
@@ -67,7 +85,14 @@ class _StreakCelebrationDialog extends StatelessWidget {
               foreground: WonderColors.onSpark,
               glowColor: WonderColors.spark,
               onTap: () => Navigator.of(context).pop(),
-            ),
+            )
+                .animate()
+                .fadeIn(
+                  delay: const Duration(milliseconds: 240),
+                  duration: WonderTokens.durBase,
+                  curve: Curves.easeOut,
+                )
+                .slideY(begin: 0.15, end: 0),
           ],
         ),
       ),
@@ -75,7 +100,8 @@ class _StreakCelebrationDialog extends StatelessWidget {
   }
 }
 
-/// Hàng "ngọn lửa": ngày đã giữ chuỗi hiện 🔥, vài ngày kế tiếp hiện số mờ.
+/// Hàng "ngọn lửa": mỗi ngày đã giữ chuỗi là một đốm lửa "bốc cháy" lần lượt
+/// (stagger ~90ms/đốm); vài ngày kế tiếp hiện số mờ để bé thấy đích gần kề.
 class _FlameRow extends StatelessWidget {
   final int current;
   const _FlameRow({required this.current});
@@ -88,18 +114,39 @@ class _FlameRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         for (var i = 0; i < slots; i++) ...<Widget>[
-          if (i > 0) const SizedBox(width: 8),
-          _DayDot(filled: i < filled, label: i < filled ? '🔥' : '${i + 1}'),
+          if (i > 0) const SizedBox(width: WonderTokens.space8),
+          _DayDot(
+            filled: i < filled,
+            isCurrent: i == filled - 1,
+            dayNumber: i + 1,
+          )
+              .animate()
+              .scaleXY(
+                begin: 0.4,
+                end: 1,
+                delay: Duration(milliseconds: 320 + i * 90),
+                duration: WonderTokens.durBase,
+                curve: WonderTokens.curveEmphasized,
+              )
+              // fadeIn kế thừa delay từ scaleXY → đốm "hiện + nở" cùng nhịp.
+              .fadeIn(duration: WonderTokens.durFast, curve: Curves.easeOut),
         ],
       ],
     );
   }
 }
 
+/// Một ô ngày trong chuỗi: ngày đã giữ lửa → icon lửa trên nền vàng tia sáng;
+/// ngày HIỆN TẠI thêm quầng sáng spark; ngày chưa tới → số mờ trên nền kính.
 class _DayDot extends StatelessWidget {
   final bool filled;
-  final String label;
-  const _DayDot({required this.filled, required this.label});
+  final bool isCurrent;
+  final int dayNumber;
+  const _DayDot({
+    required this.filled,
+    required this.isCurrent,
+    required this.dayNumber,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -108,17 +155,25 @@ class _DayDot extends StatelessWidget {
       height: 44,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: filled ? WonderColors.spark : Colors.white.withValues(alpha: 0.18),
+        color:
+            filled ? WonderColors.spark : Colors.white.withValues(alpha: 0.18),
+        boxShadow: isCurrent ? WonderShadows.glow(WonderColors.spark) : null,
       ),
       child: Center(
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: filled ? 20 : 16,
-            fontWeight: FontWeight.w800,
-            color: filled ? WonderColors.onSpark : Colors.white,
-          ),
-        ),
+        child: filled
+            ? const PhosphorIcon(
+                PhosphorIconsFill.fire,
+                size: 22,
+                color: WonderColors.onSpark,
+              )
+            : Text(
+                '$dayNumber',
+                style: WonderType.display(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
       ),
     );
   }

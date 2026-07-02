@@ -42,6 +42,23 @@ class WonderProgressBar extends StatelessWidget {
               child: Container(
                 height: height,
                 decoration: BoxDecoration(gradient: gradient),
+                // Vệt gloss mảnh gần đỉnh fill — cảm giác "kẹo bóng" Duolingo.
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: height * 0.45,
+                    vertical: height * 0.2,
+                  ),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Container(
+                      height: height * 0.24,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.35),
+                        borderRadius: BorderRadius.circular(WonderTokens.pill),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),

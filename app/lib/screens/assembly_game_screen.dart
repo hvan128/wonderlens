@@ -128,32 +128,53 @@ class _AssemblyGameScreenState extends State<AssemblyGameScreen> {
       children: <Widget>[
         Text(
           'Kéo nguyên liệu vào đúng thứ tự để tạo ra $targetName!',
-          style: const TextStyle(
+          style: WonderType.display(
             color: WonderColors.textStrong,
-            fontSize: 16,
-            height: 1.35,
-            fontWeight: FontWeight.w800,
+            fontSize: 17,
+            height: 1.3,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: WonderTokens.space12),
+        // Tiến độ lắp ráp (mảnh đã đặt / tổng) — trẻ thấy ngay mình sắp xong chưa.
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: WonderProgressBar(
+                value: _steps.isEmpty ? 0 : _placed / _steps.length,
+                height: 10,
+              ),
+            ),
+            const SizedBox(width: WonderTokens.space8),
+            Text(
+              '$_placed/${_steps.length}',
+              style: WonderType.display(
+                color: WonderColors.textSoft,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: WonderTokens.space16),
         ..._buildLine(),
         if (_hint != null) ...<Widget>[
-          const SizedBox(height: 14),
+          const SizedBox(height: WonderTokens.space12),
           _HintBar(text: _hint!),
         ],
-        const SizedBox(height: 22),
+        const SizedBox(height: WonderTokens.space24),
         Text(
           'Kho nguyên liệu',
-          style: TextStyle(
+          style: WonderType.display(
             color: WonderColors.textSoft,
             fontSize: 13,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: WonderTokens.space12),
         Wrap(
-          spacing: 10,
-          runSpacing: 10,
+          spacing: WonderTokens.space12,
+          runSpacing: WonderTokens.space12,
           children: <Widget>[
             for (final id in _tray) _DraggableChip(node: _node(id), id: id),
           ],
@@ -167,10 +188,18 @@ class _AssemblyGameScreenState extends State<AssemblyGameScreen> {
     for (var i = 0; i < _steps.length; i++) {
       if (i > 0) widgets.add(const _Arrow());
       if (i < _placed) {
-        widgets.add(_SlotCard(
-          node: _node(_steps[i]),
-          tone: _SlotTone.filled,
-        ));
+        // Mảnh vừa đặt đúng → pulse phóng nhẹ. Key theo slot: element mới chỉ
+        // được tạo khi slot chuyển từ ô thả → đã lấp, nên animation chạy đúng lúc.
+        widgets.add(
+          _SlotCard(node: _node(_steps[i]), tone: _SlotTone.filled)
+              .animate(key: ValueKey<String>('slot-filled-$i'))
+              .scaleXY(
+                begin: 0.85,
+                end: 1,
+                duration: WonderTokens.durBase,
+                curve: WonderTokens.curveEmphasized,
+              ),
+        );
       } else if (i == _placed) {
         widgets.add(DragTarget<String>(
           onWillAcceptWithDetails: (_) => true,
@@ -190,29 +219,46 @@ class _AssemblyGameScreenState extends State<AssemblyGameScreen> {
       node: _node(_target),
       tone: _SlotTone.target,
     ));
-    return widgets;
+    // Chuỗi slot vào màn lần lượt (fadeIn + trượt nhẹ) như các màn khác.
+    // Key cố định theo vị trí để lần setState sau không chạy lại stagger.
+    return <Widget>[
+      for (var i = 0; i < widgets.length; i++)
+        widgets[i]
+            .animate(key: ValueKey<String>('line-$i'), delay: (i * 60).ms)
+            .fadeIn(duration: WonderTokens.durBase)
+            .slideY(begin: 0.1, end: 0),
+    ];
   }
 
   Widget _buildDone(String targetName) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
       children: <Widget>[
+        // Emoji vật (nội dung từ data) nảy vào — khoảnh khắc "tèn ten" khi lắp xong.
         Center(
           child: Text(_node(_target).emoji,
               style: const TextStyle(fontSize: 72)),
-        ),
-        const SizedBox(height: 10),
+        )
+            .animate()
+            .fadeIn(duration: WonderTokens.durBase)
+            .scaleXY(
+              begin: 0.6,
+              end: 1,
+              duration: WonderTokens.durBase,
+              curve: WonderTokens.curveEmphasized,
+            ),
+        const SizedBox(height: WonderTokens.space12),
         Center(
           child: Text(
             'Hoàn thành! 🎉',
-            style: const TextStyle(
+            style: WonderType.display(
               color: WonderColors.textStrong,
-              fontSize: 25,
-              fontWeight: FontWeight.w900,
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: WonderTokens.space8),
         Center(
           child: Text(
             'Bạn vừa lắp ra $targetName từ nguyên liệu thô!',
@@ -224,7 +270,7 @@ class _AssemblyGameScreenState extends State<AssemblyGameScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: WonderTokens.space20),
         GlassSurface(
           tone: GlassTone.light,
           padding: const EdgeInsets.all(16),
@@ -238,7 +284,7 @@ class _AssemblyGameScreenState extends State<AssemblyGameScreen> {
                   'Bạn nhận được huy hiệu Thợ lắp ráp!',
                   style: TextStyle(
                     color: WonderColors.textStrong,
-                    fontSize: 15.5,
+                    fontSize: 16,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -246,14 +292,14 @@ class _AssemblyGameScreenState extends State<AssemblyGameScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: WonderTokens.space24),
         WonderButton(
           label: 'Khám phá tiếp',
           icon: PhosphorIconsBold.magnifyingGlass,
           trailingIcon: PhosphorIconsBold.arrowRight,
           onTap: () => context.canPop() ? context.pop() : context.go('/camera'),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: WonderTokens.space8),
         WonderTextButton(label: 'Chơi lại', onTap: _restart),
       ],
     );
@@ -291,7 +337,10 @@ class _SlotCard extends StatelessWidget {
       opacity: opacity,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(
+          horizontal: WonderTokens.space16,
+          vertical: WonderTokens.space16,
+        ),
         decoration: BoxDecoration(
           color: bg,
           borderRadius: BorderRadius.circular(WonderTokens.radiusMd),
@@ -299,8 +348,13 @@ class _SlotCard extends StatelessWidget {
         ),
         child: Row(
           children: <Widget>[
-            Text(node.emoji, style: const TextStyle(fontSize: 28)),
-            const SizedBox(width: 12),
+            // Slot chưa mở: icon dấu hỏi (emoji thật là nội dung, chỉ hiện khi lấp).
+            if (tone == _SlotTone.ghost)
+              const PhosphorIcon(PhosphorIconsBold.question,
+                  size: 26, color: WonderColors.textFaint)
+            else
+              Text(node.emoji, style: const TextStyle(fontSize: 28)),
+            const SizedBox(width: WonderTokens.space12),
             Expanded(
               child: Text(
                 node.name,
@@ -313,7 +367,7 @@ class _SlotCard extends StatelessWidget {
             ),
             if (tone == _SlotTone.filled)
               const PhosphorIcon(PhosphorIconsFill.sealCheck,
-                  size: 22, color: Color(0xFF2EBD85)),
+                  size: 22, color: WonderColors.success),
           ],
         ),
       ),
@@ -330,7 +384,10 @@ class _DropSlot extends StatelessWidget {
     final color = hot ? WonderColors.teal : WonderColors.textSoft;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      padding: const EdgeInsets.symmetric(
+        horizontal: WonderTokens.space16,
+        vertical: WonderTokens.space20,
+      ),
       decoration: BoxDecoration(
         color: WonderColors.teal.withValues(alpha: hot ? 0.18 : 0.08),
         borderRadius: BorderRadius.circular(WonderTokens.radiusMd),
@@ -344,7 +401,7 @@ class _DropSlot extends StatelessWidget {
         children: <Widget>[
           PhosphorIcon(PhosphorIconsBold.arrowRight,
               size: 20, color: WonderColors.teal),
-          const SizedBox(width: 8),
+          const SizedBox(width: WonderTokens.space8),
           Text(
             'Thả nguyên liệu vào đây',
             style: TextStyle(
@@ -364,14 +421,23 @@ class _Arrow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(vertical: WonderTokens.space4),
         child: Center(
-          child: Text('↓',
-              style: TextStyle(
-                color: WonderColors.textSoft.withValues(alpha: 0.7),
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-              )),
+          child: Container(
+            width: 28,
+            height: 28,
+            decoration: const BoxDecoration(
+              color: WonderColors.wonderSoft,
+              shape: BoxShape.circle,
+            ),
+            child: const Center(
+              child: PhosphorIcon(
+                PhosphorIconsBold.arrowDown,
+                size: 18,
+                color: WonderColors.textSoft,
+              ),
+            ),
+          ),
         ),
       );
 }
@@ -383,7 +449,10 @@ class _Chip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(
+        horizontal: WonderTokens.space16,
+        vertical: WonderTokens.space12,
+      ),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(WonderTokens.radiusMd),
@@ -394,7 +463,7 @@ class _Chip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Text(node.emoji, style: const TextStyle(fontSize: 24)),
-          const SizedBox(width: 8),
+          const SizedBox(width: WonderTokens.space8),
           Text(
             node.name,
             style: const TextStyle(
@@ -437,7 +506,7 @@ class _HintBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(13),
+      padding: const EdgeInsets.all(WonderTokens.space12),
       decoration: BoxDecoration(
         color: WonderColors.sunny.withValues(alpha: 0.16),
         borderRadius: BorderRadius.circular(WonderTokens.radiusMd),
@@ -445,8 +514,9 @@ class _HintBar extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          const Text('💡', style: TextStyle(fontSize: 18)),
-          const SizedBox(width: 10),
+          const PhosphorIcon(PhosphorIconsFill.lightbulb,
+              size: 20, color: WonderColors.honey),
+          const SizedBox(width: WonderTokens.space8),
           Expanded(
             child: Text(
               text,
@@ -475,24 +545,38 @@ class _NoGame extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const Text('🔧', style: TextStyle(fontSize: 56)),
-            const SizedBox(height: 16),
-            const Text(
-              'Trò ghép ngược đang được chuẩn bị',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: WonderColors.textStrong,
-                fontSize: 19,
-                fontWeight: FontWeight.w900,
+            Container(
+              width: 96,
+              height: 96,
+              decoration: const BoxDecoration(
+                color: WonderColors.wonderSoft,
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: PhosphorIcon(
+                  PhosphorIconsBold.puzzlePiece,
+                  size: 44,
+                  color: WonderColors.wonder,
+                ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: WonderTokens.space16),
+            Text(
+              'Trò ghép ngược đang được chuẩn bị',
+              textAlign: TextAlign.center,
+              style: WonderType.display(
+                color: WonderColors.textStrong,
+                fontSize: 19,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: WonderTokens.space8),
             Text(
               'Vật này chưa có công thức lắp ráp. Thử với bút bi, bút chì, tờ giấy hay chai nhựa nhé!',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: WonderColors.textSoft,
-                fontSize: 14.5,
+                fontSize: 15,
                 height: 1.4,
                 fontWeight: FontWeight.w600,
               ),

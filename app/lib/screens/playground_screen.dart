@@ -11,45 +11,54 @@ import '../ui/ui.dart';
 /// Nhiệm vụ & Thẻ vật liệu mở thẳng (không cần vật). Đố vui & Ghép ngược cần một
 /// vật đã khám phá **có** trò đó → chọn vật phù hợp đầu tiên; nếu chưa có thì gợi ý
 /// khám phá trước (không "cụt", không crash).
-class PlaygroundScreen extends StatelessWidget {
+class PlaygroundScreen extends StatefulWidget {
   const PlaygroundScreen({super.key});
+
+  @override
+  State<PlaygroundScreen> createState() => _PlaygroundScreenState();
+}
+
+class _PlaygroundScreenState extends State<PlaygroundScreen> {
+  /// Route đang tải nội dung (Đố vui / Ghép ngược) — thẻ tương ứng hiện spinner
+  /// nhỏ thay icon và mọi tap lặp bị bỏ qua cho tới khi tải xong.
+  String? _loadingRoute;
 
   @override
   Widget build(BuildContext context) {
     final games = <Widget>[
       _GameCard(
-        emoji: '🗺️',
+        icon: PhosphorIconsFill.mapTrifold,
         title: 'Nhiệm vụ',
         subtitle: 'Thử thách khám phá',
         accent: WonderColors.spark,
         onTap: () => context.push('/missions'),
       ),
       _GameCard(
-        emoji: '🃏',
+        icon: PhosphorIconsFill.cardsThree,
         title: 'Thẻ vật liệu',
         subtitle: 'Mạng lưới sưu tầm',
         accent: WonderColors.mint,
         onTap: () => context.push('/material-cards'),
       ),
       _GameCard(
-        emoji: '❓',
+        icon: PhosphorIconsFill.quiz,
         title: 'Đố vui',
         subtitle: 'Trả lời & nhận sao',
         accent: WonderColors.grape,
+        busy: _loadingRoute == '/quiz',
         onTap: () => _launchForGame(
-          context,
           hasGame: (c) => c.quiz.isNotEmpty,
           route: '/quiz',
           emptyHint: 'Hãy khám phá một đồ vật trước để chơi đố vui nhé!',
         ),
       ),
       _GameCard(
-        emoji: '🧩',
+        icon: PhosphorIconsBold.puzzlePiece,
         title: 'Ghép ngược',
         subtitle: 'Lắp lại từ nguyên liệu',
         accent: WonderColors.sky,
+        busy: _loadingRoute == '/assembly',
         onTap: () => _launchForGame(
-          context,
           hasGame: (c) => c.assembly != null,
           route: '/assembly',
           emptyHint:
@@ -86,46 +95,56 @@ class PlaygroundScreen extends StatelessWidget {
 
   /// Tìm vật đã khám phá đầu tiên **có** trò [hasGame] rồi mở [route]; nếu chưa
   /// có vật phù hợp → hiện gợi ý nhẹ nhàng thay vì mở màn "đang chuẩn bị".
-  Future<void> _launchForGame(
-    BuildContext context, {
+  /// Trong lúc tải, [_loadingRoute] khoá tap lặp và cho thẻ hiện spinner.
+  Future<void> _launchForGame({
     required bool Function(ObjectContent) hasGame,
     required String route,
     required String emptyHint,
   }) async {
-    final repo = ContentRepository();
-    final discovered = CollectionRepository().discoveredIds();
-    ObjectContent? pick;
-    for (final id in discovered) {
-      final c = await repo.load(id);
-      if (c != null && hasGame(c)) {
-        pick = c;
-        break;
+    if (_loadingRoute != null) return;
+    setState(() => _loadingRoute = route);
+    try {
+      final repo = ContentRepository();
+      final discovered = CollectionRepository().discoveredIds();
+      ObjectContent? pick;
+      for (final id in discovered) {
+        final c = await repo.load(id);
+        if (c != null && hasGame(c)) {
+          pick = c;
+          break;
+        }
       }
+      if (!mounted) return;
+      if (pick == null) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(emptyHint)));
+        return;
+      }
+      context.push(route, extra: pick);
+    } finally {
+      if (mounted) setState(() => _loadingRoute = null);
     }
-    if (!context.mounted) return;
-    if (pick == null) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(emptyHint)));
-      return;
-    }
-    context.push(route, extra: pick);
   }
 }
 
 class _GameCard extends StatelessWidget {
-  final String emoji;
+  final IconData icon;
   final String title;
   final String subtitle;
   final Color accent;
   final VoidCallback onTap;
 
+  /// Đang tải nội dung trò (async) → hiện spinner thay icon, khoá tap.
+  final bool busy;
+
   const _GameCard({
-    required this.emoji,
+    required this.icon,
     required this.title,
     required this.subtitle,
     required this.accent,
     required this.onTap,
+    this.busy = false,
   });
 
   @override
@@ -133,9 +152,9 @@ class _GameCard extends StatelessWidget {
     return GlassSurface(
       tone: GlassTone.light,
       radius: WonderTokens.radiusLg,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(WonderTokens.space16),
       shadows: WonderShadows.soft,
-      onTap: onTap,
+      onTap: busy ? null : onTap,
       semanticLabel: title,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -149,25 +168,34 @@ class _GameCard extends StatelessWidget {
               border: Border.all(color: accent.withValues(alpha: 0.4)),
             ),
             child: Center(
-              child: Text(emoji, style: const TextStyle(fontSize: 28)),
+              child: busy
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3,
+                        valueColor: AlwaysStoppedAnimation<Color>(accent),
+                      ),
+                    )
+                  : PhosphorIcon(icon, size: 30, color: accent),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: WonderTokens.space12),
           Text(
             title,
             style: WonderType.display(
               color: WonderColors.textStrong,
-              fontSize: 16.5,
+              fontSize: 17,
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: WonderTokens.space2),
           Text(
             subtitle,
             textAlign: TextAlign.center,
             style: WonderType.body(
               color: WonderColors.textSoft,
-              fontSize: 12.5,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
             ),
           ),

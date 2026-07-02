@@ -43,6 +43,7 @@ class PhosphorIcon extends StatelessWidget {
 /// Nét đậm (outline) — map sang Material Symbols tương ứng.
 abstract final class PhosphorIconsBold {
   static const IconData arrowClockwise = Symbols.refresh;
+  static const IconData arrowDown = Symbols.arrow_downward;
   static const IconData arrowLeft = Symbols.arrow_back;
   static const IconData arrowRight = Symbols.arrow_forward;
   static const IconData books = Symbols.auto_stories;
@@ -69,20 +70,29 @@ abstract final class PhosphorIconsBold {
 
 /// Nét đặc (fill).
 abstract final class PhosphorIconsFill {
+  static const IconData backpack = Symbols.backpack;
+  static const IconData cardsThree = Symbols.style;
+  static const IconData checkCircle = Symbols.check_circle;
+  static const IconData confetti = Symbols.celebration;
   static const IconData filmSlate = Symbols.slideshow;
   static const IconData filmStrip = Symbols.movie;
+  static const IconData fire = Symbols.local_fire_department;
+  static const IconData gameController = Symbols.sports_esports;
   static const IconData image = Symbols.image;
   static const IconData lightbulb = Symbols.lightbulb;
   static const IconData lightning = Symbols.bolt;
+  static const IconData mapTrifold = Symbols.map;
   static const IconData medal = Symbols.workspace_premium;
   static const IconData pause = Symbols.pause;
   static const IconData play = Symbols.play_arrow;
+  static const IconData quiz = Symbols.quiz;
   static const IconData sealCheck = Symbols.verified;
   static const IconData sparkle = Symbols.auto_awesome;
   static const IconData speakerSimpleHigh = Symbols.volume_up;
   static const IconData star = Symbols.star;
   static const IconData trophy = Symbols.emoji_events;
   static const IconData warningCircle = Symbols.error;
+  static const IconData xCircle = Symbols.cancel;
 }
 
 /// Hai tông (duotone) — Material Symbols không có duotone, dùng bản filled.

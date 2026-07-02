@@ -23,15 +23,20 @@ class MissionsScreen extends StatefulWidget {
 
 class _MissionsScreenState extends State<MissionsScreen> {
   late final ConfettiController _confetti;
-  late final List<Mission> _missions;
-  late final Set<String> _discovered;
-  late final Set<String> _unlocked;
-  late final Set<String> _completed;
+  // Guard: catalog nạp lúc khởi động (main) — nếu vào màn quá sớm thì chưa sẵn
+  // sàng; hiện trạng thái chờ thay vì crash (StateError từ `instance`).
+  bool _ready = false;
+  List<Mission> _missions = const <Mission>[];
+  Set<String> _discovered = const <String>{};
+  Set<String> _unlocked = const <String>{};
+  Set<String> _completed = const <String>{};
 
   @override
   void initState() {
     super.initState();
     _confetti = ConfettiController(duration: const Duration(seconds: 2));
+    _ready = MaterialCatalog.isReady;
+    if (!_ready) return;
     final repo = MissionRepository();
     final catalog = MaterialCatalog.instance;
     _discovered = CollectionRepository().discoveredIds().toSet();
@@ -57,13 +62,14 @@ class _MissionsScreenState extends State<MissionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final catalog = MaterialCatalog.instance;
     final doneCount = _missions.where((m) => _completed.contains(m.id)).length;
 
     return WonderScaffold(
       header: WonderHeader(
         title: 'Nhiệm vụ',
-        subtitle: 'Hoàn thành $doneCount/${_missions.length}',
+        subtitle: _ready
+            ? 'Hoàn thành $doneCount/${_missions.length}'
+            : 'Đang chuẩn bị…',
         showBack: true,
         onBack: () =>
             context.canPop() ? context.pop() : context.go('/collection'),
@@ -78,26 +84,129 @@ class _MissionsScreenState extends State<MissionsScreen> {
           gravity: 0.25,
         ),
       ),
-      body: ListView(
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (!_ready) return const _CatalogWaiting();
+    if (_missions.isEmpty) {
+      return ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
         children: <Widget>[
-          for (var i = 0; i < _missions.length; i++)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _MissionCard(
-                mission: _missions[i],
-                progress: MissionRepository.progressOf(
-                  _missions[i],
-                  discovered: _discovered,
-                  unlockedCards: _unlocked,
-                  catalog: catalog,
+          const SizedBox(height: WonderTokens.space16),
+          const _EmptyMissions()
+              .animate()
+              .fadeIn(duration: WonderTokens.durBase)
+              .slideY(begin: 0.1, end: 0),
+        ],
+      );
+    }
+    final catalog = MaterialCatalog.instance;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+      children: <Widget>[
+        for (var i = 0; i < _missions.length; i++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: WonderTokens.space12),
+            child: _MissionCard(
+              mission: _missions[i],
+              progress: MissionRepository.progressOf(
+                _missions[i],
+                discovered: _discovered,
+                unlockedCards: _unlocked,
+                catalog: catalog,
+              ),
+              completed: _completed.contains(_missions[i].id),
+            )
+                .animate(delay: (i * 60).ms)
+                .fadeIn(duration: WonderTokens.durBase)
+                .slideY(begin: 0.1, end: 0),
+          ),
+      ],
+    );
+  }
+}
+
+/// Trạng thái chờ nhẹ nhàng khi [MaterialCatalog] chưa nạp xong: spinner brand
+/// + một câu trấn an — tránh màn trắng hay crash khi vào quá sớm.
+class _CatalogWaiting extends StatelessWidget {
+  const _CatalogWaiting();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: WonderTokens.space32),
+        child: GlassSurface(
+          tone: GlassTone.light,
+          padding: const EdgeInsets.all(WonderTokens.space24),
+          shadows: WonderShadows.card,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const SizedBox(
+                width: 40,
+                height: 40,
+                child: CircularProgressIndicator(
+                  strokeWidth: 4,
+                  color: WonderColors.wonder,
                 ),
-                completed: _completed.contains(_missions[i].id),
-              )
-                  .animate(delay: (i * 60).ms)
-                  .fadeIn(duration: WonderTokens.durBase)
-                  .slideY(begin: 0.1, end: 0),
+              ),
+              const SizedBox(height: WonderTokens.space16),
+              Text(
+                'Tia đang chuẩn bị nhiệm vụ…',
+                textAlign: TextAlign.center,
+                style: WonderType.body(
+                  color: WonderColors.textSoft,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ).animate().fadeIn(duration: WonderTokens.durBase),
+    );
+  }
+}
+
+/// Trạng thái rỗng: chưa có nhiệm vụ nào — Tia trấn an thay vì danh sách trống.
+class _EmptyMissions extends StatelessWidget {
+  const _EmptyMissions();
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassSurface(
+      tone: GlassTone.light,
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+      shadows: WonderShadows.card,
+      child: Column(
+        children: <Widget>[
+          const TiaMascot(size: 76)
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .moveY(
+                  begin: -4, end: 4, duration: 2400.ms, curve: Curves.easeInOut),
+          const SizedBox(height: WonderTokens.space12),
+          Text(
+            'Chưa có nhiệm vụ nào!',
+            style: WonderType.display(
+              color: WonderColors.textStrong,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
             ),
+          ),
+          const SizedBox(height: WonderTokens.space8),
+          Text(
+            'Tia đang chuẩn bị thử thách mới. Bạn cứ đi khám phá đồ vật trước nhé!',
+            textAlign: TextAlign.center,
+            style: WonderType.body(
+              color: WonderColors.textSoft,
+              fontSize: 14,
+              height: 1.45,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
@@ -120,8 +229,13 @@ class _MissionCard extends StatelessWidget {
     final accent = completed ? WonderColors.sunny : WonderColors.teal;
     return GlassSurface(
       tone: GlassTone.light,
-      padding: const EdgeInsets.all(16),
-      shadows: WonderShadows.soft,
+      padding: const EdgeInsets.all(WonderTokens.space16),
+      // Thẻ hoàn thành nổi bật kiểu "đã thắng": tint nắng + glow vàng nhẹ.
+      tint: completed ? WonderColors.sunny : null,
+      tintOpacity: completed ? 0.3 : null,
+      shadows: completed
+          ? WonderShadows.glow(WonderColors.sunny, opacity: 0.35)
+          : WonderShadows.soft,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -140,25 +254,25 @@ class _MissionCard extends StatelessWidget {
                       style: const TextStyle(fontSize: 24)),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: WonderTokens.space12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
                       mission.title,
-                      style: const TextStyle(
+                      style: WonderType.display(
                         color: WonderColors.textStrong,
-                        fontSize: 16.5,
-                        fontWeight: FontWeight.w900,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: WonderTokens.space2),
                     Text(
                       _subtitle(),
-                      style: TextStyle(
+                      style: WonderType.body(
                         color: WonderColors.textSoft,
-                        fontSize: 12.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -167,20 +281,29 @@ class _MissionCard extends StatelessWidget {
               ),
               if (completed)
                 const PhosphorIcon(
-                  PhosphorIconsFill.sealCheck,
+                  PhosphorIconsFill.checkCircle,
                   size: 26,
-                  color: Color(0xFFE08A00),
+                  color: WonderColors.honey,
                 ),
             ],
           ),
-          const SizedBox(height: 14),
-          _Bar(fraction: progress.fraction, accent: accent),
-          const SizedBox(height: 8),
+          const SizedBox(height: WonderTokens.space12),
+          WonderProgressBar(
+            value: progress.fraction,
+            height: 12,
+            // Hoàn thành → ánh nắng đồng bộ tint thẻ; còn lại giữ gradient mặc định.
+            gradient: completed
+                ? WonderGradients.sunny
+                : const LinearGradient(
+                    colors: <Color>[WonderColors.mint, WonderColors.spark],
+                  ),
+          ),
+          const SizedBox(height: WonderTokens.space8),
           Text(
             completed
                 ? 'Đã mở: ${mission.rewardBadge} 🏅'
                 : 'Tiến độ ${progress.current}/${progress.target}',
-            style: TextStyle(
+            style: WonderType.body(
               color:
                   completed ? WonderColors.textStrong : WonderColors.textSoft,
               fontSize: 13,
@@ -205,33 +328,5 @@ class _MissionCard extends StatelessWidget {
       case MissionType.unknown:
         return '';
     }
-  }
-}
-
-class _Bar extends StatelessWidget {
-  final double fraction;
-  final Color accent;
-  const _Bar({required this.fraction, required this.accent});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(WonderTokens.pill),
-      child: Stack(
-        children: <Widget>[
-          Container(height: 12, color: accent.withValues(alpha: 0.14)),
-          FractionallySizedBox(
-            widthFactor: fraction.clamp(0.0, 1.0),
-            child: Container(
-              height: 12,
-              decoration: BoxDecoration(
-                color: accent,
-                borderRadius: BorderRadius.circular(WonderTokens.pill),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

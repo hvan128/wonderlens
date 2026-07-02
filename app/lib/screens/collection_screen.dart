@@ -75,7 +75,7 @@ class CollectionScreen extends StatelessWidget {
             const _SectionTitle('Thử thách'),
             const SizedBox(height: 10),
             _ChallengeTile(
-              emoji: '🗺️',
+              icon: PhosphorIconsFill.mapTrifold,
               title: 'Nhiệm vụ khám phá',
               subtitle: '${challenges.missionsDone}/${challenges.missionsTotal} hoàn thành',
               accent: WonderColors.spark,
@@ -83,7 +83,7 @@ class CollectionScreen extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             _ChallengeTile(
-              emoji: '🃏',
+              icon: PhosphorIconsFill.cardsThree,
               title: 'Thẻ vật liệu',
               subtitle: 'Đã mở ${challenges.cardsOpen}/${challenges.cardsTotal} thẻ',
               accent: WonderColors.mint,
@@ -145,7 +145,11 @@ class CollectionScreen extends StatelessWidget {
           ),
           if (aiDiscoveries.isNotEmpty) ...<Widget>[
             const SizedBox(height: 24),
-            const _SectionTitle('Khám phá thêm 🤖  ·  vui (AI)'),
+            const _SectionTitle(
+              'Khám phá thêm',
+              icon: PhosphorIconsFill.sparkle,
+              suffix: '· vui (AI)',
+            ),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,
@@ -303,11 +307,15 @@ class _EmptyState extends StatelessWidget {
 
 class _SectionTitle extends StatelessWidget {
   final String text;
-  const _SectionTitle(this.text);
+  /// Icon nhỏ cạnh tiêu đề (vd. sparkle cho khu khám phá AI).
+  final IconData? icon;
+  /// Nhãn phụ mờ sau tiêu đề (vd. '· vui (AI)').
+  final String? suffix;
+  const _SectionTitle(this.text, {this.icon, this.suffix});
 
   @override
   Widget build(BuildContext context) {
-    return Text(
+    final title = Text(
       text,
       style: WonderType.display(
         color: WonderColors.textStrong,
@@ -315,19 +323,40 @@ class _SectionTitle extends StatelessWidget {
         fontWeight: FontWeight.w700,
       ),
     );
+    if (icon == null && suffix == null) return title;
+    return Row(
+      children: <Widget>[
+        Flexible(child: title),
+        if (icon != null) ...<Widget>[
+          const SizedBox(width: 6),
+          PhosphorIcon(icon!, size: 16, color: WonderColors.grape),
+        ],
+        if (suffix != null) ...<Widget>[
+          const SizedBox(width: 6),
+          Text(
+            suffix!,
+            style: WonderType.body(
+              color: WonderColors.textSoft,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ],
+    );
   }
 }
 
-/// Ô "cửa vào" một trò chơi/nhiệm vụ từ Bộ sưu tập (A2): emoji + tên + tiến độ.
+/// Ô "cửa vào" một trò chơi/nhiệm vụ từ Bộ sưu tập (A2): icon + tên + tiến độ.
 class _ChallengeTile extends StatelessWidget {
-  final String emoji;
+  final IconData icon;
   final String title;
   final String subtitle;
   final Color accent;
   final VoidCallback onTap;
 
   const _ChallengeTile({
-    required this.emoji,
+    required this.icon,
     required this.title,
     required this.subtitle,
     required this.accent,
@@ -354,7 +383,7 @@ class _ChallengeTile extends StatelessWidget {
               border: Border.all(color: accent.withValues(alpha: 0.4)),
             ),
             child: Center(
-              child: Text(emoji, style: const TextStyle(fontSize: 22)),
+              child: PhosphorIcon(icon, size: 22, color: accent),
             ),
           ),
           const SizedBox(width: 12),
@@ -459,7 +488,7 @@ class _LevelCard extends StatelessWidget {
           const SizedBox(height: 14),
           Row(
             children: <Widget>[
-              Expanded(child: _ProgressBar(value: progress)),
+              Expanded(child: WonderProgressBar(value: progress, height: 14)),
               const SizedBox(width: 10),
               Text(
                 '$count/$total',
@@ -498,33 +527,6 @@ class _LevelCard extends StatelessWidget {
   }
 }
 
-class _ProgressBar extends StatelessWidget {
-  final double value;
-  const _ProgressBar({required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(WonderTokens.pill),
-      child: Stack(
-        children: <Widget>[
-          Container(
-            height: 14,
-            color: WonderColors.teal.withValues(alpha: 0.14),
-          ),
-          FractionallySizedBox(
-            widthFactor: value.clamp(0.0, 1.0),
-            child: Container(
-              height: 14,
-              decoration: const BoxDecoration(gradient: WonderGradients.cta),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 /// Chip nhỏ hiện chuỗi ngày khám phá hiện tại (D2) trên thẻ cấp độ.
 class _StreakChip extends StatelessWidget {
   final int days;
@@ -542,8 +544,12 @@ class _StreakChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          const Text('🔥', style: TextStyle(fontSize: 15)),
-          const SizedBox(width: 5),
+          const PhosphorIcon(
+            PhosphorIconsFill.fire,
+            size: 14,
+            color: WonderColors.honey,
+          ),
+          const SizedBox(width: 4),
           Text(
             '$days ngày',
             style: WonderType.body(
@@ -568,14 +574,16 @@ class _MaterialBadge extends StatelessWidget {
     // Mỗi vật liệu một màu riêng (Giấy/Nhựa/Kim loại/Gỗ) khi đã mở khoá.
     final color = earned ? WonderColors.material(material) : WonderColors.textSoft;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: color.withValues(alpha: earned ? 0.22 : 0.1),
-        borderRadius: BorderRadius.circular(WonderTokens.radiusSm),
+        borderRadius: BorderRadius.circular(WonderTokens.pill),
         border: Border.all(
           color: color.withValues(alpha: earned ? 0.6 : 0.25),
           width: earned ? 1.5 : 1,
         ),
+        // Huy hiệu đã mở khoá phát sáng nhẹ theo màu vật liệu — thưởng thị giác.
+        boxShadow: earned ? WonderShadows.glow(color, opacity: 0.25) : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -586,12 +594,12 @@ class _MaterialBadge extends StatelessWidget {
             Text(_materialEmoji(material), style: const TextStyle(fontSize: 15))
           else
             PhosphorIcon(PhosphorIconsBold.lockSimple, size: 16, color: color),
-          const SizedBox(width: 7),
+          const SizedBox(width: 6),
           Text(
             material,
             style: WonderType.body(
               color: earned ? WonderColors.textStrong : WonderColors.textSoft,
-              fontSize: 13.5,
+              fontSize: 14,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -637,7 +645,7 @@ class _AiCell extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: WonderType.body(
               color: WonderColors.textStrong,
-              fontSize: 12.5,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -691,7 +699,7 @@ class _ObjectCell extends StatelessWidget {
                 color: found
                     ? WonderColors.textStrong
                     : WonderColors.textSoft.withValues(alpha: 0.7),
-                fontSize: 12.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
               ),
             ),

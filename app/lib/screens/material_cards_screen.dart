@@ -16,6 +16,21 @@ class MaterialCardsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Guard: catalog nạp async lúc khởi động — nếu chưa sẵn sàng thì hiện
+    // trạng thái chờ nhẹ thay vì crash (cùng cách Bộ sưu tập kiểm `isReady`).
+    if (!MaterialCatalog.isReady) {
+      return WonderScaffold(
+        header: WonderHeader(
+          title: 'Thẻ vật liệu',
+          subtitle: 'Đang chuẩn bị...',
+          showBack: true,
+          onBack: () =>
+              context.canPop() ? context.pop() : context.go('/collection'),
+        ),
+        body: const _CatalogWaitingState(),
+      );
+    }
+
     final discovered = CollectionRepository().discoveredIds().toSet();
     final catalog = MaterialCatalog.instance;
     final unlocked = catalog.unlockedCards(discovered);
@@ -39,16 +54,16 @@ class MaterialCardsScreen extends StatelessWidget {
         children: <Widget>[
           for (var i = 0; i < all.length; i++)
             _MaterialTile(
-              material: all[i],
-              unlocked: unlocked.contains(all[i].id),
-              foundCount: catalog
-                  .objectsUsing(all[i].id)
-                  .where(discovered.contains)
-                  .length,
-              onTap: unlocked.contains(all[i].id)
-                  ? () => _showDetail(context, all[i], discovered)
-                  : null,
-            )
+                  material: all[i],
+                  unlocked: unlocked.contains(all[i].id),
+                  foundCount: catalog
+                      .objectsUsing(all[i].id)
+                      .where(discovered.contains)
+                      .length,
+                  onTap: unlocked.contains(all[i].id)
+                      ? () => _showDetail(context, all[i], discovered)
+                      : null,
+                )
                 .animate(delay: (i * 55).ms)
                 .fadeIn(duration: WonderTokens.durBase)
                 .scaleXY(
@@ -72,6 +87,45 @@ class MaterialCardsScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (_) =>
           _MaterialDetailSheet(material: material, discovered: discovered),
+    );
+  }
+}
+
+/// Trạng thái chờ khi [MaterialCatalog] chưa nạp xong: Tia lơ lửng + một dòng
+/// nhắn — nhẹ nhàng, không spinner, biến mất ngay khi mở lại màn.
+class _CatalogWaitingState extends StatelessWidget {
+  const _CatalogWaitingState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(WonderTokens.space24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const TiaMascot(size: 72)
+                .animate(onPlay: (c) => c.repeat(reverse: true))
+                .moveY(
+                  begin: -4,
+                  end: 4,
+                  duration: 2400.ms,
+                  curve: Curves.easeInOut,
+                ),
+            const SizedBox(height: WonderTokens.space16),
+            Text(
+              'Kho thẻ đang được chuẩn bị, quay lại sau nhé!',
+              textAlign: TextAlign.center,
+              style: WonderType.body(
+                color: WonderColors.textSoft,
+                fontSize: 14,
+                height: 1.4,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ).animate().fadeIn(duration: WonderTokens.durBase),
     );
   }
 }
@@ -110,73 +164,99 @@ class _MaterialTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _categoryColor(material.category);
-    return GlassSurface(
-      tone: GlassTone.light,
-      radius: WonderTokens.radiusMd,
-      padding: const EdgeInsets.all(12),
-      tintOpacity: unlocked ? null : 0.34,
-      shadows: WonderShadows.soft,
+    // Thẻ đã mở: viền màu category + glow nhẹ cùng màu (khối rõ kiểu Duolingo).
+    // Thẻ khoá: giữ mờ nhưng vẫn có viền trung tính mảnh để thấy "khối".
+    final border = Border.all(
+      color: unlocked
+          ? color.withValues(alpha: 0.6)
+          : WonderColors.textFaint.withValues(alpha: 0.2),
+      width: 1.5,
+    );
+    return Pressable(
       onTap: onTap,
       semanticLabel: unlocked ? 'Thẻ ${material.name}' : 'Thẻ chưa mở',
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: color.withValues(alpha: unlocked ? 0.18 : 0.10),
-              border: Border.all(
-                color: color.withValues(alpha: unlocked ? 0.45 : 0.20),
-              ),
-            ),
-            child: Center(
-              child: unlocked
-                  ? Text(material.emoji, style: const TextStyle(fontSize: 30))
-                  : PhosphorIcon(
-                      PhosphorIconsBold.lockSimple,
-                      size: 26,
-                      color: WonderColors.textSoft.withValues(alpha: 0.55),
-                    ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            unlocked ? material.name : '???',
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: unlocked
-                  ? WonderColors.textStrong
-                  : WonderColors.textSoft.withValues(alpha: 0.7),
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            unlocked
-                ? (material.isSource ? 'Vật liệu thô' : 'Đã chế biến')
-                : 'Chưa khám phá',
-            style: TextStyle(
-              color: WonderColors.textSoft,
-              fontSize: 11.5,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          if (unlocked && foundCount > 0) ...<Widget>[
-            const SizedBox(height: 6),
-            WonderChip(
-              label: 'Có trong $foundCount vật',
-              icon: PhosphorIconsFill.sparkle,
-              color: color,
-              tone: GlassTone.light,
-            ),
-          ],
-        ],
+      child: Container(
+        // Viền vẽ đè lên mép kính (foreground) để cùng scale khi bấm.
+        foregroundDecoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(WonderTokens.radiusMd),
+          border: border,
+        ),
+        child: GlassSurface(
+          tone: GlassTone.light,
+          radius: WonderTokens.radiusMd,
+          padding: const EdgeInsets.all(WonderTokens.space12),
+          tintOpacity: unlocked ? null : 0.34,
+          shadows: unlocked
+              ? <BoxShadow>[
+                  ...WonderShadows.soft,
+                  ...WonderShadows.glow(color, opacity: 0.2),
+                ]
+              : WonderShadows.soft,
+          child: _tileBody(color),
+        ),
       ),
+    );
+  }
+
+  Widget _tileBody(Color color) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color.withValues(alpha: unlocked ? 0.18 : 0.10),
+            border: Border.all(
+              color: color.withValues(alpha: unlocked ? 0.45 : 0.20),
+            ),
+          ),
+          child: Center(
+            child: unlocked
+                ? Text(material.emoji, style: const TextStyle(fontSize: 30))
+                : PhosphorIcon(
+                    PhosphorIconsBold.lockSimple,
+                    size: 26,
+                    color: WonderColors.textSoft.withValues(alpha: 0.55),
+                  ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          unlocked ? material.name : '???',
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: WonderType.display(
+            color: unlocked
+                ? WonderColors.textStrong
+                : WonderColors.textSoft.withValues(alpha: 0.7),
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          unlocked
+              ? (material.isSource ? 'Vật liệu thô' : 'Đã chế biến')
+              : 'Chưa khám phá',
+          style: WonderType.body(
+            color: WonderColors.textSoft,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        if (unlocked && foundCount > 0) ...<Widget>[
+          const SizedBox(height: 6),
+          WonderChip(
+            label: 'Có trong $foundCount vật',
+            icon: PhosphorIconsFill.sparkle,
+            color: color,
+            tone: GlassTone.light,
+          ),
+        ],
+      ],
     );
   }
 }
@@ -185,7 +265,10 @@ class _MaterialDetailSheet extends StatelessWidget {
   final WonderMaterial material;
   final Set<String> discovered;
 
-  const _MaterialDetailSheet({required this.material, required this.discovered});
+  const _MaterialDetailSheet({
+    required this.material,
+    required this.discovered,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -233,21 +316,23 @@ class _MaterialDetailSheet extends StatelessWidget {
                     border: Border.all(color: color.withValues(alpha: 0.45)),
                   ),
                   child: Center(
-                    child:
-                        Text(material.emoji, style: const TextStyle(fontSize: 34)),
+                    child: Text(
+                      material.emoji,
+                      style: const TextStyle(fontSize: 34),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
                         material.name,
-                        style: const TextStyle(
+                        style: WonderType.display(
                           color: WonderColors.textStrong,
                           fontSize: 24,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -270,9 +355,9 @@ class _MaterialDetailSheet extends StatelessWidget {
             const SizedBox(height: 18),
             Text(
               material.blurb,
-              style: TextStyle(
+              style: WonderType.body(
                 color: WonderColors.textStrong.withValues(alpha: 0.9),
-                fontSize: 15.5,
+                fontSize: 16,
                 height: 1.45,
                 fontWeight: FontWeight.w600,
               ),
@@ -297,8 +382,10 @@ class _MaterialDetailSheet extends StatelessWidget {
                       Expanded(
                         child: Text(
                           fact,
-                          style: TextStyle(
-                            color: WonderColors.textStrong.withValues(alpha: 0.82),
+                          style: WonderType.body(
+                            color: WonderColors.textStrong.withValues(
+                              alpha: 0.82,
+                            ),
                             fontSize: 14,
                             height: 1.4,
                             fontWeight: FontWeight.w600,
@@ -309,7 +396,7 @@ class _MaterialDetailSheet extends StatelessWidget {
                   ),
                 ),
             ],
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             _SheetLabel('Mạng lưới — có trong ${users.length} vật'),
             const SizedBox(height: 10),
             Wrap(
@@ -327,7 +414,7 @@ class _MaterialDetailSheet extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 'Còn ${users.length - foundUsers} vật nữa đang chờ bạn khám phá!',
-                style: TextStyle(
+                style: WonderType.body(
                   color: WonderColors.textSoft,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -347,13 +434,13 @@ class _SheetLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-        text,
-        style: const TextStyle(
-          color: WonderColors.textStrong,
-          fontSize: 16,
-          fontWeight: FontWeight.w900,
-        ),
-      );
+    text,
+    style: WonderType.display(
+      color: WonderColors.textStrong,
+      fontSize: 15,
+      fontWeight: FontWeight.w700,
+    ),
+  );
 }
 
 class _DerivationChain extends StatelessWidget {
@@ -366,14 +453,16 @@ class _DerivationChain extends StatelessWidget {
     final nodes = <Widget>[];
     for (var i = 0; i < chain.length; i++) {
       if (i > 0) {
-        nodes.add(const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 6),
-          child: PhosphorIcon(
-            PhosphorIconsBold.arrowRight,
-            size: 16,
-            color: WonderColors.textSoft,
+        nodes.add(
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 6),
+            child: PhosphorIcon(
+              PhosphorIconsBold.arrowRight,
+              size: 16,
+              color: WonderColors.textSoft,
+            ),
           ),
-        ));
+        );
       }
       final m = catalog.byId(chain[i]);
       nodes.add(_ChainNode(material: m));
@@ -394,7 +483,7 @@ class _ChainNode extends StatelessWidget {
   Widget build(BuildContext context) {
     final m = material;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(WonderTokens.radiusSm),
@@ -407,10 +496,10 @@ class _ChainNode extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             m?.name ?? '?',
-            style: const TextStyle(
+            style: WonderType.body(
               color: WonderColors.textStrong,
               fontSize: 13,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -428,7 +517,7 @@ class _NetworkObject extends StatelessWidget {
   Widget build(BuildContext context) {
     final it = item;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: found ? 0.6 : 0.32),
         borderRadius: BorderRadius.circular(WonderTokens.radiusSm),
@@ -447,10 +536,10 @@ class _NetworkObject extends StatelessWidget {
               size: 15,
               color: WonderColors.textSoft.withValues(alpha: 0.55),
             ),
-          const SizedBox(width: 7),
+          const SizedBox(width: 8),
           Text(
             found ? (it?.name ?? '') : '???',
-            style: TextStyle(
+            style: WonderType.body(
               color: found
                   ? WonderColors.textStrong
                   : WonderColors.textSoft.withValues(alpha: 0.7),

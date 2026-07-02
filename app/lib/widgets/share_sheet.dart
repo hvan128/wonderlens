@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/object_content.dart';
 import '../services/share_service.dart';
+import '../ui/ui.dart';
 import 'share_card.dart';
 
 /// Mở bảng xem trước một lần khám phá (màn Hành trình).
@@ -97,7 +98,6 @@ class _SharePreviewState extends State<_SharePreview> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return SafeArea(
       top: false,
       child: Padding(
@@ -119,31 +119,21 @@ class _SharePreviewState extends State<_SharePreview> {
                 child: RepaintBoundary(key: _cardKey, child: widget.card),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: WonderTokens.space20),
+            // Nút 3D thương hiệu; đang chia sẻ → khoá nút + đổi nhãn cho bé biết.
             SizedBox(
               width: kShareCardWidth,
-              child: FilledButton.icon(
-                onPressed: _sharing ? null : _share,
-                icon: _sharing
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.ios_share_rounded),
-                label: Text(_sharing ? 'Đang chuẩn bị…' : 'Chia sẻ ngay'),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  textStyle: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w800),
-                ),
+              child: WonderButton(
+                label: _sharing ? 'Đang chia sẻ…' : 'Chia sẻ ngay',
+                icon: PhosphorIconsBold.shareNetwork,
+                onTap: _sharing ? null : _share,
               ),
             ),
-            const SizedBox(height: 4),
-            TextButton(
-              onPressed:
-                  _sharing ? null : () => Navigator.of(context).maybePop(),
-              child: const Text('Để sau'),
+            const SizedBox(height: WonderTokens.space4),
+            WonderTextButton(
+              label: 'Để sau',
+              color: Colors.white.withValues(alpha: 0.8),
+              onTap: _sharing ? null : () => Navigator.of(context).maybePop(),
             ),
           ],
         ),
