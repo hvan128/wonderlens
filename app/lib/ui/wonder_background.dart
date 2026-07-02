@@ -18,6 +18,8 @@ class WonderBackground extends StatelessWidget {
       decoration: const BoxDecoration(gradient: WonderGradients.canvas),
       child: Stack(
         children: <Widget>[
+          // Chỉ dùng quầng màu họ tím/lam (bỏ quầng vàng — trên nền oải hương
+          // nó đọc như "vết ố" và phá tông; xem TASK-022 feedback ảnh thật).
           const Positioned(
             top: -60,
             left: -50,
@@ -26,12 +28,12 @@ class WonderBackground extends StatelessWidget {
           const Positioned(
             top: 120,
             right: -70,
-            child: _Blob(color: WonderColors.mint, size: 200, dy: -26, delayMs: 600),
+            child: _Blob(color: WonderColors.sky, size: 200, dy: -26, delayMs: 600),
           ),
           const Positioned(
             bottom: -40,
             left: 30,
-            child: _Blob(color: WonderColors.spark, size: 210, dy: 18, delayMs: 1200),
+            child: _Blob(color: WonderColors.grape, size: 210, dy: 18, delayMs: 1200),
           ),
           Positioned.fill(child: child),
         ],
@@ -63,7 +65,7 @@ class _Blob extends StatelessWidget {
           height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: color.withValues(alpha: 0.34),
+            color: color.withValues(alpha: 0.24),
           ),
         ),
       )

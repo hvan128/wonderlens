@@ -30,7 +30,9 @@ class _PlaygroundScreenState extends State<PlaygroundScreen> {
         icon: PhosphorIconsFill.mapTrifold,
         title: 'Nhiệm vụ',
         subtitle: 'Thử thách khám phá',
-        accent: WonderColors.spark,
+        // Honey thay spark: hết cảnh icon vàng trên nền vàng nhạt cùng tông.
+        accent: WonderColors.honey,
+        bgAlpha: 0.14,
         onTap: () => context.push('/missions'),
       ),
       _GameCard(
@@ -72,12 +74,17 @@ class _PlaygroundScreenState extends State<PlaygroundScreen> {
         title: 'Sân chơi',
         subtitle: 'Chọn một trò để chơi nhé!',
       ),
-      body: GridView.count(
-        crossAxisCount: 2,
+      body: GridView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 1.02,
+        // Chiều cao cố định thay vì aspect ratio (máy hẹp bị tràn đáy 12px):
+        // padding 16×2 + icon 56 + gap 12 + title ~28 (Baloo 2 @17)
+        // + gap 2 + subtitle 2 dòng ~36 (Nunito @13) ≈ 166 → 192 kèm dư an toàn.
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          mainAxisExtent: 192,
+        ),
         children: <Widget>[
           for (var i = 0; i < games.length; i++)
             games[i]
@@ -128,12 +135,22 @@ class _PlaygroundScreenState extends State<PlaygroundScreen> {
   }
 }
 
+/// Sẫm hoá [accent] để icon nổi rõ trên vòng tròn nền nhạt cùng tông —
+/// cùng công thức cạnh 3D của WonderButton (hạ lightness 0.16 trong HSL).
+Color _inkOf(Color accent) {
+  final hsl = HSLColor.fromColor(accent);
+  return hsl.withLightness((hsl.lightness - 0.16).clamp(0.0, 1.0)).toColor();
+}
+
 class _GameCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
   final Color accent;
   final VoidCallback onTap;
+
+  /// Alpha của vòng tròn nền — accent ấm/đậm (honey) dùng mức thấp hơn 0.14.
+  final double bgAlpha;
 
   /// Đang tải nội dung trò (async) → hiện spinner thay icon, khoá tap.
   final bool busy;
@@ -144,11 +161,15 @@ class _GameCard extends StatelessWidget {
     required this.subtitle,
     required this.accent,
     required this.onTap,
+    this.bgAlpha = 0.16,
     this.busy = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Công thức chung cho cả 4 thẻ: nền = accent nhạt, icon = accent sẫm hoá
+    // → luôn tương phản rõ, không còn icon nhạt trên nền nhạt.
+    final ink = _inkOf(accent);
     return GlassSurface(
       tone: GlassTone.light,
       radius: WonderTokens.radiusLg,
@@ -157,6 +178,7 @@ class _GameCard extends StatelessWidget {
       onTap: busy ? null : onTap,
       semanticLabel: title,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Container(
@@ -164,8 +186,8 @@ class _GameCard extends StatelessWidget {
             height: 56,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: accent.withValues(alpha: 0.18),
-              border: Border.all(color: accent.withValues(alpha: 0.4)),
+              color: accent.withValues(alpha: bgAlpha),
+              border: Border.all(color: accent.withValues(alpha: 0.35)),
             ),
             child: Center(
               child: busy
@@ -174,10 +196,10 @@ class _GameCard extends StatelessWidget {
                       height: 24,
                       child: CircularProgressIndicator(
                         strokeWidth: 3,
-                        valueColor: AlwaysStoppedAnimation<Color>(accent),
+                        valueColor: AlwaysStoppedAnimation<Color>(ink),
                       ),
                     )
-                  : PhosphorIcon(icon, size: 30, color: accent),
+                  : PhosphorIcon(icon, size: 30, color: ink),
             ),
           ),
           const SizedBox(height: WonderTokens.space12),
@@ -193,6 +215,8 @@ class _GameCard extends StatelessWidget {
           Text(
             subtitle,
             textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: WonderType.body(
               color: WonderColors.textSoft,
               fontSize: 13,

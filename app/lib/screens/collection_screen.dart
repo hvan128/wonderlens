@@ -78,7 +78,8 @@ class CollectionScreen extends StatelessWidget {
               icon: PhosphorIconsFill.mapTrifold,
               title: 'Nhiệm vụ khám phá',
               subtitle: '${challenges.missionsDone}/${challenges.missionsTotal} hoàn thành',
-              accent: WonderColors.spark,
+              // Honey thay spark: icon hổ phách sẫm nổi rõ trên nền vàng nhạt.
+              accent: WonderColors.honey,
               onTap: () => context.push('/missions'),
             ),
             const SizedBox(height: 10),
@@ -379,7 +380,8 @@ class _ChallengeTile extends StatelessWidget {
             height: 44,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: accent.withValues(alpha: 0.18),
+              // Nền accent rất nhạt (0.14) + icon accent sẫm — tương phản rõ.
+              color: accent.withValues(alpha: 0.14),
               border: Border.all(color: accent.withValues(alpha: 0.4)),
             ),
             child: Center(
@@ -537,9 +539,10 @@ class _StreakChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: WonderColors.spark.withValues(alpha: 0.2),
+        // Vàng chỉ là nền rất nhạt — hạ alpha để không lấn tông tím tổng thể.
+        color: WonderColors.spark.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(WonderTokens.pill),
-        border: Border.all(color: WonderColors.spark.withValues(alpha: 0.5)),
+        border: Border.all(color: WonderColors.spark.withValues(alpha: 0.4)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -553,7 +556,8 @@ class _StreakChip extends StatelessWidget {
           Text(
             '$days ngày',
             style: WonderType.body(
-              color: WonderColors.onSpark,
+              // Honey đồng bộ với icon lửa — tương phản rõ trên nền spark nhạt.
+              color: WonderColors.honey,
               fontSize: 13,
               fontWeight: FontWeight.w800,
             ),
@@ -576,10 +580,14 @@ class _MaterialBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: earned ? 0.22 : 0.1),
+        // Đã mở khoá: nền trắng glass, màu vật liệu chỉ làm điểm nhấn ở viền —
+        // tránh tint cả pill khiến tổng thể loang màu. Chưa mở: giữ mờ như cũ.
+        color: earned
+            ? Colors.white.withValues(alpha: 0.75)
+            : color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(WonderTokens.pill),
         border: Border.all(
-          color: color.withValues(alpha: earned ? 0.6 : 0.25),
+          color: color.withValues(alpha: earned ? 0.7 : 0.25),
           width: earned ? 1.5 : 1,
         ),
         // Huy hiệu đã mở khoá phát sáng nhẹ theo màu vật liệu — thưởng thị giác.

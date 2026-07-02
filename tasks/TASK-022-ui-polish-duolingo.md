@@ -77,3 +77,18 @@ OUT:
   check/x + shake. Assembly: mũi tên '↓' text → icon; slot đặt đúng scale-pulse.
 - Streak celebration: choreography mascot scale-in + dot "bốc cháy" stagger,
   dot 🔥 → icon fire (title `Chuỗi N ngày! 🔥` giữ nguyên — test assert).
+
+### Vòng 2 — sửa theo feedback ảnh máy thật (02/07)
+
+- **Font tiếng Việt vỡ dấu chồng** (Đố→Đõ, thầy→thãy): Fredoka KHÔNG có bảng chữ
+  Việt (xác minh Google Fonts metadata) → đổi display font sang **Baloo 2**
+  (đủ Vietnamese, cùng chất rounded) — [ADR-017](../adrs/ADR-017-display-font-vietnamese.md).
+- **Màn Nhiệm vụ quá vàng**: bỏ tint sunny toàn thẻ hoàn thành → thẻ trắng glass,
+  điểm nhấn chỉ còn viền honey mảnh + check honey; progress bar chuẩn mint→spark
+  trên track thấy rõ.
+- **Nền blob**: bỏ blob vàng (đọc như vết ố) → wonder/sky/grape, alpha 0.34→0.24.
+- **Sân chơi**: fix overflow 12px (grid `mainAxisExtent` cố định + subtitle 2 dòng);
+  công thức icon thống nhất: nền accent 0.16 + icon accent sẫm hoá HSL (hết
+  vàng-trên-vàng, thẻ Nhiệm vụ dùng honey).
+- **Bộ sưu tập**: giảm chói vàng (streak chip dịu, huy hiệu vật liệu nền trắng +
+  viền màu material).

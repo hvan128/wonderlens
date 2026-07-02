@@ -155,7 +155,7 @@ class _TitleBlock extends StatelessWidget {
           title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          // Tiêu đề dùng Fredoka (display) — thống nhất hierarchy toàn app.
+          // Tiêu đề dùng font display (Baloo 2) — thống nhất hierarchy toàn app.
           style: WonderType.display(
             color: strong,
             fontSize: 20,

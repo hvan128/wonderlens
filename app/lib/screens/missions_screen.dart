@@ -226,16 +226,13 @@ class _MissionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = completed ? WonderColors.sunny : WonderColors.teal;
-    return GlassSurface(
+    // Điểm nhấn nhỏ: hoàn thành → hổ phách honey (đậm, rõ trên trắng);
+    // đang làm → tím thương hiệu. Bề mặt thẻ luôn trắng glass, không tint.
+    final accent = completed ? WonderColors.honey : WonderColors.wonder;
+    final Widget card = GlassSurface(
       tone: GlassTone.light,
       padding: const EdgeInsets.all(WonderTokens.space16),
-      // Thẻ hoàn thành nổi bật kiểu "đã thắng": tint nắng + glow vàng nhẹ.
-      tint: completed ? WonderColors.sunny : null,
-      tintOpacity: completed ? 0.3 : null,
-      shadows: completed
-          ? WonderShadows.glow(WonderColors.sunny, opacity: 0.35)
-          : WonderShadows.soft,
+      shadows: WonderShadows.soft,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -246,8 +243,9 @@ class _MissionCard extends StatelessWidget {
                 height: 46,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: accent.withValues(alpha: 0.16),
-                  border: Border.all(color: accent.withValues(alpha: 0.4)),
+                  // Nền accent rất nhạt + viền accent rõ — emoji là nội dung chính.
+                  color: accent.withValues(alpha: 0.14),
+                  border: Border.all(color: accent.withValues(alpha: 0.35)),
                 ),
                 child: Center(
                   child: Text(mission.emoji,
@@ -288,15 +286,11 @@ class _MissionCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: WonderTokens.space12),
+          // Mọi thẻ dùng gradient mặc định mint→spark trên track tím nhạt —
+          // luôn đọc rõ trên nền thẻ trắng, tránh vàng-trên-vàng vô hình.
           WonderProgressBar(
             value: progress.fraction,
             height: 12,
-            // Hoàn thành → ánh nắng đồng bộ tint thẻ; còn lại giữ gradient mặc định.
-            gradient: completed
-                ? WonderGradients.sunny
-                : const LinearGradient(
-                    colors: <Color>[WonderColors.mint, WonderColors.spark],
-                  ),
           ),
           const SizedBox(height: WonderTokens.space8),
           Text(
@@ -312,6 +306,20 @@ class _MissionCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+
+    // Thẻ hoàn thành: bề mặt vẫn trắng, chỉ thêm viền mảnh honey phủ ngoài
+    // (GlassSurface không nhận màu viền nên vẽ đè bằng foregroundDecoration).
+    if (!completed) return card;
+    return Container(
+      foregroundDecoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(WonderTokens.radiusLg),
+        border: Border.all(
+          color: WonderColors.honey.withValues(alpha: 0.45),
+          width: 1.5,
+        ),
+      ),
+      child: card,
     );
   }
 

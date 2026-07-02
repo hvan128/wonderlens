@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'wonder_tokens.dart';
 import 'wonder_typography.dart';
 
-/// Theme trẻ em v2: tông **tím kỳ diệu**, bo góc lớn, chữ Fredoka/Nunito thân
-/// thiện. Đồng bộ với `wonderlens-mockup.html`.
+/// Theme trẻ em v2: tông **tím kỳ diệu**, bo góc lớn, chữ Baloo 2/Nunito thân
+/// thiện (ADR-017). Đồng bộ với `wonderlens-mockup.html`.
 ThemeData buildAppTheme() {
   final scheme = ColorScheme.fromSeed(
     seedColor: WonderColors.wonder, // tím kỳ diệu
