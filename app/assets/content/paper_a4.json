@@ -26,5 +26,45 @@
     }
   ],
   "history": "Bạn nhỏ ơi, từ rất lâu rồi, người xưa đã nghĩ ra cách làm giấy để viết chữ và vẽ tranh. Họ lấy sợi từ cây cối, giã thật nhuyễn rồi trải mỏng cho khô thành những tờ giấy đầu tiên.",
-  "story": "Bạn nhỏ ơi, từ rất lâu rồi, người xưa đã nghĩ ra cách làm giấy để viết chữ và vẽ tranh. Họ lấy sợi từ cây cối, giã thật nhuyễn rồi trải mỏng cho khô thành những tờ giấy đầu tiên. Tờ giấy A4 mà bạn đang cầm cũng ra đời theo cách tương tự đấy. Đầu tiên, người ta lấy gỗ từ những thân cây cao lớn trong rừng. Gỗ được nấu lên thật lâu cho mềm ra, biến thành một thứ sền sệt gọi là bột giấy. Bột giấy được làm sạch, rồi trải thật mỏng trên một tấm lưới. Người ta ép cho ráo hết nước, sau đó sấy thật khô để giấy phẳng phiu. Cuối cùng, cuộn giấy lớn được cắt ra thành từng tờ A4 vuông vắn, gọn gàng. Vậy là từ một thân cây xanh, bạn đã có tờ giấy trắng tinh để viết, để vẽ, để gấp máy bay. Thật kì diệu phải không nào?"
+  "story": "Bạn nhỏ ơi, từ rất lâu rồi, người xưa đã nghĩ ra cách làm giấy để viết chữ và vẽ tranh. Họ lấy sợi từ cây cối, giã thật nhuyễn rồi trải mỏng cho khô thành những tờ giấy đầu tiên. Tờ giấy A4 mà bạn đang cầm cũng ra đời theo cách tương tự đấy. Đầu tiên, người ta lấy gỗ từ những thân cây cao lớn trong rừng. Gỗ được nấu lên thật lâu cho mềm ra, biến thành một thứ sền sệt gọi là bột giấy. Bột giấy được làm sạch, rồi trải thật mỏng trên một tấm lưới. Người ta ép cho ráo hết nước, sau đó sấy thật khô để giấy phẳng phiu. Cuối cùng, cuộn giấy lớn được cắt ra thành từng tờ A4 vuông vắn, gọn gàng. Vậy là từ một thân cây xanh, bạn đã có tờ giấy trắng tinh để viết, để vẽ, để gấp máy bay. Thật kì diệu phải không nào?",
+  "materials": [
+    "paper_pulp"
+  ],
+  "quiz": [
+    {
+      "question": "Tờ giấy được làm từ gì?",
+      "options": [
+        "Gỗ của cây",
+        "Nhựa",
+        "Kim loại"
+      ],
+      "answer_index": 0,
+      "explain": "Giấy làm từ gỗ: gỗ được nghiền thành bột giấy rồi cán mỏng."
+    },
+    {
+      "question": "Bước nào biến gỗ thành thứ sền sệt để làm giấy?",
+      "options": [
+        "Nấu thành bột giấy",
+        "Nung cho chảy ra",
+        "Để đông lạnh"
+      ],
+      "answer_index": 0,
+      "explain": "Gỗ băm nhỏ rồi nấu với nước thành bột giấy nhão như cháo."
+    }
+  ],
+  "assembly": {
+    "target": "Tờ giấy A4",
+    "steps": [
+      {
+        "from": "wood",
+        "to": "paper_pulp",
+        "label": "Gỗ → bột giấy"
+      },
+      {
+        "from": "paper_pulp",
+        "to": "paper_a4",
+        "label": "Bột giấy → tờ giấy"
+      }
+    ]
+  }
 }

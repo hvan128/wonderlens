@@ -26,5 +26,45 @@
     }
   ],
   "history": "Ngày xưa, người ta đựng nước trong bình bằng đất, gỗ hay thủy tinh, vừa nặng vừa dễ vỡ. Mãi cách đây khoảng vài chục năm, các nhà khoa học mới tìm ra một loại nhựa tên là PET, vừa nhẹ, vừa trong veo lại bền. Nhờ vậy mà chai nước nhựa quen thuộc của chúng ta mới ra đời.",
-  "story": "Bạn nhỏ ơi, ngày xưa người ta chỉ đựng nước trong bình bằng đất, gỗ hay thủy tinh, vừa nặng lại vừa dễ vỡ. Mãi đến cách đây khoảng vài chục năm, các nhà khoa học mới tìm ra một loại nhựa đặc biệt tên là PET, vừa trong veo vừa nhẹ tênh, thế là chai nước nhựa ra đời. Loại nhựa này được làm từ dầu mỏ nằm sâu dưới lòng đất. Người ta đem dầu mỏ chế biến thành những hạt nhựa PET nhỏ xíu, trong suốt như hạt thủy tinh. Rồi các hạt ấy được nung cho mềm ra, kéo thành một cái ống bé tí. Trong khuôn, người ta bơm hơi thổi phồng cái ống lên, y như bạn thổi bong bóng, cho đến khi nó thành một chiếc chai xinh xắn. Cuối cùng, chai được rửa thật sạch, rót đầy nước mát rồi vặn nắp kín. Thật kỳ diệu phải không nào, bạn nhỏ."
+  "story": "Bạn nhỏ ơi, ngày xưa người ta chỉ đựng nước trong bình bằng đất, gỗ hay thủy tinh, vừa nặng lại vừa dễ vỡ. Mãi đến cách đây khoảng vài chục năm, các nhà khoa học mới tìm ra một loại nhựa đặc biệt tên là PET, vừa trong veo vừa nhẹ tênh, thế là chai nước nhựa ra đời. Loại nhựa này được làm từ dầu mỏ nằm sâu dưới lòng đất. Người ta đem dầu mỏ chế biến thành những hạt nhựa PET nhỏ xíu, trong suốt như hạt thủy tinh. Rồi các hạt ấy được nung cho mềm ra, kéo thành một cái ống bé tí. Trong khuôn, người ta bơm hơi thổi phồng cái ống lên, y như bạn thổi bong bóng, cho đến khi nó thành một chiếc chai xinh xắn. Cuối cùng, chai được rửa thật sạch, rót đầy nước mát rồi vặn nắp kín. Thật kỳ diệu phải không nào, bạn nhỏ.",
+  "materials": [
+    "plastic"
+  ],
+  "quiz": [
+    {
+      "question": "Chai nước được làm từ loại nhựa lấy từ đâu?",
+      "options": [
+        "Dầu mỏ",
+        "Cao su cây",
+        "Sáp ong"
+      ],
+      "answer_index": 0,
+      "explain": "Chai làm từ nhựa PET, mà nhựa PET được làm ra từ dầu mỏ."
+    },
+    {
+      "question": "Chai nhựa được tạo hình bằng cách nào?",
+      "options": [
+        "Thổi phồng trong khuôn",
+        "Nặn bằng tay",
+        "Cắt ra từ tấm lớn"
+      ],
+      "answer_index": 0,
+      "explain": "Hạt nhựa được nung mềm thành ống nhỏ rồi bơm hơi thổi phồng thành chai."
+    }
+  ],
+  "assembly": {
+    "target": "Chai nước nhựa",
+    "steps": [
+      {
+        "from": "petroleum",
+        "to": "plastic",
+        "label": "Dầu mỏ → hạt nhựa"
+      },
+      {
+        "from": "plastic",
+        "to": "plastic_bottle",
+        "label": "Hạt nhựa → chai nước"
+      }
+    ]
+  }
 }

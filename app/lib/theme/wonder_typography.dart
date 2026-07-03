@@ -5,14 +5,16 @@ import 'wonder_tokens.dart';
 
 /// Hệ chữ WonderLens — nguồn sự thật duy nhất cho typography.
 ///
-/// - **Fredoka** (bo tròn, vui) cho tiêu đề / wordmark / con số to.
+/// - **Baloo 2** (bo tròn, mập, vui) cho tiêu đề / wordmark / con số to —
+///   hỗ trợ đầy đủ dấu tiếng Việt (thay Fredoka vốn thiếu bảng chữ Việt,
+///   render sai dấu chồng ố/ầ/ấ… — xem `adrs/ADR-017-display-font-vietnamese.md`).
 /// - **Nunito** (dễ đọc, hỗ trợ tiếng Việt) cho nội dung.
 ///
-/// Nạp qua `google_fonts` (xem `adrs/ADR-010-typography.md`). Dùng
-/// [WonderType.display] / [WonderType.body] cho text tuỳ biến; text không khai
-/// font tự thừa kế Nunito qua [buildWonderTextTheme].
+/// Nạp qua `google_fonts` (ADR-010). Dùng [WonderType.display] /
+/// [WonderType.body] cho text tuỳ biến; text không khai font tự thừa kế Nunito
+/// qua [buildWonderTextTheme].
 abstract final class WonderType {
-  /// Tiêu đề bo tròn (Fredoka).
+  /// Tiêu đề bo tròn (Baloo 2).
   static TextStyle display({
     double? fontSize,
     FontWeight fontWeight = FontWeight.w600,
@@ -21,7 +23,7 @@ abstract final class WonderType {
     double? letterSpacing,
     List<Shadow>? shadows,
   }) {
-    return GoogleFonts.fredoka(
+    return GoogleFonts.baloo2(
       fontSize: fontSize,
       fontWeight: fontWeight,
       color: color,
@@ -49,7 +51,7 @@ abstract final class WonderType {
   }
 }
 
-/// Dựng [TextTheme]: Nunito cho toàn bộ, Fredoka cho nhóm display/headline/title
+/// Dựng [TextTheme]: Nunito cho toàn bộ, Baloo 2 cho nhóm display/headline/title
 /// lớn. Text dùng `Theme.of(context).textTheme.*` hoặc text thô (thừa kế
 /// bodyMedium) đều có font đúng.
 TextTheme buildWonderTextTheme(TextTheme base) {
@@ -57,15 +59,15 @@ TextTheme buildWonderTextTheme(TextTheme base) {
     bodyColor: WonderColors.textStrong,
     displayColor: WonderColors.textStrong,
   );
-  TextStyle fredoka(TextStyle? s, FontWeight w) =>
-      GoogleFonts.fredoka(textStyle: s, fontWeight: w);
+  TextStyle baloo(TextStyle? s, FontWeight w) =>
+      GoogleFonts.baloo2(textStyle: s, fontWeight: w);
   return nunito.copyWith(
-    displayLarge: fredoka(nunito.displayLarge, FontWeight.w700),
-    displayMedium: fredoka(nunito.displayMedium, FontWeight.w700),
-    displaySmall: fredoka(nunito.displaySmall, FontWeight.w600),
-    headlineLarge: fredoka(nunito.headlineLarge, FontWeight.w700),
-    headlineMedium: fredoka(nunito.headlineMedium, FontWeight.w600),
-    headlineSmall: fredoka(nunito.headlineSmall, FontWeight.w600),
-    titleLarge: fredoka(nunito.titleLarge, FontWeight.w600),
+    displayLarge: baloo(nunito.displayLarge, FontWeight.w700),
+    displayMedium: baloo(nunito.displayMedium, FontWeight.w700),
+    displaySmall: baloo(nunito.displaySmall, FontWeight.w600),
+    headlineLarge: baloo(nunito.headlineLarge, FontWeight.w700),
+    headlineMedium: baloo(nunito.headlineMedium, FontWeight.w600),
+    headlineSmall: baloo(nunito.headlineSmall, FontWeight.w600),
+    titleLarge: baloo(nunito.titleLarge, FontWeight.w600),
   );
 }

@@ -63,6 +63,16 @@ abstract final class WonderColors {
   /// San hô — cảnh báo nhẹ / nhãn "MỚI".
   static const Color coral = Color(0xFFFF7A8A);
 
+  // —— Màu phản hồi (semantic) — dùng chung cho quiz/game/nhiệm vụ ——
+  /// Xanh "đúng rồi" — đáp án đúng, bước hoàn thành.
+  static const Color success = Color(0xFF2EBD85);
+
+  /// Đỏ dịu "chưa đúng" — đáp án sai (không đáng sợ với trẻ).
+  static const Color danger = Color(0xFFE5564E);
+
+  /// Hổ phách — huy chương, mốc thưởng (đậm hơn spark, đọc được trên nền sáng).
+  static const Color honey = Color(0xFFE08A00);
+
   // —— Nền tối cho kính đặt trên camera (chữ trắng luôn đọc rõ) ——
   static const Color ink = Color(0xFF14102E);
   static const Color inkSoft = Color(0xFF2B2550);

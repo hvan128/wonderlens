@@ -55,7 +55,7 @@ class OnboardingScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: WonderType.body(
                     color: WonderColors.textSoft,
-                    fontSize: 16.5,
+                    fontSize: 17,
                     height: 1.4,
                     fontWeight: FontWeight.w600,
                   ),
@@ -65,12 +65,12 @@ class OnboardingScreen extends StatelessWidget {
                   label: 'Bắt đầu khám phá',
                   icon: PhosphorIconsBold.camera,
                   trailingIcon: PhosphorIconsBold.arrowRight,
-                  onTap: () => context.push('/camera'),
+                  onTap: () => context.go('/camera'),
                 ).animate(delay: 240.ms).fadeIn().slideY(begin: 0.4, end: 0),
                 const SizedBox(height: 6),
                 WonderTextButton(
                   label: 'Bộ sưu tập của tôi',
-                  onTap: () => context.push('/collection'),
+                  onTap: () => context.go('/collection'),
                 ).animate(delay: 360.ms).fadeIn(),
               ],
             ),
@@ -91,11 +91,7 @@ class _HeroBadge extends StatelessWidget {
       height: 132,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: <Color>[WonderColors.violet, WonderColors.wonder],
-        ),
+        gradient: WonderGradients.badge,
         boxShadow: WonderShadows.glow(WonderColors.wonder, opacity: 0.5),
       ),
       child: const Center(

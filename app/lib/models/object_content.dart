@@ -1,3 +1,6 @@
+import 'assembly.dart';
+import 'quiz.dart';
+
 /// Một chặng trong "hành trình tạo ra vật".
 class Stage {
   final String title;
@@ -34,6 +37,9 @@ class ObjectContent {
   final String? video; // asset path video hành trình đóng gói sẵn (vật hero)
   final String? history; // lịch sử ngắn của vật/vật liệu
   final String? story; // câu chuyện hoàn chỉnh — dùng làm audio chính
+  final List<String> materials; // id thẻ vật liệu (ADR-012); optional
+  final List<QuizQuestion> quiz; // đố vui sau timeline (TASK-018); optional
+  final Assembly? assembly; // game ghép ngược (TASK-018); optional
 
   const ObjectContent({
     required this.id,
@@ -45,6 +51,9 @@ class ObjectContent {
     this.video,
     this.history,
     this.story,
+    this.materials = const <String>[],
+    this.quiz = const <QuizQuestion>[],
+    this.assembly,
   });
 
   /// Văn bản đọc to chính cho trang chi tiết: ưu tiên [story] (câu chuyện hoàn
@@ -79,5 +88,20 @@ class ObjectContent {
         video: json['video'] as String?,
         history: json['history'] as String?,
         story: json['story'] as String?,
+        materials: ((json['materials'] as List?) ?? const <dynamic>[])
+            .map((e) => e as String)
+            .toList(),
+        quiz: ((json['quiz'] as List?) ?? const <dynamic>[])
+            .map((e) => QuizQuestion.fromJson(e as Map<String, dynamic>))
+            .where((q) => q.isValid)
+            .toList(),
+        assembly: _assemblyFromJson(json['assembly']),
       );
+}
+
+/// Parse [Assembly] an toàn: chỉ trả về khi hợp lệ, ngược lại null (ẩn game).
+Assembly? _assemblyFromJson(dynamic raw) {
+  if (raw is! Map) return null;
+  final a = Assembly.fromJson(Map<String, dynamic>.from(raw));
+  return a.isValid ? a : null;
 }

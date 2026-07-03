@@ -126,7 +126,7 @@ class GlassIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final dark = tone == GlassTone.dark;
     final iconColor = active
-        ? const Color(0xFF7A4E00)
+        ? WonderColors.onSpark
         : (dark ? Colors.white : WonderColors.textStrong);
     return GlassSurface(
       tone: tone,

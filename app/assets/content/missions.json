@@ -1,0 +1,52 @@
+{
+  "missions": [
+    {
+      "id": "metal_hunt",
+      "title": "Thợ săn kim loại",
+      "emoji": "🧲",
+      "goal": { "type": "material_count", "category": "Kim loại", "count": 3 },
+      "reward_badge": "Huy hiệu Thợ săn kim loại"
+    },
+    {
+      "id": "plastic_pro",
+      "title": "Vua đồ nhựa",
+      "emoji": "🧴",
+      "goal": { "type": "material_count", "category": "Nhựa", "count": 3 },
+      "reward_badge": "Huy hiệu Vua đồ nhựa"
+    },
+    {
+      "id": "paper_master",
+      "title": "Bậc thầy giấy",
+      "emoji": "📄",
+      "goal": { "type": "material_count", "category": "Giấy", "count": 3 },
+      "reward_badge": "Huy hiệu Bậc thầy giấy"
+    },
+    {
+      "id": "office_set",
+      "title": "Bộ bàn học gọn gàng",
+      "emoji": "🗂️",
+      "goal": {
+        "type": "discover_set",
+        "object_ids": ["ball_pen", "pencil", "paper_a4"]
+      },
+      "reward_badge": "Huy hiệu Bàn gọn gàng"
+    },
+    {
+      "id": "oil_family",
+      "title": "Gia đình dầu mỏ",
+      "emoji": "🛢️",
+      "goal": { "type": "collect_card", "material_ids": ["petroleum", "plastic"] },
+      "reward_badge": "Huy hiệu Khám phá dầu mỏ"
+    },
+    {
+      "id": "card_collector",
+      "title": "Nhà sưu tầm thẻ",
+      "emoji": "🃏",
+      "goal": {
+        "type": "collect_card",
+        "material_ids": ["wood", "steel", "plastic", "paper_pulp"]
+      },
+      "reward_badge": "Huy hiệu Sưu tầm gia"
+    }
+  ]
+}

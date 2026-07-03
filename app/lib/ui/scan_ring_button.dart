@@ -100,7 +100,7 @@ class _ScanRingButtonState extends State<ScanRingButton>
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: const RadialGradient(
-          colors: <Color>[Colors.white, Color(0xFFEAF8FB)],
+          colors: <Color>[Colors.white, WonderColors.canvasTop],
         ),
         boxShadow: <BoxShadow>[
           BoxShadow(
@@ -115,14 +115,14 @@ class _ScanRingButtonState extends State<ScanRingButton>
               padding: EdgeInsets.all(d * 0.28),
               child: const CircularProgressIndicator(
                 strokeWidth: 3,
-                valueColor: AlwaysStoppedAnimation<Color>(WonderColors.teal),
+                valueColor: AlwaysStoppedAnimation<Color>(WonderColors.wonder),
               ),
             )
           : Center(
               child: PhosphorIcon(
                 PhosphorIconsBold.magnifyingGlass,
                 size: d * 0.5,
-                color: WonderColors.tealDeep,
+                color: WonderColors.wonderDeep,
               ),
             ),
     );
