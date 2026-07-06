@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../ui/ui.dart';
 import '../widgets/dev_panel.dart';
 
-/// Màn chào: hero badge kính lúp phát sáng dẫn dắt + 1 nút bắt đầu khám phá.
+/// Màn chào: mascot Tia trong vầng hào quang dẫn dắt + 1 nút bắt đầu khám phá.
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
@@ -28,17 +28,17 @@ class OnboardingScreen extends StatelessWidget {
                   child: ShaderMask(
                     shaderCallback: (rect) => const LinearGradient(
                       colors: <Color>[
-                        WonderColors.tealDeep,
-                        WonderColors.sky,
+                        WonderColors.violet,
+                        WonderColors.wonder,
                         WonderColors.grape,
                       ],
                     ).createShader(rect),
-                    child: const Text(
+                    child: Text(
                       'WonderLens',
-                      style: TextStyle(
+                      style: WonderType.display(
                         color: Colors.white,
                         fontSize: 40,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w700,
                         letterSpacing: 0.3,
                       ),
                     ),
@@ -53,9 +53,9 @@ class OnboardingScreen extends StatelessWidget {
                   'Chĩa máy ảnh vào một đồ vật rồi quét nhé!\n'
                   'Mình sẽ kể cho bạn nghe nó được làm ra như thế nào.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: WonderType.body(
                     color: WonderColors.textSoft,
-                    fontSize: 16.5,
+                    fontSize: 17,
                     height: 1.4,
                     fontWeight: FontWeight.w600,
                   ),
@@ -65,12 +65,12 @@ class OnboardingScreen extends StatelessWidget {
                   label: 'Bắt đầu khám phá',
                   icon: PhosphorIconsBold.camera,
                   trailingIcon: PhosphorIconsBold.arrowRight,
-                  onTap: () => context.push('/camera'),
+                  onTap: () => context.go('/camera'),
                 ).animate(delay: 240.ms).fadeIn().slideY(begin: 0.4, end: 0),
                 const SizedBox(height: 6),
                 WonderTextButton(
                   label: 'Bộ sưu tập của tôi',
-                  onTap: () => context.push('/collection'),
+                  onTap: () => context.go('/collection'),
                 ).animate(delay: 360.ms).fadeIn(),
               ],
             ),
@@ -91,19 +91,11 @@ class _HeroBadge extends StatelessWidget {
       height: 132,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: <Color>[WonderColors.teal, WonderColors.sky],
-        ),
-        boxShadow: WonderShadows.glow(WonderColors.teal, opacity: 0.5),
+        gradient: WonderGradients.badge,
+        boxShadow: WonderShadows.glow(WonderColors.wonder, opacity: 0.5),
       ),
       child: const Center(
-        child: PhosphorIcon(
-          PhosphorIconsDuotone.magnifyingGlass,
-          size: 64,
-          color: Colors.white,
-        ),
+        child: TiaMascot(size: 92, tone: TiaTone.light),
       ),
     );
 

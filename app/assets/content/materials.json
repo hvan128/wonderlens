@@ -1,0 +1,121 @@
+{
+  "materials": [
+    {
+      "id": "petroleum",
+      "name": "Dầu mỏ",
+      "emoji": "🛢️",
+      "kind": "source",
+      "category": "Nhựa",
+      "derived_from": [],
+      "blurb": "Chất lỏng sánh đặc màu đen nằm sâu dưới lòng đất. Người ta khoan giếng thật sâu để hút dầu mỏ lên.",
+      "fun_facts": [
+        "Dầu mỏ hình thành từ xác sinh vật biển tí hon sống cách đây hàng triệu năm!",
+        "Từ dầu mỏ có thể làm ra nhựa, xăng và cả sáp màu."
+      ]
+    },
+    {
+      "id": "plastic",
+      "name": "Nhựa",
+      "emoji": "🧴",
+      "kind": "derived",
+      "category": "Nhựa",
+      "derived_from": ["petroleum"],
+      "blurb": "Nhựa được nấu ra từ dầu mỏ thành những hạt nhỏ, rồi nung mềm và ép thành đủ mọi hình dạng.",
+      "fun_facts": [
+        "Hạt nhựa nhỏ như hạt gạo, nhưng nấu chảy ra là tạo được đủ hình!",
+        "Nhựa rất bền nên hãy tái chế để bảo vệ Trái Đất nhé."
+      ]
+    },
+    {
+      "id": "wood",
+      "name": "Gỗ",
+      "emoji": "🌳",
+      "kind": "source",
+      "category": "Gỗ",
+      "derived_from": [],
+      "blurb": "Gỗ đến từ thân cây. Cây phải lớn lên nhiều năm mới cho gỗ chắc khoẻ.",
+      "fun_facts": [
+        "Mỗi vòng tròn trên mặt gỗ là một năm tuổi của cây!",
+        "Trồng lại cây sau khi chặt giúp rừng không bao giờ hết gỗ."
+      ]
+    },
+    {
+      "id": "paper_pulp",
+      "name": "Bột giấy",
+      "emoji": "📜",
+      "kind": "derived",
+      "category": "Giấy",
+      "derived_from": ["wood"],
+      "blurb": "Gỗ được băm nhỏ và nấu với nước thành thứ sền sệt gọi là bột giấy, rồi cán mỏng phơi khô thành giấy.",
+      "fun_facts": [
+        "Một cái cây có thể làm ra hàng nghìn tờ giấy!",
+        "Giấy cũ có thể nghiền lại thành bột để làm giấy mới."
+      ]
+    },
+    {
+      "id": "iron_ore",
+      "name": "Quặng sắt",
+      "emoji": "🪨",
+      "kind": "source",
+      "category": "Kim loại",
+      "derived_from": [],
+      "blurb": "Quặng sắt là loại đá chứa sắt, được đào lên từ trong núi và lòng đất.",
+      "fun_facts": [
+        "Sắt còn có trong... máu của chúng ta nữa đấy!",
+        "Nam châm có thể hút được sắt."
+      ]
+    },
+    {
+      "id": "steel",
+      "name": "Thép",
+      "emoji": "⚙️",
+      "kind": "derived",
+      "category": "Kim loại",
+      "derived_from": ["iron_ore"],
+      "blurb": "Người ta nung quặng sắt thật nóng để lấy sắt, rồi pha thêm chút than thành thép vừa cứng vừa dẻo.",
+      "fun_facts": [
+        "Thép cứng hơn sắt thường nên dùng xây cầu, làm xe.",
+        "Thép có thể tái chế lại gần như vô hạn lần!"
+      ]
+    },
+    {
+      "id": "graphite",
+      "name": "Than chì",
+      "emoji": "✏️",
+      "kind": "source",
+      "category": "Kim loại",
+      "derived_from": [],
+      "blurb": "Than chì là một loại khoáng màu xám đen, mềm và trơn, được dùng làm ruột bút chì.",
+      "fun_facts": [
+        "Than chì và kim cương đều làm từ cùng một chất: cacbon!",
+        "Ruột bút chì không có chì độc — nó là than chì."
+      ]
+    },
+    {
+      "id": "sand",
+      "name": "Cát",
+      "emoji": "🏖️",
+      "kind": "source",
+      "category": "Thuỷ tinh",
+      "derived_from": [],
+      "blurb": "Cát là vô số hạt đá li ti, có nhiều ở bãi biển và sa mạc.",
+      "fun_facts": [
+        "Nung cát thật nóng sẽ chảy ra và biến thành thuỷ tinh!",
+        "Mỗi hạt cát là một mảnh đá đã bị bào mòn hàng nghìn năm."
+      ]
+    },
+    {
+      "id": "glass",
+      "name": "Thuỷ tinh",
+      "emoji": "🔍",
+      "kind": "derived",
+      "category": "Thuỷ tinh",
+      "derived_from": ["sand"],
+      "blurb": "Nung cát ở nhiệt độ rất cao, cát chảy lỏng ra rồi để nguội lại thành thuỷ tinh trong suốt.",
+      "fun_facts": [
+        "Thuỷ tinh có thể tái chế mãi mà không mất chất!",
+        "Khi nóng chảy, thuỷ tinh dẻo như kẹo kéo để thổi thành chai lọ."
+      ]
+    }
+  ]
+}

@@ -26,5 +26,46 @@
     }
   ],
   "history": "Bạn biết không, ngày xưa người ta thường chấm bút lông vào mực để viết, nhưng mực hay bị lem và lâu khô. Khoảng một trăm năm trước, con người nghĩ ra một cây bút thông minh hơn, có viên bi nhỏ xíu ở đầu giúp mực chảy ra đều và sạch sẽ. Đó chính là cây bút bi mà chúng ta dùng hôm nay.",
-  "story": "Bạn nhỏ ơi, từ rất xa xưa, con người đã thích viết chữ để ghi nhớ mọi điều. Người xưa thường chấm bút lông vào mực, nhưng mực hay bị lem và khô rất lâu. Rồi khoảng một trăm năm trước, có người nghĩ ra cây bút thật thông minh, đặt một viên bi nhỏ xíu ở đầu bút để mực chảy ra đều và sạch sẽ. Đó chính là cây bút bi mà bạn đang cầm. Vỏ bút được làm từ nhựa, mà nhựa lại bắt nguồn từ dầu mỏ nằm sâu dưới lòng đất. Người ta biến dầu mỏ thành những hạt nhựa nhỏ, rồi nấu chảy và ép thành chiếc vỏ bút xinh xinh. Bên trong, mực màu sền sệt được pha rồi bơm vào một ống nhỏ. Ở đầu bút có viên bi kim loại tí hon, mỗi khi bạn viết, nó lăn tròn và kéo mực ra trang giấy. Thật kỳ diệu phải không nào?"
+  "story": "Bạn nhỏ ơi, từ rất xa xưa, con người đã thích viết chữ để ghi nhớ mọi điều. Người xưa thường chấm bút lông vào mực, nhưng mực hay bị lem và khô rất lâu. Rồi khoảng một trăm năm trước, có người nghĩ ra cây bút thật thông minh, đặt một viên bi nhỏ xíu ở đầu bút để mực chảy ra đều và sạch sẽ. Đó chính là cây bút bi mà bạn đang cầm. Vỏ bút được làm từ nhựa, mà nhựa lại bắt nguồn từ dầu mỏ nằm sâu dưới lòng đất. Người ta biến dầu mỏ thành những hạt nhựa nhỏ, rồi nấu chảy và ép thành chiếc vỏ bút xinh xinh. Bên trong, mực màu sền sệt được pha rồi bơm vào một ống nhỏ. Ở đầu bút có viên bi kim loại tí hon, mỗi khi bạn viết, nó lăn tròn và kéo mực ra trang giấy. Thật kỳ diệu phải không nào?",
+  "materials": [
+    "plastic",
+    "steel"
+  ],
+  "quiz": [
+    {
+      "question": "Vỏ bút bi được làm từ gì?",
+      "options": [
+        "Nhựa",
+        "Gỗ",
+        "Thuỷ tinh"
+      ],
+      "answer_index": 0,
+      "explain": "Vỏ bút bi làm từ nhựa, mà nhựa lại làm ra từ dầu mỏ!"
+    },
+    {
+      "question": "Cái gì ở đầu bút giúp mực chảy ra giấy?",
+      "options": [
+        "Một viên bi nhỏ",
+        "Cục tẩy",
+        "Lò xo"
+      ],
+      "answer_index": 0,
+      "explain": "Viên bi thép tí hon lăn tròn kéo mực ra — vì thế gọi là bút 'bi'!"
+    }
+  ],
+  "assembly": {
+    "target": "Bút bi",
+    "steps": [
+      {
+        "from": "petroleum",
+        "to": "plastic",
+        "label": "Dầu mỏ → hạt nhựa"
+      },
+      {
+        "from": "plastic",
+        "to": "ball_pen",
+        "label": "Hạt nhựa → cây bút bi"
+      }
+    ]
+  }
 }

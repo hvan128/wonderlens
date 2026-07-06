@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'phosphor_compat.dart';
 
 import '../theme/wonder_tokens.dart';
+import '../theme/wonder_typography.dart';
 import 'glass_surface.dart';
 import 'pressable.dart';
 
@@ -154,10 +155,11 @@ class _TitleBlock extends StatelessWidget {
           title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(
+          // Tiêu đề dùng font display (Baloo 2) — thống nhất hierarchy toàn app.
+          style: WonderType.display(
             color: strong,
-            fontSize: 21,
-            fontWeight: FontWeight.w900,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
             letterSpacing: 0.2,
             height: 1.05,
           ),
@@ -167,9 +169,9 @@ class _TitleBlock extends StatelessWidget {
             subtitle!,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
+            style: WonderType.body(
               color: soft,
-              fontSize: 12.5,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -191,7 +193,7 @@ class _Logo extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: WonderGradients.badge,
-        boxShadow: WonderShadows.glow(WonderColors.teal, opacity: 0.4),
+        boxShadow: WonderShadows.glow(WonderColors.wonder, opacity: 0.4),
       ),
       child: const Center(
         child: PhosphorIcon(
@@ -212,9 +214,9 @@ class _Wordmark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = dark
-        ? const <Color>[Colors.white, Color(0xFFD9F6FB)]
+        ? const <Color>[Colors.white, WonderColors.wonderSoft]
         : const <Color>[
-            WonderColors.tealDeep,
+            WonderColors.wonderDeep,
             WonderColors.sky,
             WonderColors.grape,
           ];
@@ -223,10 +225,10 @@ class _Wordmark extends StatelessWidget {
           LinearGradient(colors: colors).createShader(rect),
       child: Text(
         'WonderLens',
-        style: TextStyle(
+        style: WonderType.display(
           color: Colors.white,
           fontSize: 22,
-          fontWeight: FontWeight.w900,
+          fontWeight: FontWeight.w700,
           letterSpacing: 0.2,
           shadows: dark
               ? const <Shadow>[Shadow(color: Colors.black54, blurRadius: 8)]
@@ -271,7 +273,7 @@ class _CircleButton extends StatelessWidget {
 
     final dark = tone == GlassTone.dark;
     final fg = active
-        ? const Color(0xFF7A4E00)
+        ? WonderColors.onSpark
         : (dark ? Colors.white : WonderColors.textStrong);
     final base = dark ? Colors.white : WonderColors.textStrong;
     final bg = active
