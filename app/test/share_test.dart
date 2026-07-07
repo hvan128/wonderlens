@@ -6,6 +6,18 @@ import 'package:wonderlens/models/object_content.dart';
 import 'package:wonderlens/screens/timeline_screen.dart';
 import 'package:wonderlens/services/share_service.dart';
 import 'package:wonderlens/widgets/share_card.dart';
+import 'package:wonderlens/services/narration_service.dart';
+
+/// Giọng kể giả: đọc xong tức thì — nhịp giữ chặng do _minDwell của
+/// TimelineScreen lo (timer huỷ được) nên test không treo.
+class _FakeNarration implements NarrationService {
+  @override
+  Future<void> speak(String text) => Future<void>.value();
+  @override
+  Future<void> stop() async {}
+  @override
+  void dispose() {}
+}
 
 void main() {
   const content = ObjectContent(
@@ -19,8 +31,9 @@ void main() {
     ],
   );
 
-  testWidgets('ShareCard hiện tên vật, các chặng và thương hiệu',
-      (WidgetTester tester) async {
+  testWidgets('ShareCard hiện tên vật, các chặng và thương hiệu', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -46,32 +59,46 @@ void main() {
     expect(text, contains('WonderLens'));
   });
 
-  testWidgets('Nút chia sẻ trên timeline mở bảng xem trước',
-      (WidgetTester tester) async {
+  testWidgets('Nút chia sẻ ở cuối hành trình mở bảng xem trước', (
+    WidgetTester tester,
+  ) async {
+    // Timeline giờ chiếu từng chặng full màn; "Khoe khám phá" nằm ở màn kết
+    // (outro) — đi hết hành trình rồi mới hiện. disableAnimations để reduce-motion
+    // bỏ flutter_animate (delay dùng Timer) → không treo.
     await tester.pumpWidget(
-      const MaterialApp(home: TimelineScreen(content: content)),
+      MaterialApp(
+        home: Builder(
+          builder: (context) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(disableAnimations: true),
+            child: TimelineScreen(content: content, narration: _FakeNarration()),
+          ),
+        ),
+      ),
     );
-    await tester.pump();
+    await tester.pump(); // -> chặng 1
+    await tester.pump(const Duration(milliseconds: 2600)); // -> chặng 2
+    await tester.pump(const Duration(milliseconds: 2600)); // -> outro
+    await tester.pump(const Duration(milliseconds: 500));
 
-    // Dùng nút chia sẻ trên header (luôn hiển thị, không bị cuộn khuất).
-    // Nền có animation lặp vô hạn nên dùng pump(duration) thay pumpAndSettle.
-    await tester.tap(find.byTooltip('Chia sẻ'));
+    expect(find.text('Khoe khám phá'), findsOneWidget);
+    await tester.tap(find.text('Khoe khám phá'));
     await tester.pump(); // mở modal
     await tester.pump(const Duration(milliseconds: 400)); // sheet trượt vào
 
-    expect(find.text('Chia sẻ ngay'), findsOneWidget);
+    expect(find.text('Khoe ngay'), findsOneWidget);
     expect(find.byType(ShareCard), findsOneWidget);
   });
 
-  testWidgets('CollectionShareCard hiện cấp độ, tiến độ và huy hiệu',
-      (WidgetTester tester) async {
+  testWidgets('CollectionShareCard hiện cấp độ, tiến độ và huy hiệu', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
           body: Center(
             child: SingleChildScrollView(
               child: CollectionShareCard(
-                levelTitle: 'Nhà khám phá 🧭',
+                levelTitle: 'Thám tử manh mối 🧭',
                 discoveredCount: 3,
                 totalCount: 8,
                 earnedMaterials: ['Giấy', 'Nhựa'],
@@ -83,10 +110,11 @@ void main() {
       ),
     );
 
-    expect(find.text('Nhà khám phá 🧭'), findsOneWidget);
-    expect(find.text('Đã khám phá 3/8 đồ vật'), findsOneWidget);
+    expect(find.text('Thám tử manh mối 🧭'), findsOneWidget);
+    expect(find.text('Đã mở khóa 3/8 đồ vật'), findsOneWidget);
     expect(find.text('WonderLens'), findsOneWidget);
-    expect(find.text('🏅 Giấy'), findsOneWidget);
+    // Thẻ redesign hiện pill "Giấy" (icon huy hiệu riêng, không còn prefix 🏅).
+    expect(find.text('Giấy'), findsOneWidget);
   });
 
   test('collectionCaption gồm cấp độ và tiến độ', () {

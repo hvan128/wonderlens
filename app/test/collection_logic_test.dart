@@ -6,9 +6,9 @@ import 'package:wonderlens/data/hero_catalog.dart';
 
 void main() {
   test('levelTitle tăng theo số vật khám phá', () {
-    expect(levelTitle(0), contains('Người mới'));
-    expect(levelTitle(1), contains('Thám tử'));
-    expect(levelTitle(3), contains('khám phá'));
+    expect(levelTitle(0), contains('Mầm tò mò'));
+    expect(levelTitle(1), contains('Tân binh'));
+    expect(levelTitle(3), contains('manh mối'));
     expect(levelTitle(5), contains('khoa học'));
     expect(levelTitle(heroCatalog.length), contains('Bậc thầy'));
   });
