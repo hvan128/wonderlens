@@ -5,26 +5,78 @@
   "material_badge": "Giấy + Keo",
   "stages": [
     {
-      "title": "Cũng bắt đầu từ giấy 📄",
-      "kid_text": "Giấy note được làm từ giấy, mà giấy thì làm từ gỗ cây giống tờ A4.",
-      "fun_fact": "Giấy note thường có màu vàng tươi để dễ nhìn thấy."
+      "title": "Tờ giấy nhỏ nổi bật 📄",
+      "kid_text": "Giấy note bắt đầu từ giấy mỏng, thường làm từ sợi gỗ giống nhiều loại giấy khác.",
+      "fun_fact": "Màu vàng nổi bật giúp mắt bé nhìn thấy lời nhắc nhanh hơn.",
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để tạo tờ giấy nhỏ"
+      }
     },
     {
-      "title": "Loại keo đặc biệt 🧪",
-      "kid_text": "Điều kỳ diệu nằm ở một loại keo dính nhẹ: dán lên rồi gỡ ra dán lại được nhiều lần.",
-      "fun_fact": "Loại keo này được phát minh tình cờ khi người ta đang tìm... keo siêu dính!"
+      "title": "Keo dính nhẹ siêu hay 🧪",
+      "kid_text": "Điều thú vị nằm ở lớp keo dính nhẹ: dán lên được, gỡ ra được, rồi dán lại nhiều lần.",
+      "fun_fact": "Loại keo này nổi tiếng nhờ một phát hiện tình cờ.",
+      "predict": {
+        "question": "Keo của giấy note đặc biệt ở chỗ nào?",
+        "options": [
+          "Dán rồi gỡ ra dán lại được",
+          "Dính chặt không gỡ nổi",
+          "Có mùi thơm"
+        ],
+        "answer_index": 0,
+        "hint": "Bé gỡ giấy note ra mà tờ giấy vẫn không rách."
+      },
+      "action": {
+        "type": "hold",
+        "label": "Giữ để khuấy keo dính nhẹ"
+      }
     },
     {
-      "title": "Phết keo thành một dải 〰️",
-      "kid_text": "Keo chỉ được phết thành một dải nhỏ ở mép sau tờ giấy, nên phần còn lại vẫn rời.",
-      "fun_fact": "Nhờ vậy tờ giấy dính mà vẫn dễ lật và gỡ ra."
+      "title": "Một dải keo bí mật 〰️",
+      "kid_text": "Keo chỉ được phết thành một dải nhỏ ở mép sau. Vì thế giấy dính được mà phần còn lại vẫn dễ lật.",
+      "fun_fact": "Chỉ một dải keo nhỏ cũng đủ giữ tờ note trên tường.",
+      "predict": {
+        "question": "Keo được phết ở đâu trên tờ giấy note?",
+        "options": [
+          "Chỉ một dải nhỏ ở mép",
+          "Kín cả mặt sau",
+          "Ở chính giữa"
+        ],
+        "answer_index": 0,
+        "hint": "Sờ mặt sau giấy note xem mép nào dính hơn."
+      },
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để phết dải keo"
+      }
     },
     {
-      "title": "Cắt và xếp thành tập 🗒️",
-      "kid_text": "Giấy được cắt thành những tờ nhỏ vuông vắn rồi xếp chồng lên nhau thành một tập.",
-      "fun_fact": "Bạn có thể dán giấy note để nhắc mình những việc cần nhớ!"
+      "title": "Xếp thành tập nhắc việc 🗒️",
+      "kid_text": "Giấy được cắt thành tờ nhỏ vuông vắn, rồi xếp chồng thành một tập để bé bóc từng tờ.",
+      "fun_fact": "Một tờ note nhỏ có thể cứu bé khỏi quên bài, quên lịch.",
+      "predict": {
+        "question": "Bước cuối để có tập giấy note là gì?",
+        "options": [
+          "Cắt nhỏ rồi xếp chồng thành tập",
+          "Cuộn tròn như cuộn len",
+          "Gấp thành hình bông hoa"
+        ],
+        "answer_index": 0,
+        "hint": "Một tập note là nhiều tờ nhỏ xếp chồng lên nhau."
+      },
+      "action": {
+        "type": "tap",
+        "label": "Chạm để xếp thành tập note"
+      }
     }
   ],
-  "history": "Giấy note mới ra đời cách đây mấy chục năm thôi. Ngày ấy, có người tình cờ tạo ra một loại keo dính thật nhẹ, rồi nghĩ ra cách phết nó lên mép giấy để làm thành tờ giấy nhắc việc. Nhờ vậy, tờ giấy dán đâu cũng được mà gỡ ra vẫn sạch.",
-  "story": "Bạn nhỏ ơi, bạn có biết tờ giấy note xinh xinh đến từ đâu không? Nó mới ra đời cách đây mấy chục năm thôi. Ngày ấy, có người tình cờ tạo ra một loại keo dính thật nhẹ, rồi nghĩ ra cách biến nó thành tờ giấy nhắc việc dán đâu cũng được. Câu chuyện bắt đầu giống hệt tờ giấy A4, vì người ta lấy gỗ từ thân cây, nghiền thật nhỏ rồi làm thành giấy. Tiếp đến là điều kỳ diệu, loại keo dính nhẹ đặc biệt giúp tờ giấy dán lên rồi gỡ ra, dán lại được nhiều lần mà không hề rách. Keo chỉ được phết thành một dải nhỏ ở mép sau, nên phần còn lại vẫn rời để bạn dễ lật. Cuối cùng, giấy được cắt thành những tờ vuông vắn rồi xếp chồng lên nhau thành một tập gọn gàng. Lần sau cần nhớ điều gì, bạn hãy viết và dán một tờ giấy note nhé!"
+  "experiment": {
+    "title": "Nhiệm vụ mini tại nhà",
+    "prompt": "Bé dán một tờ note lên bàn, gỡ ra rồi dán chỗ khác. Đếm xem nó còn dính tốt được mấy lần nhé.",
+    "reveal": "Keo dính nhẹ có thể dùng lại, nhưng mỗi lần gỡ nó bám thêm bụi nên yếu dần. Vì thế note cũ dễ tự rơi.",
+    "badge": "Nhà khoa học nhí"
+  },
+  "history": "Giấy note mới phổ biến trong vài chục năm gần đây. Câu chuyện nổi tiếng của nó bắt đầu từ một loại keo dính nhẹ, không quá chặt như người ta mong đợi ban đầu. Chính điểm tưởng như chưa hoàn hảo ấy lại giúp tạo ra tờ giấy nhắc việc dán rồi gỡ được.",
+  "story": "Bé có thấy giấy note giống một mảnh giấy có siêu năng lực không? Nó bắt đầu từ giấy mỏng, thường làm từ sợi gỗ như nhiều loại giấy khác. Điểm đặc biệt nằm ở lớp keo dính nhẹ. Lớp keo này không bám quá chặt, nên bé có thể dán tờ note lên bàn, gỡ ra, rồi dán lại chỗ khác. Nhà máy chỉ phết keo thành một dải nhỏ ở mép sau, để phần còn lại vẫn dễ lật và dễ bóc. Sau đó, giấy được cắt thành những tờ vuông vắn, xếp chồng thành tập. Vậy là một phát hiện về keo đã biến thành trợ thủ nhắc việc cực nhanh cho bàn học của bé!"
 }

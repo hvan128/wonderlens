@@ -33,8 +33,15 @@ class AppSettings {
     await Hive.initFlutter();
     final box = await Hive.openBox(_boxName);
     _box = box;
-    final stored = box.get(_kLive) as bool?;
-    liveMode.value = stored ?? envBaseUrl.isNotEmpty;
+    // Dọn override token/URL cũ trong Hive để giá trị nhúng lúc build
+    // (dart-define APP_TOKEN / PROXY_BASE_URL) LUÔN thắng — tránh kẹt token sai
+    // đã lưu từ phiên trước gây 401 dù build đã có token đúng.
+    await box.delete(_kToken);
+    await box.delete(_kUrl);
+    // Mặc định LUÔN bật AI thật (bỏ chế độ mock/dev làm mặc định). Mỗi lần chụp
+    // sẽ gọi AI sinh hành trình cho mọi vật. Cần proxy + token hợp lệ (dart-define
+    // APP_TOKEN) — offline/lỗi thì báo thân thiện, không rớt về vật hero mock.
+    liveMode.value = true;
   }
 
   static bool get useLiveApi => liveMode.value;

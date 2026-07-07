@@ -26,9 +26,11 @@ class RecognitionResult {
 /// thì trả mock_error + log để dễ phát hiện proxy hỏng (không nuốt lỗi âm thầm).
 /// Mock **xoay tua** qua bộ hero để demo offline không kẹt một vật.
 class RecognitionService {
+  RecognitionResult mockOffline() => _mock('mock_offline');
+
   Future<RecognitionResult> recognize(List<int> imageBytes) async {
     if (!AppSettings.useLiveApi) {
-      return _mock('mock_offline');
+      return mockOffline();
     }
     try {
       final res = await http

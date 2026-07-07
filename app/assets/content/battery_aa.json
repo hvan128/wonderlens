@@ -5,26 +5,78 @@
   "material_badge": "Kim loại + Hoá chất",
   "stages": [
     {
-      "title": "Vỏ bằng kim loại 🥫",
-      "kid_text": "Pin có lớp vỏ kim loại cứng cáp để chứa an toàn các chất bên trong.",
-      "fun_fact": "Vỏ kim loại cũng giúp pin không bị móp khi va chạm."
+      "title": "Áo giáp kim loại 🥫",
+      "kid_text": "Pin AA có lớp vỏ kim loại cứng để giữ các chất bên trong nằm an toàn, gọn gàng.",
+      "fun_fact": "Vỏ kim loại giúp pin bền hơn khi bị va chạm nhẹ.",
+      "action": {
+        "type": "tap",
+        "label": "Chạm để tạo áo giáp kim loại"
+      }
     },
     {
-      "title": "Hoá chất tạo ra điện ⚡",
-      "kid_text": "Bên trong pin có các chất hoá học. Khi chúng phản ứng với nhau thì sinh ra dòng điện.",
-      "fun_fact": "Đó là lý do pin giúp đồ chơi và remote hoạt động được."
+      "title": "Phòng thí nghiệm tí hon ⚡",
+      "kid_text": "Bên trong pin có các chất hoá học. Khi chúng phản ứng đúng cách, một dòng điện nhỏ được tạo ra.",
+      "fun_fact": "Dòng điện nhỏ này có thể đánh thức đồ chơi và remote.",
+      "predict": {
+        "question": "Bên trong pin có gì để tạo ra điện?",
+        "options": [
+          "Các chất hoá học",
+          "Nước ngọt có ga",
+          "Một cục than"
+        ],
+        "answer_index": 0,
+        "hint": "Điện trong pin đến từ phản ứng hoá học đấy!"
+      },
+      "action": {
+        "type": "hold",
+        "label": "Giữ để kích hoạt phản ứng an toàn"
+      }
     },
     {
-      "title": "Hai đầu cộng và trừ ➕➖",
-      "kid_text": "Pin có một đầu cộng (+) và một đầu trừ (−). Điện chạy từ đầu này sang đầu kia để cấp năng lượng.",
-      "fun_fact": "Lắp pin phải đúng chiều + và − thì đồ vật mới chạy nhé!"
+      "title": "Cổng cộng và cổng trừ ➕➖",
+      "kid_text": "Pin có đầu cộng (+) và đầu trừ (-). Khi lắp đúng chiều, điện mới chạy thành vòng để cấp năng lượng.",
+      "fun_fact": "Lắp sai chiều thì nhiều món đồ sẽ im lặng ngay.",
+      "predict": {
+        "question": "Pin có hai đầu tên là gì?",
+        "options": [
+          "Đầu cộng và đầu trừ",
+          "Đầu to và đầu nhỏ",
+          "Đầu trên và đầu dưới"
+        ],
+        "answer_index": 0,
+        "hint": "Hai ký hiệu + và - thường được in ngay trên viên pin."
+      },
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để nối đúng hai cực"
+      }
     },
     {
-      "title": "Niêm phong an toàn 🔋",
-      "kid_text": "Cuối cùng pin được bịt thật kín để hoá chất không rò ra ngoài.",
-      "fun_fact": "Pin cũ hãy bỏ vào thùng thu gom riêng, đừng vứt chung với rác thường nhé!"
+      "title": "Khóa kín năng lượng 🔋",
+      "kid_text": "Cuối cùng pin được bịt thật kín để các chất bên trong không rò ra ngoài.",
+      "fun_fact": "Pin cũ nên bỏ vào điểm thu gom riêng để tái chế an toàn.",
+      "predict": {
+        "question": "Vì sao pin phải được bịt thật kín?",
+        "options": [
+          "Để hoá chất không rò ra ngoài",
+          "Để pin thơm hơn",
+          "Để pin nhẹ hơn"
+        ],
+        "answer_index": 0,
+        "hint": "Các chất bên trong pin cần ở yên trong lớp vỏ."
+      },
+      "action": {
+        "type": "hold",
+        "label": "Giữ để khóa kín viên pin"
+      }
     }
   ],
-  "history": "Từ hơn hai trăm năm trước, con người đã phát hiện một điều thú vị: khi đặt vài loại kim loại cùng với hoá chất, chúng có thể tạo ra dòng điện. Từ phát hiện đó, người ta dần làm ra những viên pin nhỏ gọn để mang điện theo bên mình.",
-  "story": "Bạn nhỏ ơi, từ hơn hai trăm năm trước, con người đã phát hiện một điều thú vị: khi đặt vài loại kim loại cùng với hoá chất, chúng có thể tạo ra dòng điện. Từ đó, người ta nghĩ ra cách làm những viên pin nhỏ xinh để mang điện theo bên mình. Để làm một viên pin AA, trước tiên người ta tạo một lớp vỏ kim loại thật cứng, giúp giữ an toàn mọi thứ bên trong. Bên trong lớp vỏ ấy là các hoá chất đặc biệt. Khi chúng gặp nhau và phản ứng, một dòng điện nhỏ liền sinh ra. Mỗi viên pin có một đầu cộng và một đầu trừ, và dòng điện sẽ chạy từ đầu này sang đầu kia để thắp sáng đồ chơi của bạn. Cuối cùng, người ta bịt thật kín viên pin, để hoá chất không rò ra ngoài. Thế là viên pin tí hon đã sẵn sàng mang năng lượng đến cho bạn rồi đấy!"
+  "experiment": {
+    "title": "Nhiệm vụ mini tại nhà",
+    "prompt": "Nhờ người lớn mở ngăn pin của remote. Bé tìm dấu + và - rồi quan sát xem pin đang nằm đúng chiều chưa nhé.",
+    "reveal": "Điện chạy tốt khi hai cực nối đúng chiều thành một vòng kín. Chỉ cần lắp ngược một viên, remote có thể im re ngay.",
+    "badge": "Nhà khoa học nhí"
+  },
+  "history": "Hơn hai trăm năm trước, con người phát hiện rằng kim loại và hoá chất có thể tạo ra dòng điện. Từ ý tưởng đó, pin ngày càng nhỏ gọn hơn để mang năng lượng đi khắp nơi. Pin AA là một trong những kiểu pin quen thuộc trong đồ chơi, đồng hồ và remote.",
+  "story": "Bé đang cầm một kho năng lượng tí hon đấy. Hơn hai trăm năm trước, con người phát hiện kim loại và hoá chất có thể tạo ra dòng điện. Để làm pin AA, nhà máy tạo một lớp vỏ kim loại chắc chắn như áo giáp. Bên trong là các chất hoá học được sắp xếp cẩn thận. Khi pin được lắp đúng vào đồ vật, phản ứng hoá học tạo ra dòng điện nhỏ. Dòng điện đi qua đầu cộng và đầu trừ, rồi chạy trong mạch để làm remote, đồng hồ hoặc đồ chơi hoạt động. Cuối cùng, viên pin được khóa kín để mọi thứ ở yên bên trong. Pin nhỏ nhưng bài học lớn: năng lượng cần đi đúng đường mới làm được việc!"
 }

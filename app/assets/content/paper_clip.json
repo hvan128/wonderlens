@@ -5,26 +5,78 @@
   "material_badge": "Kim loại (thép)",
   "stages": [
     {
-      "title": "Bắt đầu từ quặng sắt ⛏️",
-      "kid_text": "Kẹp giấy làm bằng thép. Thép lại được làm ra từ quặng sắt đào lên từ trong lòng đất.",
-      "fun_fact": "Quặng sắt trông giống những hòn đá màu nâu đỏ."
+      "title": "Đá sắt trong lòng đất ⛏️",
+      "kid_text": "Kẹp giấy thường làm bằng thép. Thép bắt đầu từ quặng sắt, loại đá có chứa kim loại sắt.",
+      "fun_fact": "Quặng sắt hay có màu nâu đỏ như gỉ sắt.",
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để tìm quặng sắt"
+      }
     },
     {
-      "title": "Nấu chảy thành thép 🔥",
-      "kid_text": "Quặng sắt được nấu trong lò cực kỳ nóng cho chảy ra, rồi luyện thành thép cứng cáp.",
-      "fun_fact": "Lò luyện thép nóng hơn cả dung nham núi lửa!"
+      "title": "Luyện thành thép cứng 🔥",
+      "kid_text": "Quặng sắt được đưa vào lò rất nóng để tách lấy kim loại, rồi luyện thành thép chắc và dẻo.",
+      "fun_fact": "Thép vừa cứng vừa có thể uốn nếu được làm đúng cách.",
+      "predict": {
+        "question": "Quặng sắt được nấu trong lò cực nóng để làm gì?",
+        "options": [
+          "Luyện thành thép",
+          "Nướng cho thơm",
+          "Sưởi ấm nhà máy"
+        ],
+        "answer_index": 0,
+        "hint": "Kẹp giấy cần một loại kim loại vừa chắc vừa uốn được."
+      },
+      "action": {
+        "type": "hold",
+        "label": "Giữ để luyện thép"
+      }
     },
     {
-      "title": "Kéo thành sợi dây mảnh 〰️",
-      "kid_text": "Thép được kéo dài ra thành những sợi dây nhỏ và mảnh.",
-      "fun_fact": "Sợi thép vừa mảnh vừa dẻo nên uốn cong được mà không gãy."
+      "title": "Kéo thành dây siêu mảnh 〰️",
+      "kid_text": "Thép được kéo dài thành sợi dây nhỏ. Sợi dây phải đủ mảnh để uốn, nhưng vẫn đủ chắc để kẹp giấy.",
+      "fun_fact": "Một sợi thép mảnh có thể giữ cả xấp giấy gọn gàng.",
+      "predict": {
+        "question": "Thép cứng được làm gì để thành kẹp giấy nhỏ xíu?",
+        "options": [
+          "Kéo thành sợi dây mảnh",
+          "Đập vụn thành bột",
+          "Cắt thành khối vuông"
+        ],
+        "answer_index": 0,
+        "hint": "Nhìn kẹp giấy xem, nó giống một sợi dây được uốn khéo."
+      },
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để kéo thép thành dây"
+      }
     },
     {
-      "title": "Uốn thành hình kẹp 📎",
-      "kid_text": "Một chiếc máy uốn sợi dây thép thành hình xoắn quen thuộc của kẹp giấy.",
-      "fun_fact": "Chính hình xoắn đó giúp kẹp giữ chặt giấy mà không làm rách."
+      "title": "Uốn thành vòng kẹp 📎",
+      "kid_text": "Máy uốn sợi thép thành các vòng cong quen thuộc. Hình này giúp kẹp giữ giấy mà không cần keo.",
+      "fun_fact": "Kẹp giấy giữ bằng lực ép nhẹ, nên không làm thủng giấy.",
+      "predict": {
+        "question": "Sợi thép mảnh làm sao thành hình kẹp giấy?",
+        "options": [
+          "Máy uốn cong qua cong lại",
+          "Buộc nút như dây giày",
+          "Nam châm hút thành hình"
+        ],
+        "answer_index": 0,
+        "hint": "Kẹp giấy có những vòng cong ôm lấy tờ giấy."
+      },
+      "action": {
+        "type": "tap",
+        "label": "Chạm để uốn vòng kẹp"
+      }
     }
   ],
-  "history": "Kẹp giấy ra đời từ hơn một trăm năm trước, khi người ta muốn gom nhiều tờ giấy lại với nhau mà không làm rách. Người xưa đã nghĩ ra cách uốn một sợi dây thép nhỏ thành hình vòng để giữ giấy thật chặt. Từ đó, chiếc kẹp giấy nhỏ xinh trở nên quen thuộc khắp nơi.",
-  "story": "Bạn nhỏ ơi, bạn có biết không, kẹp giấy đã ra đời từ hơn một trăm năm trước. Ngày xưa, người ta muốn gom nhiều tờ giấy lại mà không làm rách, nên đã nghĩ ra cách uốn một sợi dây thép nhỏ thành hình vòng xinh xắn để giữ giấy. Vậy kẹp giấy được làm ra thế nào nhỉ? Đầu tiên, người ta đào quặng sắt ẩn sâu dưới lòng đất lên. Quặng sắt được cho vào một chiếc lò thật nóng, nóng đến mức quặng tan chảy rồi biến thành thép cứng cáp. Tiếp theo, thép được kéo dài ra, mảnh dần, mảnh dần, thành một sợi dây nhỏ xíu. Cuối cùng, một chiếc máy khéo léo uốn sợi dây ấy cong qua cong lại, tạo thành hình xoắn quen thuộc của chiếc kẹp giấy. Thế là từ hòn quặng trong lòng đất, chúng ta có chiếc kẹp giấy nhỏ giúp giữ gọn từng trang giấy. Thật kỳ diệu phải không nào?"
+  "experiment": {
+    "title": "Nhiệm vụ mini tại nhà",
+    "prompt": "Bé đoán trước: thả kẹp giấy vào cốc nước thì chìm hay nổi? Nhớ không cho kẹp vào miệng nhé.",
+    "reveal": "Kẹp giấy thường chìm vì thép đặc hơn nước. Nếu đặt thật nhẹ lên mặt nước, đôi khi nó nổi nhờ sức căng bề mặt.",
+    "badge": "Nhà khoa học nhí"
+  },
+  "history": "Kẹp giấy trở nên phổ biến hơn một trăm năm trước, khi con người cần gom giấy mà không muốn đục lỗ hay dùng keo. Ý tưởng rất gọn: uốn một sợi dây thép thành hình vòng để giữ giấy bằng lực ép nhẹ. Vì đơn giản và tiện, kẹp giấy có mặt ở khắp bàn học, văn phòng và thư viện.",
+  "story": "Bé thấy kẹp giấy nhỏ xíu, nhưng nó là một bài học về vật liệu và hình dạng. Câu chuyện bắt đầu từ quặng sắt trong lòng đất. Quặng được đưa vào lò nóng để tách kim loại, rồi luyện thành thép chắc và dẻo. Thép sau đó được kéo thành sợi dây mảnh. Sợi dây này không được quá mềm, vì phải giữ giấy; cũng không được quá giòn, vì cần uốn cong mà không gãy. Cuối cùng, máy uốn dây thép thành các vòng cong quen thuộc. Những vòng này ép nhẹ lên giấy, giữ các tờ nằm gọn với nhau. Nhiệm vụ hoàn thành: một đường dây thép nhỏ biến thành trợ thủ siêu gọn trên bàn học!"
 }

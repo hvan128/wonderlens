@@ -5,31 +5,83 @@
   "material_badge": "Giấy",
   "stages": [
     {
-      "title": "Bắt đầu từ cái cây 🌳",
-      "kid_text": "Cốc giấy được làm từ gỗ của cây. Người ta trồng cả những khu rừng để lấy gỗ làm giấy.",
-      "fun_fact": "Một cái cây lớn có thể làm ra hàng nghìn chiếc cốc giấy đấy!",
-      "illustration": "assets/images/paper_cup_stage0.png"
+      "title": "Từ rừng trồng xanh 🌳",
+      "kid_text": "Cốc giấy bắt đầu từ sợi gỗ. Nhiều nhà máy dùng gỗ từ rừng trồng để có nguồn nguyên liệu ổn định hơn.",
+      "fun_fact": "Một thân cây lớn có thể cho rất nhiều sợi làm giấy.",
+      "illustration": "assets/images/paper_cup_stage0.png",
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để chở gỗ đến nhà máy"
+      }
     },
     {
-      "title": "Nấu gỗ thành bột giấy 🪵",
-      "kid_text": "Gỗ được băm thành mảnh nhỏ rồi nấu với nước cho mềm nhũn ra, thành một thứ sền sệt gọi là bột giấy.",
-      "fun_fact": "Bột giấy ướt nhèm trông giống như cháo loãng vậy!",
-      "illustration": "assets/images/paper_cup_stage1.png"
+      "title": "Khuấy thành bột giấy 🪵",
+      "kid_text": "Gỗ được băm nhỏ, trộn với nước và xử lý cho mềm thành bột giấy sền sệt.",
+      "fun_fact": "Bột giấy ướt nhìn giống một nồi cháo loãng khổng lồ.",
+      "illustration": "assets/images/paper_cup_stage1.png",
+      "predict": {
+        "question": "Gỗ băm nhỏ xử lý với nước sẽ biến thành gì?",
+        "options": [
+          "Bột giấy sền sệt",
+          "Súp rau củ",
+          "Cát mịn"
+        ],
+        "answer_index": 0,
+        "hint": "Nó mềm, ướt và sền sệt trước khi thành giấy."
+      },
+      "action": {
+        "type": "hold",
+        "label": "Giữ để khuấy bột giấy"
+      }
     },
     {
-      "title": "Cán thành tấm giấy 📄",
-      "kid_text": "Bột giấy được trải mỏng, ép cho ráo nước rồi sấy khô, biến thành những cuộn giấy thật to.",
-      "fun_fact": "Cuộn giấy lớn có thể dài hơn cả một sân bóng!",
-      "illustration": "assets/images/paper_cup_stage2.png"
+      "title": "Cán thành cuộn giấy 📄",
+      "kid_text": "Bột giấy được trải mỏng, ép bớt nước rồi sấy khô thành những cuộn giấy rất lớn.",
+      "fun_fact": "Có cuộn giấy dài hơn cả một sân bóng.",
+      "illustration": "assets/images/paper_cup_stage2.png",
+      "predict": {
+        "question": "Bột giấy ướt được làm gì để thành tấm giấy?",
+        "options": [
+          "Ép ráo nước rồi sấy khô",
+          "Cho vào tủ lạnh",
+          "Trộn thêm đường"
+        ],
+        "answer_index": 0,
+        "hint": "Muốn giấy khô phẳng thì nước phải được ép ra."
+      },
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để cán giấy thật đều"
+      }
     },
     {
-      "title": "Cuộn thành cốc + tráng chống nước 🥤",
-      "kid_text": "Giấy được cắt, cuộn lại thành hình cốc, rồi phủ một lớp màng mỏng bên trong để nước không thấm ra ngoài.",
-      "fun_fact": "Nhờ lớp màng đó mà bạn rót nước vào cốc giấy không bị rỉ!",
-      "illustration": "assets/images/paper_cup_stage3.png"
+      "title": "Gập thành cốc chống rỉ 🥤",
+      "kid_text": "Giấy được cắt, cuộn thành hình cốc, rồi phủ một lớp màng mỏng bên trong để nước khó thấm ra ngoài.",
+      "fun_fact": "Lớp màng mỏng giúp cốc giấy giữ nước trong thời gian ngắn.",
+      "illustration": "assets/images/paper_cup_stage3.png",
+      "predict": {
+        "question": "Làm sao cốc giấy đựng nước mà không bị rỉ?",
+        "options": [
+          "Tráng một lớp màng chống nước",
+          "Đổ ít nước thôi",
+          "Dùng giấy thật dày"
+        ],
+        "answer_index": 0,
+        "hint": "Bên trong cốc có một lớp màng rất mỏng."
+      },
+      "action": {
+        "type": "tap",
+        "label": "Chạm để gập giấy thành cốc"
+      }
     }
   ],
+  "experiment": {
+    "title": "Nhiệm vụ mini tại nhà",
+    "prompt": "Bé nhỏ một giọt nước vào mặt trong cốc giấy và một giọt lên giấy thường. Giọt nào thấm nhanh hơn?",
+    "reveal": "Giấy thường hút nước nhanh. Mặt trong cốc giấy có lớp màng mỏng nên nước đọng lại lâu hơn.",
+    "badge": "Nhà khoa học nhí"
+  },
   "video": "assets/videos/paper_cup.mp4",
-  "history": "Từ hơn một trăm năm trước, mọi người thường dùng chung một chiếc cốc bằng kim loại ở nơi lấy nước công cộng. Vì dùng chung như vậy rất dễ lây bệnh, người ta đã nghĩ ra chiếc cốc giấy dùng một lần để ai cũng có một chiếc cốc sạch của riêng mình.",
-  "story": "Bạn nhỏ ơi, bạn có biết không, từ hơn một trăm năm trước, mọi người thường dùng chung một chiếc cốc bằng kim loại ở nơi lấy nước công cộng. Vì dùng chung như vậy rất dễ lây bệnh, người ta đã nghĩ ra chiếc cốc giấy dùng một lần để ai cũng có một chiếc cốc sạch của riêng mình. Vậy chiếc cốc giấy ra đời như thế nào nhỉ? Tất cả bắt đầu từ một cái cây cao lớn. Người ta lấy gỗ của cây, băm thành mảnh nhỏ rồi nấu với nước cho mềm nhũn, biến thành một thứ sền sệt gọi là bột giấy. Bột giấy được trải thật mỏng, ép cho ráo nước rồi sấy khô thành những tấm giấy phẳng phiu. Sau đó, giấy được cuộn tròn lại thành hình cốc và tráng thêm một lớp màng mỏng bên trong để nước không thấm ra ngoài. Thế là chiếc cốc giấy xinh xắn đã sẵn sàng đựng nước mát cho bạn rồi. Thật kỳ diệu phải không nào?"
+  "history": "Hơn một trăm năm trước, ở vài nơi công cộng, nhiều người từng dùng chung cốc uống nước. Để sạch sẽ và tiện hơn, cốc giấy dùng một lần dần xuất hiện. Ngày nay, người ta còn quan tâm cách thu gom và tái chế để giảm rác.",
+  "story": "Bé cầm cốc giấy lên, nhìn nhẹ tênh thôi nhưng nó có nhiều lớp khoa học. Câu chuyện bắt đầu từ sợi gỗ trong rừng trồng. Gỗ được băm nhỏ, trộn với nước và xử lý thành bột giấy mềm. Bột giấy được trải mỏng, ép bớt nước rồi sấy thành cuộn giấy lớn. Sau đó, máy cắt giấy thành mảnh, cuộn và ép mép để tạo hình chiếc cốc. Vì giấy bình thường hút nước rất nhanh, mặt trong cốc được phủ một lớp màng mỏng giúp nước không thấm ra ngoài ngay. Thế là chiếc cốc giấy sẵn sàng cho đồ uống trong thời gian ngắn. Nhiệm vụ tiếp theo của bé: dùng xong thì bỏ đúng thùng nhé!"
 }

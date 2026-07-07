@@ -5,26 +5,78 @@
   "material_badge": "Gỗ + Than chì",
   "stages": [
     {
-      "title": "Ruột là than chì ⚫",
-      "kid_text": "Ruột bút chì không phải là chì độc đâu nhé! Nó làm từ than chì trộn với đất sét rồi nung cứng.",
-      "fun_fact": "Trộn nhiều đất sét thì nét cứng và nhạt, ít đất sét thì nét mềm và đậm."
+      "title": "Ruột đen không phải chì ⚫",
+      "kid_text": "Ruột bút chì không phải chì độc. Nó làm từ than chì trộn với đất sét, rồi nung cho cứng và đều.",
+      "fun_fact": "Nhiều đất sét thì nét cứng hơn; nhiều than chì thì nét đậm hơn.",
+      "action": {
+        "type": "hold",
+        "label": "Giữ để nung ruột than chì"
+      }
     },
     {
-      "title": "Vỏ là gỗ 🌳",
-      "kid_text": "Phần vỏ bao quanh ruột được làm từ gỗ cây mềm, để dễ gọt cho nhọn.",
-      "fun_fact": "Gỗ mềm giúp bạn gọt bút chì nhẹ nhàng mà không bị mẻ ruột."
+      "title": "Áo khoác bằng gỗ 🌳",
+      "kid_text": "Vỏ bút chì thường làm từ gỗ mềm. Loại gỗ này giúp bé gọt bút dễ hơn mà vẫn ôm chắc phần ruột.",
+      "fun_fact": "Gỗ mềm giúp mũi bút nhọn ra mà ruột ít bị mẻ.",
+      "predict": {
+        "question": "Vỏ bao quanh ruột bút chì thường làm bằng gì?",
+        "options": [
+          "Gỗ cây mềm",
+          "Sắt cứng",
+          "Thuỷ tinh"
+        ],
+        "answer_index": 0,
+        "hint": "Bé gọt bút chì thấy lớp vỏ mỏng ra từng vòng gỗ."
+      },
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để bào gỗ mềm"
+      }
     },
     {
-      "title": "Ghép ruột vào gỗ ✏️",
-      "kid_text": "Người ta đặt thanh than chì vào rãnh trên miếng gỗ, rồi dán hai nửa gỗ ôm lấy nó.",
-      "fun_fact": "Vì thế khi gọt, bạn thấy lớp gỗ bao quanh lõi đen ở giữa."
+      "title": "Kẹp lõi vào giữa ✏️",
+      "kid_text": "Thanh than chì được đặt vào rãnh trên miếng gỗ. Hai nửa gỗ được dán lại để ôm lõi ở giữa.",
+      "fun_fact": "Khi gọt, bé thấy lõi đen nằm ngay giữa lớp gỗ.",
+      "predict": {
+        "question": "Làm sao ruột bút nằm gọn bên trong gỗ?",
+        "options": [
+          "Đặt vào rãnh rồi dán hai nửa gỗ lại",
+          "Khoan một cái lỗ rồi nhét vào",
+          "Quấn gỗ quanh ruột như quấn kem"
+        ],
+        "answer_index": 0,
+        "hint": "Hai nửa gỗ giống như đang ôm lõi than chì."
+      },
+      "action": {
+        "type": "tap",
+        "label": "Chạm để ghép hai nửa gỗ"
+      }
     },
     {
-      "title": "Sơn màu và hoàn thiện 🎨",
-      "kid_text": "Bút chì được sơn màu bên ngoài cho đẹp, đôi khi gắn thêm cục tẩy ở một đầu.",
-      "fun_fact": "Một cây bút chì có thể vẽ được đường dài tới hàng chục ki-lô-mét!"
+      "title": "Sơn áo thật nổi bật 🎨",
+      "kid_text": "Bút chì được sơn màu bên ngoài, in chữ, rồi đôi khi gắn thêm cục tẩy ở một đầu.",
+      "fun_fact": "Một cây bút chì có thể viết một đường rất dài nếu không bị gãy.",
+      "predict": {
+        "question": "Bước cuối làm cây bút chì đẹp hơn là gì?",
+        "options": [
+          "Sơn màu bên ngoài",
+          "Ngâm nước hoa",
+          "Bọc giấy bạc"
+        ],
+        "answer_index": 0,
+        "hint": "Nhìn cây bút chì của bé xem, lớp ngoài có màu gì?"
+      },
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để sơn áo cho bút"
+      }
     }
   ],
-  "history": "Bạn nhỏ ơi, từ rất lâu rồi, người xưa tình cờ tìm thấy trong lòng đất một loại đá đen để lại vệt sẫm khi vạch lên giấy. Lúc đầu họ quấn nó trong dây hoặc kẹp vào thanh gỗ cho khỏi lấm tay. Về sau, người ta học cách trộn nó với đất sét và bọc gỗ bên ngoài để thành cây bút chì gọn gàng như ngày nay.",
-  "story": "Bạn nhỏ ơi, từ rất lâu rồi, người xưa tình cờ tìm thấy trong lòng đất một loại đá đen. Hễ vạch nó lên giấy là để lại vệt sẫm thật rõ. Lúc đầu họ quấn nó trong dây hoặc kẹp vào thanh gỗ cho khỏi lấm tay. Về sau, con người mới nghĩ ra cách làm cây bút chì xinh xắn. Ruột bút được làm từ than chì trộn với đất sét rồi nung cho thật cứng, nên hoàn toàn không phải là chì độc đâu nhé. Phần vỏ thì chọn loại gỗ cây mềm, để bạn dễ gọt cho nhọn. Người ta đặt thanh than chì vào một cái rãnh nhỏ trên gỗ, rồi dán hai nửa gỗ ôm chặt lấy nó. Cuối cùng, bút được sơn màu bên ngoài, đôi khi còn gắn thêm cục tẩy ở một đầu. Vậy là cây bút chì đã sẵn sàng cùng bạn vẽ nên bao điều kì diệu!"
+  "experiment": {
+    "title": "Nhiệm vụ mini tại nhà",
+    "prompt": "Bé tô một ô nhỏ trên giấy nháp bằng bút chì, rồi chạm nhẹ đầu ngón tay lên đó. Có vệt xám dính ra không?",
+    "reveal": "Than chì mềm nên để lại lớp mỏng trên giấy và có thể dính ra tay. Nhờ vậy bút chì viết được nét rõ.",
+    "badge": "Nhà khoa học nhí"
+  },
+  "history": "Từ rất lâu, con người đã biết dùng than chì để tạo vệt đen trên giấy. Ban đầu, họ bọc vật liệu này bằng dây hoặc gỗ để tay không bị bẩn. Sau đó, cách trộn than chì với đất sét giúp bút chì viết ổn định và dễ dùng hơn.",
+  "story": "Bé có biết ruột bút chì không phải là chì độc không? Nó là than chì trộn với đất sét. Từ lâu, con người đã nhận ra than chì để lại vệt đen rất rõ trên giấy. Để làm bút chì, người ta nghiền than chì, trộn với đất sét rồi nung thành thanh lõi chắc hơn. Vỏ bút thường làm từ gỗ mềm để dễ gọt. Một rãnh nhỏ được tạo trên miếng gỗ, lõi than chì đặt vào đó, rồi hai nửa gỗ được dán lại. Cuối cùng, bút được sơn màu, in chữ và đôi khi gắn thêm cục tẩy. Vậy là một cây bút nhỏ đã sẵn sàng giúp bé vẽ ý tưởng lớn!"
 }

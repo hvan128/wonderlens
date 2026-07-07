@@ -5,26 +5,78 @@
   "material_badge": "Giấy",
   "stages": [
     {
-      "title": "Bắt đầu từ cây gỗ 🌳",
-      "kid_text": "Giấy được làm từ gỗ của cây. Người ta trồng những khu rừng riêng để lấy gỗ làm giấy.",
-      "fun_fact": "Trồng rừng để làm giấy giúp có cây mới thay cho cây đã dùng."
+      "title": "Từ rừng trồng xanh 🌳",
+      "kid_text": "Giấy thường được làm từ sợi gỗ. Nhiều nhà máy dùng gỗ từ rừng trồng để có cây mới thay cho cây đã dùng.",
+      "fun_fact": "Quản lý rừng tốt giúp giấy có nguồn nguyên liệu bền vững hơn.",
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để chở gỗ đến nhà máy"
+      }
     },
     {
-      "title": "Nấu gỗ thành bột giấy 🪵",
-      "kid_text": "Gỗ được băm nhỏ rồi nấu với nước cho mềm ra, thành một thứ sền sệt gọi là bột giấy.",
-      "fun_fact": "Bột giấy lúc này nhão như cháo loãng vậy!"
+      "title": "Biến gỗ thành bột giấy 🪵",
+      "kid_text": "Gỗ được băm nhỏ, trộn với nước và xử lý cho mềm ra thành bột giấy sền sệt.",
+      "fun_fact": "Bột giấy ướt nhìn hơi giống cháo loãng.",
+      "predict": {
+        "question": "Gỗ băm nhỏ xử lý với nước sẽ thành gì?",
+        "options": [
+          "Bột giấy sền sệt",
+          "Nước cam",
+          "Sỏi đá"
+        ],
+        "answer_index": 0,
+        "hint": "Nó mềm và sền sệt trước khi thành giấy."
+      },
+      "action": {
+        "type": "hold",
+        "label": "Giữ để khuấy bột giấy"
+      }
     },
     {
-      "title": "Làm sạch và cán mỏng ⬜",
-      "kid_text": "Bột giấy được làm sạch, trải thật mỏng trên lưới, ép cho ráo nước rồi sấy khô.",
-      "fun_fact": "Cán càng mỏng và đều thì tờ giấy càng phẳng đẹp."
+      "title": "Ép mỏng như phép thuật ⬜",
+      "kid_text": "Bột giấy được làm sạch, trải mỏng trên lưới, ép bớt nước rồi sấy khô thành tấm giấy.",
+      "fun_fact": "Trải càng đều thì tờ giấy càng phẳng và dễ viết.",
+      "predict": {
+        "question": "Bột giấy ướt muốn thành tờ giấy phẳng thì phải làm gì?",
+        "options": [
+          "Trải mỏng và ép khô",
+          "Đổ thêm nước",
+          "Đem đi đông đá"
+        ],
+        "answer_index": 0,
+        "hint": "Muốn giấy khô thì nước phải được ép ra."
+      },
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để ép giấy thật phẳng"
+      }
     },
     {
-      "title": "Cắt thành tờ A4 📄",
-      "kid_text": "Cuộn giấy lớn được cắt thành từng tờ vuông vắn đúng kích thước A4.",
-      "fun_fact": "Cỡ A4 là cỡ chuẩn để máy in và máy photo khắp thế giới dùng chung."
+      "title": "Cắt chuẩn A4 📄",
+      "kid_text": "Cuộn giấy lớn được cắt thành những tờ A4 vuông vắn, vừa với máy in, tập vở và bài tập.",
+      "fun_fact": "A4 là cỡ giấy quen thuộc ở rất nhiều nơi trên thế giới.",
+      "predict": {
+        "question": "Cuộn giấy khổng lồ được làm gì để thành tờ A4?",
+        "options": [
+          "Cắt thành từng tờ",
+          "Vo thành cục",
+          "Gấp máy bay luôn"
+        ],
+        "answer_index": 0,
+        "hint": "Tờ A4 phẳng, đều và có kích thước chuẩn."
+      },
+      "action": {
+        "type": "tap",
+        "label": "Chạm để cắt chuẩn A4"
+      }
     }
   ],
-  "history": "Bạn nhỏ ơi, từ rất lâu rồi, người xưa đã nghĩ ra cách làm giấy để viết chữ và vẽ tranh. Họ lấy sợi từ cây cối, giã thật nhuyễn rồi trải mỏng cho khô thành những tờ giấy đầu tiên.",
-  "story": "Bạn nhỏ ơi, từ rất lâu rồi, người xưa đã nghĩ ra cách làm giấy để viết chữ và vẽ tranh. Họ lấy sợi từ cây cối, giã thật nhuyễn rồi trải mỏng cho khô thành những tờ giấy đầu tiên. Tờ giấy A4 mà bạn đang cầm cũng ra đời theo cách tương tự đấy. Đầu tiên, người ta lấy gỗ từ những thân cây cao lớn trong rừng. Gỗ được nấu lên thật lâu cho mềm ra, biến thành một thứ sền sệt gọi là bột giấy. Bột giấy được làm sạch, rồi trải thật mỏng trên một tấm lưới. Người ta ép cho ráo hết nước, sau đó sấy thật khô để giấy phẳng phiu. Cuối cùng, cuộn giấy lớn được cắt ra thành từng tờ A4 vuông vắn, gọn gàng. Vậy là từ một thân cây xanh, bạn đã có tờ giấy trắng tinh để viết, để vẽ, để gấp máy bay. Thật kì diệu phải không nào?"
+  "experiment": {
+    "title": "Nhiệm vụ mini tại nhà",
+    "prompt": "Bé vo tròn một mẩu giấy nháp, rồi thả nó cùng lúc với một tờ giấy phẳng. Tờ nào chạm đất trước?",
+    "reveal": "Giấy vo tròn rơi nhanh hơn vì ít bị không khí cản. Tờ giấy phẳng bị không khí nâng đỡ nên bay chậm hơn.",
+    "badge": "Nhà khoa học nhí"
+  },
+  "history": "Từ rất lâu, con người đã biết lấy sợi từ cây cối để làm giấy viết và vẽ. Khi kỹ thuật tốt hơn, giấy được làm mỏng, đều và nhanh hơn trong nhà máy. Tờ A4 ngày nay là kích thước chuẩn, tiện cho in ấn và học tập.",
+  "story": "Bé nhìn tờ giấy A4 thấy mỏng thôi, nhưng phía sau là cả một dây chuyền thông minh. Từ xa xưa, con người đã dùng sợi cây để tạo những tờ giấy đầu tiên. Ngày nay, giấy thường bắt đầu từ gỗ trong rừng trồng. Gỗ được băm nhỏ, trộn với nước và xử lý thành bột giấy mềm. Bột giấy được làm sạch, trải đều trên lưới, ép bớt nước rồi sấy khô. Khi thành cuộn giấy lớn, máy cắt nó thành những tờ A4 đều tăm tắp. Thế là bé có một mặt phẳng trắng để viết, vẽ, gấp và ghi lại ý tưởng. Một tờ giấy nhỏ có thể mở ra cả một nhiệm vụ sáng tạo!"
 }
