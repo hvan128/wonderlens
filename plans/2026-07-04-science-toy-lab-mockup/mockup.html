@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WonderLens Science Toy Lab Mockup</title>
+  <style>
+    :root {
+      --teal: #26C6DA;
+      --teal-deep: #0E97AC;
+      --cyan: #22D3EE;
+      --sky: #38BDF8;
+      --indigo: #7C8CF8;
+      --grape: #B794F4;
+      --mint: #5EEAD4;
+      --sunny: #FFC857;
+      --coral: #FF8A65;
+      --ink: #0B1220;
+      --ink-soft: #14203A;
+      --text-strong: #15233B;
+      --text-soft: #54657F;
+      --canvas-top: #EAF8FB;
+      --canvas-bottom: #F4EFFF;
+      --paper: #FFFDF7;
+      --line: rgba(21, 35, 59, 0.16);
+      --shadow: 0 16px 34px rgba(14, 151, 172, 0.14);
+      --toy-shadow: 0 7px 0 rgba(11, 18, 32, 0.15), 0 18px 36px rgba(14, 151, 172, 0.14);
+      --radius-sm: 14px;
+      --radius-md: 20px;
+      --radius-lg: 28px;
+      --radius-xl: 34px;
+      --pill: 999px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text-strong);
+      font-family: ui-rounded, -apple-system, BlinkMacSystemFont, "SF Pro Rounded",
+        "SF Pro Text", Roboto, "Helvetica Neue", Arial, sans-serif;
+      letter-spacing: 0;
+      background:
+        linear-gradient(135deg, rgba(38, 198, 218, 0.22), transparent 36%),
+        linear-gradient(215deg, rgba(183, 148, 244, 0.22), transparent 40%),
+        linear-gradient(180deg, #f8fdff, #f6f0ff);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .stage {
+      width: min(1120px, 100%);
+      display: grid;
+      grid-template-columns: minmax(340px, 440px) minmax(300px, 1fr);
+      gap: 24px;
+      align-items: center;
+    }
+
+    .phone {
+      width: min(430px, 100%);
+      aspect-ratio: 430 / 900;
+      padding: 11px;
+      border-radius: 48px;
+      background: #0b1116;
+      box-shadow: 0 34px 80px rgba(11, 18, 32, 0.28);
+      justify-self: center;
+    }
+
+    .screen {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border-radius: 39px;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.48) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.42) 1px, transparent 1px),
+        linear-gradient(180deg, var(--canvas-top), var(--canvas-bottom));
+      background-size: 28px 28px, 28px 28px, auto;
+    }
+
+    .notch {
+      position: absolute;
+      top: 11px;
+      left: 50%;
+      z-index: 20;
+      width: 118px;
+      height: 26px;
+      transform: translateX(-50%);
+      border-radius: var(--pill);
+      background: #0b1116;
+    }
+
+    .scroll {
+      height: 100%;
+      overflow: auto;
+      scrollbar-width: none;
+      padding: 48px 16px 26px;
+    }
+
+    .scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .topbar {
+      position: sticky;
+      top: -48px;
+      z-index: 10;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 0 12px;
+      backdrop-filter: blur(16px);
+    }
+
+    .tool-button {
+      width: 48px;
+      height: 48px;
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: var(--pill);
+      color: var(--text-strong);
+      background: rgba(255, 255, 255, 0.56);
+      box-shadow: var(--shadow);
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+    }
+
+    .title-block {
+      min-width: 0;
+      flex: 1;
+      padding: 11px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.56);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .eyebrow {
+      margin: 0 0 2px;
+      color: var(--teal-deep);
+      font-size: 12.5px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--text-strong);
+      font-size: 21px;
+      font-weight: 900;
+      line-height: 1.05;
+    }
+
+    .hero {
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: var(--radius-xl);
+      background: rgba(255, 255, 255, 0.62);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      box-shadow: var(--toy-shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero-img {
+      position: relative;
+      overflow: hidden;
+      border-radius: 26px;
+      aspect-ratio: 16 / 10;
+      border: 1px solid rgba(21, 35, 59, 0.10);
+      background: var(--paper);
+    }
+
+    .hero-img img,
+    .stage-img img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .hero-meta {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      margin-top: 13px;
+    }
+
+    .hero-name {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .hero-sub {
+      margin: 4px 0 0;
+      color: var(--text-soft);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .scan-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      color: var(--text-strong);
+      background: rgba(255, 200, 87, 0.38);
+      border: 1px solid rgba(255, 200, 87, 0.56);
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .lab-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .tab {
+      min-height: 48px;
+      border: 1px solid rgba(255, 255, 255, 0.78);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.58);
+      color: var(--text-strong);
+      box-shadow: var(--shadow);
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tab.active {
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--cyan), var(--teal), var(--sky));
+      border-color: rgba(255, 255, 255, 0.52);
+    }
+
+    .progress-lab {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+      margin: 18px 0 12px;
+      color: var(--text-soft);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .track {
+      height: 14px;
+      overflow: hidden;
+      border-radius: var(--pill);
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(21, 35, 59, 0.10);
+    }
+
+    .fill {
+      width: 72%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--teal), var(--sky), var(--grape));
+    }
+
+    .predict {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding: 14px;
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.66);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .predict h2,
+    .stages-title,
+    .reward h2 {
+      margin: 0;
+      color: var(--text-strong);
+      font-size: 17px;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .options {
+      display: grid;
+      gap: 8px;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 50px;
+      padding: 10px 12px;
+      border: 1px solid rgba(21, 35, 59, 0.12);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--text-strong);
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .option.correct {
+      background: rgba(94, 234, 212, 0.32);
+      border-color: rgba(14, 151, 172, 0.28);
+    }
+
+    .dot {
+      width: 24px;
+      height: 24px;
+      border-radius: var(--pill);
+      background: #ffffff;
+      border: 2px solid rgba(14, 151, 172, 0.34);
+      flex: 0 0 auto;
+    }
+
+    .option.correct .dot {
+      background: radial-gradient(circle at 35% 30%, #ffffff 0 18%, var(--mint) 20% 100%);
+      border-color: var(--teal-deep);
+    }
+
+    .stage-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .stage-card {
+      overflow: hidden;
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.68);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      box-shadow: var(--toy-shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .stage-img {
+      position: relative;
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .stage-number {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      min-width: 38px;
+      height: 38px;
+      border-radius: var(--pill);
+      display: grid;
+      place-items: center;
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--teal), var(--sky));
+      box-shadow: 0 7px 18px rgba(14, 151, 172, 0.26);
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .stage-body {
+      padding: 14px;
+    }
+
+    .stage-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stage-head h3 {
+      flex: 1;
+      margin: 0;
+      color: var(--text-strong);
+      font-size: 17px;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .speak {
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: var(--pill);
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--cyan), var(--teal), var(--sky));
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      box-shadow: 0 8px 18px rgba(14, 151, 172, 0.26);
+    }
+
+    .kid-text {
+      margin: 9px 0 0;
+      color: var(--text-strong);
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .fact {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      color: #4b3b10;
+      background: rgba(255, 200, 87, 0.30);
+      border: 1px solid rgba(255, 200, 87, 0.50);
+      font-size: 12.5px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .reward {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: var(--radius-lg);
+      color: var(--text-strong);
+      background: rgba(255, 255, 255, 0.70);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      box-shadow: var(--toy-shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .reward-row {
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-top: 11px;
+    }
+
+    .badge-visual {
+      overflow: hidden;
+      width: 76px;
+      height: 76px;
+      border-radius: 24px;
+      background: var(--sunny);
+      box-shadow: var(--shadow);
+    }
+
+    .badge-visual img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .reward p {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .primary-action {
+      width: 100%;
+      min-height: 56px;
+      margin-top: 14px;
+      border: 0;
+      border-radius: var(--radius-md);
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--cyan), var(--teal), var(--sky));
+      box-shadow: 0 14px 26px rgba(38, 198, 218, 0.32);
+      font: inherit;
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .side {
+      display: grid;
+      gap: 16px;
+    }
+
+    .concept-card {
+      padding: 20px;
+      border-radius: var(--radius-xl);
+      background: rgba(255, 255, 255, 0.62);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .concept-card h2 {
+      margin: 0;
+      color: var(--text-strong);
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .concept-card p {
+      margin: 10px 0 0;
+      max-width: 56ch;
+      color: var(--text-soft);
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .swatches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .swatch {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.72);
+      box-shadow: 0 5px 12px rgba(11, 18, 32, 0.12);
+    }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .mini-panel {
+      min-height: 140px;
+      padding: 14px;
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.64);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .mini-panel h3 {
+      margin: 0;
+      color: var(--text-strong);
+      font-size: 17px;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .mini-panel p {
+      margin: 8px 0 0;
+      color: var(--text-soft);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .camera-card {
+      color: #ffffff;
+      background:
+        linear-gradient(180deg, rgba(11, 18, 32, 0.18), rgba(11, 18, 32, 0.62)),
+        url("assets/paper-cup-hero.png") center / cover;
+    }
+
+    .camera-card h3,
+    .camera-card p {
+      color: #ffffff;
+    }
+
+    .scan-ring {
+      width: 72px;
+      height: 72px;
+      margin-top: 16px;
+      border-radius: var(--pill);
+      padding: 7px;
+      background: conic-gradient(var(--teal), var(--sky), var(--grape), var(--sunny), var(--mint), var(--teal));
+      display: grid;
+      place-items: center;
+      box-shadow: 0 12px 24px rgba(34, 211, 238, 0.28);
+    }
+
+    .scan-core {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: #ffffff;
+      display: grid;
+      place-items: center;
+      color: var(--teal-deep);
+    }
+
+    svg {
+      display: block;
+    }
+
+    @media (max-width: 840px) {
+      body {
+        padding: 14px;
+      }
+
+      .stage {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        order: -1;
+      }
+
+      .concept-card h2 {
+        font-size: 24px;
+      }
+
+      .phone {
+        width: min(430px, 100%);
+      }
+    }
+
+    @media (max-width: 430px) {
+      body {
+        padding: 0;
+        place-items: stretch;
+      }
+
+      .stage {
+        gap: 0;
+      }
+
+      .side {
+        display: none;
+      }
+
+      .phone {
+        width: 100%;
+        min-height: 100vh;
+        padding: 0;
+        border-radius: 0;
+        aspect-ratio: auto;
+        box-shadow: none;
+      }
+
+      .screen {
+        min-height: 100vh;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <section class="phone" aria-label="WonderLens Science Toy Lab prototype">
+      <div class="screen">
+        <div class="notch" aria-hidden="true"></div>
+        <div class="scroll">
+          <header class="topbar">
+            <button class="tool-button" aria-label="Quay lại">
+              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div class="title-block">
+              <p class="eyebrow">Xưởng khoa học</p>
+              <h1>Hành trình cốc giấy</h1>
+            </div>
+          </header>
+
+          <section class="hero" aria-label="Vật vừa khám phá">
+            <div class="hero-img">
+              <img src="assets/paper-cup-hero.png" alt="Cốc giấy trong xưởng khoa học đồ chơi" />
+            </div>
+            <div class="hero-meta">
+              <div>
+                <p class="hero-name">Cốc giấy</p>
+                <p class="hero-sub">Từ sợi cây mềm đến chiếc cốc nhẹ trên tay.</p>
+              </div>
+              <div class="scan-chip">
+                <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3l2.2 5.5L20 10.7l-5.2 3.1L13.8 20 9.6 15.4 3.5 16 6.7 10.8 4.5 5.2 10 7.1 12 3z" fill="currentColor"/>
+                </svg>
+                Hero
+              </div>
+            </div>
+          </section>
+
+          <nav class="lab-tabs" aria-label="Chế độ khám phá">
+            <div class="tab active">Tự khám phá</div>
+            <div class="tab">Nghe kể</div>
+            <div class="tab">Bộ sưu tập</div>
+          </nav>
+
+          <div class="progress-lab" aria-label="Tiến độ hành trình">
+            <span>2/3</span>
+            <div class="track"><div class="fill"></div></div>
+            <span>72%</span>
+          </div>
+
+          <section class="predict" aria-label="Câu hỏi dự đoán">
+            <h2>Đố em: sợi giấy sẽ biến thành gì tiếp theo?</h2>
+            <div class="options">
+              <div class="option correct"><span class="dot"></span><span>Một tấm giấy mỏng</span></div>
+              <div class="option"><span class="dot"></span><span>Một viên đá nhỏ</span></div>
+            </div>
+          </section>
+
+          <p class="stages-title">Các chặng trong xưởng</p>
+          <div class="stage-list">
+            <article class="stage-card">
+              <div class="stage-img">
+                <img src="assets/paper-fibers.png" alt="Sợi cây mềm được ép thành tấm giấy" />
+                <div class="stage-number">1</div>
+              </div>
+              <div class="stage-body">
+                <div class="stage-head">
+                  <h3>Sợi cây thành tấm giấy</h3>
+                  <button class="speak" aria-label="Nghe chặng này">
+                    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M4 10v4h4l5 4V6L8 10H4z" fill="currentColor"/>
+                      <path d="M16 9.5c1.2 1.2 1.2 3.8 0 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+                <p class="kid-text">Sợi cây được làm mềm rồi ép lại. Khi khô, chúng dính vào nhau thành tấm giấy mỏng.</p>
+                <div class="fact">Bạn có biết? Giấy mạnh hơn khi nhiều sợi nhỏ ôm lấy nhau.</div>
+              </div>
+            </article>
+
+            <article class="stage-card">
+              <div class="stage-img">
+                <img src="assets/cup-forming.png" alt="Tấm giấy được uốn quanh khuôn thành chiếc cốc" />
+                <div class="stage-number">2</div>
+              </div>
+              <div class="stage-body">
+                <div class="stage-head">
+                  <h3>Uốn quanh khuôn tròn</h3>
+                  <button class="speak" aria-label="Nghe chặng này">
+                    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M4 10v4h4l5 4V6L8 10H4z" fill="currentColor"/>
+                      <path d="M16 9.5c1.2 1.2 1.2 3.8 0 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+                <p class="kid-text">Tấm giấy được cuộn quanh khuôn. Mép cốc được ép chắc để khi cầm không bị bung ra.</p>
+                <div class="fact">Thử nhỏ: cầm cốc nhẹ thôi, em sẽ thấy thành cốc hơi đàn hồi.</div>
+              </div>
+            </article>
+          </div>
+
+          <section class="reward" aria-label="Phần thưởng khám phá">
+            <h2>Hoàn thành thí nghiệm nhỏ</h2>
+            <div class="reward-row">
+              <div class="badge-visual">
+                <img src="assets/reward-badge.png" alt="Huy hiệu khoa học bên cạnh cốc giấy" />
+              </div>
+              <p>Rót một ít nước lạnh, chạm bên ngoài cốc và quan sát giấy giữ hình dạng thế nào.</p>
+            </div>
+            <button class="primary-action">Đã thử xong</button>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side" aria-label="Science Toy Lab direction">
+      <section class="concept-card">
+        <p class="eyebrow">Design direction</p>
+        <h2>Science Toy Lab</h2>
+        <p>
+          Vẫn giữ WonderLens: tiếng Việt, kid-safe, font hệ thống, glass nhẹ,
+          CTA teal, stage ảnh thật/generated. Cái mới là cảm giác đồ chơi STEM:
+          khối nhựa mềm, bàn thí nghiệm sáng, nút lớn, reward rõ.
+        </p>
+        <div class="swatches" aria-label="Bảng màu WonderLens">
+          <span class="swatch" style="background: var(--teal)"></span>
+          <span class="swatch" style="background: var(--cyan)"></span>
+          <span class="swatch" style="background: var(--sky)"></span>
+          <span class="swatch" style="background: var(--grape)"></span>
+          <span class="swatch" style="background: var(--sunny)"></span>
+          <span class="swatch" style="background: var(--mint)"></span>
+          <span class="swatch" style="background: var(--coral)"></span>
+        </div>
+      </section>
+
+      <div class="panel-grid">
+        <section class="mini-panel camera-card">
+          <h3>Camera first</h3>
+          <p>Preview lớn, nút quét là hành động chính.</p>
+          <div class="scan-ring">
+            <div class="scan-core">
+              <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="10.5" cy="10.5" r="5.8" fill="none" stroke="currentColor" stroke-width="2.4"/>
+                <path d="M15 15l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+        </section>
+        <section class="mini-panel">
+          <h3>Earned reward</h3>
+          <p>Badge xuất hiện sau dự đoán và thí nghiệm nhỏ, không record-on-open.</p>
+        </section>
+        <section class="mini-panel">
+          <h3>Generated art</h3>
+          <p>Ảnh stage là đồ họa OpenAI-style, không chữ, không logo, không hóa chất nguy hiểm.</p>
+        </section>
+        <section class="mini-panel">
+          <h3>Flutter mapping</h3>
+          <p>Map về WonderBackground, GlassSurface, WonderButton, WonderChip, ScanRingButton.</p>
+        </section>
+      </div>
+    </aside>
+  </main>
+</body>
+</html>
+

@@ -111,18 +111,29 @@ Quy ước:
 
 ## Local data schema
 
-### CollectedObject (Hive)
+### Bộ sưu tập (Hive box `wonderlens_collection`, không TypeAdapter)
 
-```dart
-@HiveType(typeId: 0)
-class CollectedObject {
-  @HiveField(0) String objectId;
-  @HiveField(1) String displayName;
-  @HiveField(2) String emoji;
-  @HiveField(3) DateTime discoveredAt;
-  @HiveField(4) bool badgeUnlocked;
+Hai key trong cùng box:
+
+- `discovered`: `List<String>` — id các **hero object** đã khám phá. Level +
+  huy hiệu vật liệu suy ra từ danh sách này (chỉ hero, xem `specs/domains.md`).
+- `journal`: `List<String>` — nhật ký **"Khám phá thêm (AI)"**, mỗi phần tử là
+  JSON string của một vật NON-hero (AI-live), mới nhất đứng đầu, dedup theo `id`:
+
+```json
+{
+  "id": "wooden_spoon",
+  "name": "Thìa gỗ",
+  "emoji": "🥄",
+  "discovered_at": "2026-07-02T10:30:00.000",
+  "content": { "id": "wooden_spoon", "name": "...", "stages": [] }
 }
 ```
+
+`content` là `ObjectContent` JSON đầy đủ (schema như response `/api/generate`)
+để mở lại timeline **offline, không gọi lại proxy**. Ảnh chặng đã cache theo
+`content.id` nên mở lại cũng không tốn phí sinh ảnh. Vật journal không mở
+huy hiệu, không tính level (AI content chưa red-team).
 
 ### Ảnh sản phẩm (cutout, local-only)
 
@@ -149,9 +160,22 @@ Mở rộng cho video journey + ảnh minh hoạ từng chặng:
     {
       "title": "Bắt đầu từ dầu mỏ",
       "illustration": "assets/images/ball_pen_stage0.png",
-      "kid_text": "..."
+      "kid_text": "...",
+      "predict": {
+        "question": "Dầu mỏ sẽ biến thành gì tiếp theo?",
+        "options": ["Hạt nhựa nhỏ xíu", "Nước ngọt", "Cục đá"],
+        "answer_index": 0,
+        "hint": "Nghĩ xem vỏ bút cứng làm bằng gì nhỉ?"
+      },
+      "action": { "type": "hold", "label": "Nhấn giữ để nung chảy hạt nhựa" }
     }
   ],
+  "experiment": {
+    "title": "Thử nghiệm nhỏ tại nhà",
+    "prompt": "Viết vài chữ rồi lật ngửa bút viết tiếp — viên bi có còn ra mực không?",
+    "reveal": "Viên bi lăn được mọi hướng nên viết ngược vẫn ra mực một chút đấy!",
+    "badge": "Nhà khoa học nhí"
+  },
   "video": {
     "asset": "assets/videos/ball_pen_making.mp4",
     "poster": "assets/images/ball_pen_video_poster.png",
@@ -164,11 +188,23 @@ Mở rộng cho video journey + ảnh minh hoạ từng chặng:
 Quy ước:
 - `video` là optional để app có thể hiển thị timeline trước khi đủ video assets.
 - Hero objects ưu tiên video bundled trong app để chạy offline.
-- AI live fallback chưa sinh video; app hiển thị nhãn "Khám phá vui (AI)" và chỉ dùng text + audio on-device.
+- Vật KHÔNG có video bundled (gồm AI-live): app TỰ SINH phim hành trình runtime
+  qua proxy (`JourneyVideo.autoGenerate`, kích hoạt ngầm sau giọng kể / khi xem
+  hết trang). Phim phát tắt tiếng, là tăng cường tuỳ chọn: proxy lỗi/thiếu token
+  → thẻ phim hiện nút "Thử lại", không chặn hành trình text + audio.
 - Nếu `video.asset` thiếu hoặc load lỗi, app fallback sang poster + timeline text, không crash.
 - `stages[].illustration` là **optional**: hero objects pre-gen sẵn (asset bundle);
   vật AI-live sinh runtime qua `POST /api/journey-images` rồi cache local. Thiếu
   ảnh → tile chặng hiển thị không-ảnh (giữ look cũ), không crash.
+- `stages[].predict`, `stages[].action`, `experiment` là **optional** và được giữ
+  để tương thích content cũ. Timeline hiện tại không render các field này thành
+  cổng chặn; mọi chặng hiển thị ngay theo thứ tự để trẻ xem nhanh và trực quan.
+  `action.type` vẫn parse trong `hold | swipe | tap | drag`; field thiếu/hỏng
+  không làm app crash.
+- Phần thưởng (ghi bộ sưu tập + confetti + badge) **không** chạy trước khi trẻ
+  thấy nội dung; kích hoạt khi trẻ cuộn tới cuối hành trình, hoặc tự kích hoạt nếu
+  nội dung quá ngắn không cần cuộn. Hero (`source: asset`) → `discovered` (level +
+  huy hiệu); vật `live` → nhật ký `journal` "Khám phá thêm (AI)" (không level/huy hiệu).
 
 ## Error handling contract
 

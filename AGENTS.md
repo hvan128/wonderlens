@@ -28,6 +28,7 @@ wonderlens/
 ├── plans/         # Brainstorm reports + phase plans
 ├── docs/          # Workflow, journal, demo script
 ├── AGENTS.md      # File này
+├── DESIGN.md      # Visual design system cho UI agents
 └── README.md
 ```
 
@@ -110,6 +111,9 @@ wonderlens/
 | 5 | `specs/api-contracts.md` | HTTP API + local schema |
 | 6 | `adrs/` | Quyết định kiến trúc |
 | 7 | Task trong `tasks/` | Goal, AC, DoD, owner |
+
+Khi task đụng UI/UX, đọc thêm `DESIGN.md` sau file này. `DESIGN.md` là nguồn
+sự thật visual; `AGENTS.md`, specs, contracts, ADR vẫn thắng nếu có xung đột.
 
 ### Quy tắc cứng
 

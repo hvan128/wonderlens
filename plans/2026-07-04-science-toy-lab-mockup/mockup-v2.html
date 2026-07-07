@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WonderLens Science Toy Lab v2</title>
+  <style>
+    :root {
+      --teal: #26C6DA;
+      --teal-deep: #0E97AC;
+      --cyan: #22D3EE;
+      --sky: #38BDF8;
+      --indigo: #7C8CF8;
+      --grape: #B794F4;
+      --mint: #5EEAD4;
+      --sunny: #FFC857;
+      --coral: #FF8A65;
+      --ink: #0B1220;
+      --ink-soft: #14203A;
+      --text-strong: #15233B;
+      --text-soft: #54657F;
+      --canvas-top: #EAF8FB;
+      --canvas-bottom: #F4EFFF;
+      --paper: #FFFDF7;
+      --r-sm: 14px;
+      --r-md: 20px;
+      --r-lg: 28px;
+      --r-xl: 34px;
+      --pill: 999px;
+      --line: rgba(21, 35, 59, .16);
+      --line-strong: rgba(21, 35, 59, .24);
+      --surface: rgba(255, 255, 255, .72);
+      --shadow: 0 14px 28px rgba(14, 151, 172, .13);
+      --toy-lift: 0 5px 0 rgba(21, 35, 59, .14), 0 14px 28px rgba(14, 151, 172, .12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      color: var(--text-strong);
+      font-family: ui-rounded, -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto, sans-serif;
+      letter-spacing: 0;
+      background:
+        radial-gradient(circle at 12% 12%, rgba(94, 234, 212, .28), transparent 28%),
+        radial-gradient(circle at 88% 18%, rgba(255, 200, 87, .22), transparent 30%),
+        linear-gradient(180deg, var(--canvas-top), var(--canvas-bottom));
+    }
+
+    .wrap {
+      width: min(1180px, 100%);
+      display: grid;
+      grid-template-columns: 430px 1fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .phone {
+      width: 430px;
+      max-width: 100%;
+      aspect-ratio: 430 / 900;
+      padding: 10px;
+      border-radius: 48px;
+      background: #0b1116;
+      box-shadow: 0 28px 70px rgba(11, 18, 32, .28);
+      justify-self: center;
+    }
+
+    .screen {
+      position: relative;
+      overflow: hidden;
+      height: 100%;
+      border-radius: 39px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.32) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,.34) 1px, transparent 1px),
+        linear-gradient(180deg, #effcff, #f7f2ff 55%, #fffdf7);
+      background-size: 26px 26px, 26px 26px, auto;
+    }
+
+    .notch {
+      position: absolute;
+      z-index: 20;
+      top: 11px;
+      left: 50%;
+      width: 118px;
+      height: 26px;
+      border-radius: var(--pill);
+      transform: translateX(-50%);
+      background: #0b1116;
+    }
+
+    .scroll {
+      height: 100%;
+      overflow: auto;
+      scrollbar-width: none;
+      padding: 50px 16px 26px;
+    }
+
+    .scroll::-webkit-scrollbar { display: none; }
+
+    .glass {
+      border: 1px solid rgba(255, 255, 255, .74);
+      background: var(--surface);
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+    }
+
+    .top {
+      position: sticky;
+      z-index: 10;
+      top: -50px;
+      display: grid;
+      grid-template-columns: 48px 1fr 48px;
+      gap: 10px;
+      align-items: center;
+      padding-bottom: 12px;
+    }
+
+    .icon-btn {
+      min-width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: var(--pill);
+      color: var(--text-strong);
+      background: rgba(255, 255, 255, .70);
+      box-shadow: var(--shadow);
+    }
+
+    .title {
+      min-width: 0;
+      padding: 10px 14px;
+      border-radius: var(--r-lg);
+      text-align: center;
+    }
+
+    .label {
+      margin: 0;
+      color: var(--teal-deep);
+      font-size: 12.5px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    h1 {
+      margin: 2px 0 0;
+      font-size: 21px;
+      font-weight: 900;
+      line-height: 1.05;
+    }
+
+    .lab-bench {
+      position: relative;
+      overflow: hidden;
+      min-height: 208px;
+      padding: 14px;
+      border-radius: var(--r-xl);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.58)),
+        repeating-linear-gradient(0deg, transparent 0 17px, rgba(21,35,59,.04) 17px 18px);
+      border: 1px solid rgba(255,255,255,.78);
+      box-shadow: var(--toy-lift);
+    }
+
+    .bench-rail {
+      position: absolute;
+      left: 15px;
+      right: 15px;
+      bottom: 18px;
+      height: 22px;
+      border-radius: var(--pill);
+      background: linear-gradient(90deg, var(--teal), var(--sky));
+      box-shadow: inset 0 2px 0 rgba(255,255,255,.38);
+    }
+
+    .object-window {
+      position: absolute;
+      left: 18px;
+      bottom: 28px;
+      width: 126px;
+      height: 112px;
+      overflow: hidden;
+      border-radius: 28px;
+      border: 1px solid rgba(21,35,59,.12);
+      background: var(--paper);
+      box-shadow: 0 8px 18px rgba(21,35,59,.12);
+    }
+
+    .object-window img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      transform: scale(1.35);
+    }
+
+    .cup-cutout {
+      position: absolute;
+      left: 192px;
+      bottom: 43px;
+      width: 86px;
+      height: 106px;
+      border-radius: 9px 9px 24px 24px / 9px 9px 18px 18px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.25), transparent 45%),
+        linear-gradient(180deg, #fffdf8, #f5eee2);
+      border: 2px solid rgba(21,35,59,.14);
+      clip-path: polygon(9% 0, 91% 0, 78% 100%, 22% 100%);
+      box-shadow: 0 12px 18px rgba(21,35,59,.13);
+    }
+
+    .cup-rim {
+      position: absolute;
+      left: 182px;
+      bottom: 141px;
+      width: 106px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #fff, #eee8dc);
+      border: 2px solid rgba(21,35,59,.13);
+      box-shadow: 0 5px 10px rgba(21,35,59,.10);
+    }
+
+    .scope {
+      position: absolute;
+      right: 22px;
+      top: 30px;
+      width: 72px;
+      height: 112px;
+    }
+
+    .scope::before {
+      content: "";
+      position: absolute;
+      left: 22px;
+      top: 0;
+      width: 36px;
+      height: 78px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, var(--sky), var(--teal));
+      transform: rotate(14deg);
+      box-shadow: inset 0 3px 0 rgba(255,255,255,.42);
+    }
+
+    .scope::after {
+      content: "";
+      position: absolute;
+      left: 8px;
+      bottom: 0;
+      width: 62px;
+      height: 22px;
+      border-radius: var(--pill);
+      background: var(--grape);
+      box-shadow: inset 0 3px 0 rgba(255,255,255,.32);
+    }
+
+    .bench-copy {
+      position: relative;
+      z-index: 2;
+      width: 178px;
+    }
+
+    .bench-copy h2 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .bench-copy p {
+      margin: 6px 0 0;
+      color: var(--text-soft);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 14px 0 16px;
+    }
+
+    .chip {
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 11px;
+      border-radius: var(--r-sm);
+      color: var(--text-strong);
+      background: rgba(255,255,255,.68);
+      border: 1px solid rgba(21,35,59,.10);
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: var(--shadow);
+    }
+
+    .chip.sun { background: rgba(255, 200, 87, .34); }
+    .chip.mint { background: rgba(94, 234, 212, .28); }
+
+    .question {
+      padding: 14px;
+      border-radius: var(--r-lg);
+    }
+
+    .question h2,
+    .section-title,
+    .reward h2 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .answers {
+      display: grid;
+      gap: 8px;
+      margin-top: 11px;
+    }
+
+    .answer {
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--r-md);
+      background: rgba(255,255,255,.72);
+      border: 1px solid var(--line);
+      color: var(--text-strong);
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .answer.good {
+      border-color: rgba(14,151,172,.34);
+      background: rgba(94,234,212,.28);
+    }
+
+    .answer-mark {
+      width: 24px;
+      height: 24px;
+      border-radius: var(--pill);
+      border: 2px solid rgba(14,151,172,.42);
+      background: #fff;
+      flex: 0 0 auto;
+    }
+
+    .answer.good .answer-mark {
+      background:
+        radial-gradient(circle at center, var(--teal-deep) 0 32%, transparent 34%),
+        #fff;
+    }
+
+    .section-title {
+      margin: 16px 0 10px;
+    }
+
+    .stages {
+      display: grid;
+      gap: 12px;
+    }
+
+    .stage-card {
+      position: relative;
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: 12px;
+      min-height: 124px;
+      padding: 12px;
+      border-radius: var(--r-lg);
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(255,255,255,.78);
+      box-shadow: var(--toy-lift);
+    }
+
+    .stage-art {
+      position: relative;
+      overflow: hidden;
+      border-radius: 22px;
+      background: linear-gradient(180deg, #fff, #f2fbfd);
+      border: 1px solid rgba(21,35,59,.10);
+    }
+
+    .stage-art img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      transform: scale(1.62);
+      filter: saturate(.88) contrast(.96);
+    }
+
+    .stage-art.flat {
+      display: grid;
+      place-items: center;
+    }
+
+    .fibers {
+      position: relative;
+      width: 58px;
+      height: 56px;
+    }
+
+    .fiber {
+      position: absolute;
+      width: 44px;
+      height: 9px;
+      border-radius: var(--pill);
+      background: #fff8eb;
+      border: 1px solid rgba(21,35,59,.10);
+      box-shadow: 0 3px 8px rgba(21,35,59,.08);
+    }
+
+    .fiber:nth-child(1) { left: 2px; top: 8px; transform: rotate(-16deg); }
+    .fiber:nth-child(2) { left: 12px; top: 22px; transform: rotate(12deg); }
+    .fiber:nth-child(3) { left: 4px; top: 36px; transform: rotate(-8deg); }
+
+    .stage-copy h3 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .stage-copy p {
+      margin: 7px 0 0;
+      color: var(--text-strong);
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .mini-fact {
+      margin-top: 8px;
+      color: #5d4810;
+      font-size: 12.5px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .speak {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: var(--pill);
+      color: #fff;
+      background: linear-gradient(135deg, var(--cyan), var(--teal), var(--sky));
+      box-shadow: 0 8px 16px rgba(14,151,172,.24);
+    }
+
+    .action-gate {
+      margin-top: 12px;
+      padding: 13px;
+      border-radius: var(--r-lg);
+      background:
+        linear-gradient(180deg, rgba(255,200,87,.24), rgba(255,255,255,.68));
+      border: 1px solid rgba(255,200,87,.34);
+      box-shadow: var(--shadow);
+    }
+
+    .press-track {
+      height: 52px;
+      margin-top: 11px;
+      border-radius: var(--pill);
+      background: rgba(255,255,255,.74);
+      border: 1px solid rgba(21,35,59,.12);
+      padding: 6px;
+    }
+
+    .press-fill {
+      width: 68%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 12px;
+      border-radius: inherit;
+      color: #fff;
+      background: linear-gradient(90deg, var(--teal), var(--sky), var(--grape));
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .reward {
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: var(--r-lg);
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(255,255,255,.78);
+      box-shadow: var(--toy-lift);
+    }
+
+    .reward-inner {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-top: 11px;
+    }
+
+    .badge {
+      width: 72px;
+      height: 72px;
+      display: grid;
+      place-items: center;
+      border-radius: 24px;
+      background: var(--sunny);
+      box-shadow: inset 0 3px 0 rgba(255,255,255,.38), var(--shadow);
+    }
+
+    .badge svg { color: var(--teal-deep); }
+
+    .reward p {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .primary {
+      width: 100%;
+      min-height: 56px;
+      margin-top: 14px;
+      border: 0;
+      border-radius: var(--r-md);
+      color: #fff;
+      background: linear-gradient(135deg, var(--cyan), var(--teal), var(--sky));
+      font: inherit;
+      font-size: 17px;
+      font-weight: 900;
+      box-shadow: 0 10px 20px rgba(38,198,218,.28);
+    }
+
+    .side {
+      display: grid;
+      gap: 16px;
+    }
+
+    .note {
+      padding: 22px;
+      border-radius: var(--r-xl);
+    }
+
+    .note h2 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .note p {
+      margin: 10px 0 0;
+      max-width: 58ch;
+      color: var(--text-soft);
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .rules {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .rule {
+      min-height: 130px;
+      padding: 14px;
+      border-radius: var(--r-lg);
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(255,255,255,.78);
+      box-shadow: var(--shadow);
+    }
+
+    .rule h3 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .rule p {
+      margin: 8px 0 0;
+      color: var(--text-soft);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .source-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .source-strip img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.72);
+      filter: saturate(.85);
+      box-shadow: var(--shadow);
+    }
+
+    svg { display: block; }
+
+    @media (max-width: 880px) {
+      body { padding: 14px; }
+      .wrap { grid-template-columns: 1fr; }
+      .side { order: -1; }
+      .note h2 { font-size: 24px; }
+    }
+
+    @media (max-width: 430px) {
+      body {
+        padding: 0;
+        place-items: stretch;
+      }
+
+      .wrap { display: block; }
+      .side { display: none; }
+      .phone {
+        width: 100%;
+        min-height: 100dvh;
+        aspect-ratio: auto;
+        padding: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      .screen {
+        min-height: 100dvh;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="phone" aria-label="WonderLens Science Toy Lab v2">
+      <div class="screen">
+        <div class="notch" aria-hidden="true"></div>
+        <div class="scroll">
+          <header class="top">
+            <button class="icon-btn" aria-label="Quay lại">
+              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div class="title glass">
+              <p class="label">xưởng thử nghiệm</p>
+              <h1>Cốc giấy</h1>
+            </div>
+            <button class="icon-btn" aria-label="Nghe kể">
+              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 10v4h4l5 4V6L8 10H4z" fill="currentColor"/>
+                <path d="M16 9.5c1.2 1.2 1.2 3.8 0 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </header>
+
+          <section class="lab-bench" aria-label="Vật đang khám phá">
+            <div class="bench-copy">
+              <p class="label">vật thật của em</p>
+              <h2>Cốc giấy</h2>
+              <p>Từ sợi cây mềm đến chiếc cốc nhẹ trên tay.</p>
+            </div>
+            <div class="object-window">
+              <img src="assets/paper-cup-hero.png" alt="Cốc giấy được soi trong xưởng khoa học" />
+            </div>
+            <div class="cup-cutout" aria-hidden="true"></div>
+            <div class="cup-rim" aria-hidden="true"></div>
+            <div class="scope" aria-hidden="true"></div>
+            <div class="bench-rail" aria-hidden="true"></div>
+          </section>
+
+          <div class="chips" aria-label="Nhãn vật liệu">
+            <span class="chip sun">
+              <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3l2.2 5.4 5.8.5-4.4 3.8 1.4 5.7-5-3-5 3 1.4-5.7L4 8.9l5.8-.5L12 3z" fill="currentColor"/>
+              </svg>
+              Hero
+            </span>
+            <span class="chip mint">giấy</span>
+            <span class="chip">3 chặng</span>
+          </div>
+
+          <section class="question glass" aria-label="Dự đoán">
+            <h2>Đố em: sợi giấy sẽ làm gì trước?</h2>
+            <div class="answers">
+              <div class="answer good"><span class="answer-mark"></span><span>Ôm vào nhau thành tấm mỏng</span></div>
+              <div class="answer"><span class="answer-mark"></span><span>Biến thành viên đá</span></div>
+            </div>
+          </section>
+
+          <p class="section-title">Mở từng chặng</p>
+
+          <section class="stages" aria-label="Các chặng hành trình">
+            <article class="stage-card">
+              <div class="stage-art flat" aria-hidden="true">
+                <div class="fibers">
+                  <span class="fiber"></span>
+                  <span class="fiber"></span>
+                  <span class="fiber"></span>
+                </div>
+              </div>
+              <div class="stage-copy">
+                <h3>Sợi cây gặp nhau</h3>
+                <p>Sợi cây được làm mềm. Khi nằm sát nhau, chúng bám lại thành một lớp giấy.</p>
+                <div class="mini-fact">Giấy mạnh hơn khi nhiều sợi nhỏ đan vào nhau.</div>
+              </div>
+              <button class="speak" aria-label="Nghe chặng sợi cây">
+                <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 10v4h4l5 4V6L8 10H4z" fill="currentColor"/>
+                </svg>
+              </button>
+            </article>
+
+            <article class="stage-card">
+              <div class="stage-art">
+                <img src="assets/cup-forming.png" alt="Tấm giấy được uốn quanh khuôn thành cốc" />
+              </div>
+              <div class="stage-copy">
+                <h3>Uốn quanh khuôn</h3>
+                <p>Tấm giấy được cuộn quanh khuôn tròn. Mép cốc được ép chắc để không bung.</p>
+                <div class="mini-fact">Cầm nhẹ, em sẽ thấy thành cốc hơi đàn hồi.</div>
+              </div>
+              <button class="speak" aria-label="Nghe chặng uốn quanh khuôn">
+                <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 10v4h4l5 4V6L8 10H4z" fill="currentColor"/>
+                </svg>
+              </button>
+            </article>
+          </section>
+
+          <section class="action-gate" aria-label="Hành động tương tác">
+            <h2 class="section-title" style="margin:0">Nhấn giữ để ép mép cốc</h2>
+            <div class="press-track">
+              <div class="press-fill">68%</div>
+            </div>
+          </section>
+
+          <section class="reward" aria-label="Phần thưởng">
+            <h2>Thử nghiệm nhỏ</h2>
+            <div class="reward-inner">
+              <div class="badge" aria-hidden="true">
+                <svg width="42" height="42" viewBox="0 0 24 24">
+                  <path d="M12 3l2.2 4.7 5.1.6-3.8 3.5 1 5-4.5-2.5-4.5 2.5 1-5-3.8-3.5 5.1-.6L12 3z" fill="currentColor"/>
+                </svg>
+              </div>
+              <p>Rót một ít nước lạnh, chạm bên ngoài cốc và quan sát giấy giữ hình dạng thế nào.</p>
+            </div>
+            <button class="primary">Đã thử xong</button>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side" aria-label="Ghi chú thiết kế">
+      <section class="note glass">
+        <p class="label">bản sửa v2</p>
+        <h2>Ít ảnh AI hơn, nhiều hệ thiết kế hơn</h2>
+        <p>
+          Bản này dùng ảnh generated như vật liệu phụ, không để nó quyết định toàn bộ thẩm mỹ.
+          UI chính là hệ toy-lab: bàn thử nghiệm, vật cutout, stage dạng module, nút lớn,
+          kính nhẹ và token WonderLens từ DESIGN.md.
+        </p>
+      </section>
+
+      <section class="rules">
+        <div class="rule">
+          <h3>Design.md thật hơn</h3>
+          <p>Màu, radius, body text, touch target, glass nhẹ, stage text ngắn và kid-safe.</p>
+        </div>
+        <div class="rule">
+          <h3>Không generic hero</h3>
+          <p>Không dùng ảnh AI làm nền full-screen; giữ camera/timeline là trải nghiệm chính.</p>
+        </div>
+        <div class="rule">
+          <h3>Đồ chơi khoa học</h3>
+          <p>Hình khối tự vẽ bằng CSS: cốc, kính soi, bàn thử nghiệm, progress ép mép.</p>
+        </div>
+        <div class="rule">
+          <h3>Flutter mapping</h3>
+          <p>Có thể map về WonderBackground, GlassSurface, WonderButton, WonderChip.</p>
+        </div>
+      </section>
+
+      <div class="source-strip" aria-label="Ảnh generated dùng làm chất liệu phụ">
+        <img src="assets/paper-cup-hero.png" alt="Generated cốc giấy" />
+        <img src="assets/paper-fibers.png" alt="Generated sợi giấy" />
+        <img src="assets/cup-forming.png" alt="Generated tạo cốc" />
+        <img src="assets/reward-badge.png" alt="Generated huy hiệu" />
+      </div>
+    </aside>
+  </main>
+</body>
+</html>
+

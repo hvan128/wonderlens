@@ -57,7 +57,8 @@ Sửa **context** trước khi đổi prompt hay model:
 - Video asset: `app/assets/videos/{object_id}_making.mp4`
 - Poster: `app/assets/images/{object_id}_video_poster.png`
 - Trường `video` là **optional** — app không crash nếu thiếu
-- AI live fallback: **không** sinh video, chỉ text + audio
+- Vật không có video bundled (gồm AI live): app **tự sinh phim runtime qua
+  proxy** (ngầm, tắt tiếng, optional) — lỗi thì hiện "Thử lại", không chặn flow
 - Nếu video lỗi: fallback poster + timeline text
 
 ## Định nghĩa Done

@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WonderLens — Mockup Timeline · Cartoon Pop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800;900&subset=vietnamese&display=swap" rel="stylesheet" />
+<style>
+  /* ===== POP DESIGN TOKENS (sẽ map 1:1 sang wonder_tokens.dart) ===== */
+  :root {
+    --teal: #26C6DA; --teal-deep: #0A6675; --teal-dark: #0E97AD;
+    --ink: #23303A;                 /* viền outline + chữ đậm */
+    --ink-soft: #46565f;
+    --sunny: #FFD644; --sunny-deep: #E08A00;
+    --coral: #FF7A5A; --grape: #A78BFA; --grape-deep: #7C5CE0;
+    --mint: #7ED957;
+    --bg: #FFE066;                  /* nền vàng pop */
+    --bg-panel: #FF9F45;            /* nền cam (mặt bàn / khối phụ) */
+    --card: #FFFFFF;
+    --line: 3.5px;                  /* độ dày outline chuẩn */
+    --shadow-x: 5px; --shadow-y: 6px;  /* offset solid shadow — KHÔNG blur */
+    --r-card: 22px; --r-chip: 999px;
+    --f-display: 'Baloo 2', sans-serif;   /* tiêu đề */
+    --f-body: 'Nunito', sans-serif;       /* nội dung */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1a2228; color: var(--ink);
+    font-family: var(--f-body);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 30px 16px 60px; gap: 14px;
+  }
+  .note { color: #9db3ba; font-size: 14px; max-width: 460px; text-align: center; }
+  .note b { color: #cfe6eb; }
+
+  /* ===== khung điện thoại ===== */
+  .phone {
+    width: 400px; height: 852px; border-radius: 48px;
+    background: #0b1114; padding: 10px;
+    box-shadow: 0 40px 90px rgba(0,0,0,.55);
+    position: relative; flex: 0 0 auto;
+  }
+  .screen {
+    width: 100%; height: 100%; border-radius: 40px; overflow: hidden;
+    position: relative;
+    /* nền pop: vàng + chấm halftone + sọc chéo mờ */
+    background:
+      radial-gradient(rgba(224,138,0,.16) 2.4px, transparent 2.6px),
+      repeating-linear-gradient(-38deg, rgba(255,255,255,.14) 0 26px, transparent 26px 52px),
+      var(--bg);
+    background-size: 34px 34px, auto, auto;
+    display: flex; flex-direction: column;
+  }
+  .notch { position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 26px; background: #0b1114; border-radius: 999px; z-index: 30; }
+
+  /* ===== sticker primitives ===== */
+  .sticker {
+    background: var(--card);
+    border: var(--line) solid var(--ink);
+    border-radius: var(--r-card);
+    box-shadow: var(--shadow-x) var(--shadow-y) 0 rgba(35,48,58,.9);
+  }
+  .icon-btn {
+    width: 40px; height: 40px; border-radius: 999px;
+    display: grid; place-items: center; cursor: pointer;
+    background: var(--card); border: 3px solid var(--ink);
+    box-shadow: 2.5px 3px 0 rgba(35,48,58,.9);
+    transition: transform .1s, box-shadow .1s;
+  }
+  .icon-btn:active { transform: translate(2px, 2.5px); box-shadow: 0.5px 0.5px 0 rgba(35,48,58,.9); }
+  svg { display: block; }
+
+  /* ===== header ===== */
+  .hdr {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 12px;
+    padding: 44px 14px 10px;
+    background: linear-gradient(var(--bg) 78%, transparent);
+  }
+  .hdr .titles { flex: 1; min-width: 0; }
+  .hdr .sub { font-size: 12.5px; font-weight: 800; color: var(--ink-soft); letter-spacing: .4px; text-transform: uppercase; }
+  .hdr h1 { font-family: var(--f-display); font-size: 26px; line-height: 1.05; color: var(--ink);
+    text-shadow: 2px 2px 0 rgba(255,255,255,.75); }
+
+  .scroll { flex: 1; overflow-y: auto; padding: 6px 14px 30px; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+  .gap { height: 13px; }
+
+  /* ===== hero card ===== */
+  .hero { display: flex; align-items: center; gap: 13px; padding: 15px; }
+  .avatar {
+    width: 66px; height: 66px; border-radius: 50%; flex: 0 0 auto;
+    background: radial-gradient(circle at 32% 28%, #AFEBF4, #7FD3E0);
+    border: var(--line) solid var(--ink);
+    box-shadow: 3px 4px 0 rgba(35,48,58,.9);
+    display: grid; place-items: center; font-size: 33px;
+    position: relative;
+  }
+  .avatar .spark { position: absolute; top: -9px; right: -7px; }
+  .hero .nm { font-family: var(--f-display); font-size: 23px; }
+  .chips { display: flex; gap: 7px; margin-top: 7px; flex-wrap: wrap; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 900; padding: 4px 11px;
+    border-radius: var(--r-chip); border: 2.5px solid var(--ink);
+    background: var(--sunny); box-shadow: 2px 2.5px 0 rgba(35,48,58,.9);
+  }
+  .chip.grape { background: #E3D7FF; }
+
+  /* ===== banner huy hiệu ===== */
+  .badge-banner {
+    display: flex; align-items: center; gap: 12px; padding: 13px 15px;
+    background: linear-gradient(100deg, var(--sunny), #FFC93C);
+    position: relative; overflow: hidden;
+  }
+  .badge-banner .txt { font-weight: 900; font-size: 16px; }
+  .medal {
+    width: 44px; height: 44px; border-radius: 50%; flex: 0 0 auto;
+    background: radial-gradient(circle at 35% 30%, #FFE9A8, #F4B740 60%, #D89417);
+    border: 3px solid var(--ink); display: grid; place-items: center;
+    box-shadow: 2.5px 3px 0 rgba(35,48,58,.9);
+  }
+  .burst { position: absolute; right: -14px; top: -18px; opacity: .5; }
+
+  /* ===== history card ===== */
+  .card-pad { padding: 15px; }
+  .sec-head { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .sec-ico {
+    width: 38px; height: 38px; border-radius: 13px;
+    border: 3px solid var(--ink); display: grid; place-items: center;
+    background: var(--grape); box-shadow: 2.5px 3px 0 rgba(35,48,58,.9);
+  }
+  .sec-head b { font-family: var(--f-display); font-size: 17.5px; }
+  .body-txt { font-size: 14.5px; line-height: 1.5; font-weight: 700; color: #33424c; }
+
+  /* ===== buttons ===== */
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    width: fit-content; min-width: 215px; margin: 0 auto;
+    padding: 11px 24px; cursor: pointer;
+    font-family: var(--f-display); font-size: 16.5px; font-weight: 700; color: #fff;
+    background: linear-gradient(180deg, #35D0E3, #1FB6CA);
+    border: 3px solid var(--ink); border-radius: 999px;
+    box-shadow: 3px 4px 0 rgba(35,48,58,.9);
+    transition: transform .1s, box-shadow .1s;
+  }
+  .btn:active { transform: translate(2px, 3px); box-shadow: .5px 1px 0 rgba(35,48,58,.9); }
+  .btn.grape { background: linear-gradient(180deg, #B7A0FF, #8F6FF0); }
+  .txt-btn { text-align: center; font-weight: 900; font-size: 14.5px; color: var(--teal-deep);
+    text-decoration: underline 2.5px; text-underline-offset: 4px; cursor: pointer; padding: 9px; }
+
+  /* ===== progress ===== */
+  .prog-label { display: flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 900; margin-bottom: 7px; }
+  .prog-track {
+    height: 20px; border-radius: 999px; border: 3px solid var(--ink);
+    background: #fff; overflow: hidden; box-shadow: 2.5px 3px 0 rgba(35,48,58,.85);
+  }
+  .prog-fill {
+    height: 100%; width: 100%; border-radius: 999px;
+    background: repeating-linear-gradient(-45deg, var(--teal) 0 14px, #3DD6E8 14px 28px);
+    border-right: 3px solid var(--ink);
+  }
+
+  /* ===== stage tiles ===== */
+  .stage-row { display: flex; gap: 12px; align-items: stretch; }
+  .rail { display: flex; flex-direction: column; align-items: center; }
+  .stage-num {
+    width: 42px; height: 42px; border-radius: 50%; flex: 0 0 auto;
+    display: grid; place-items: center; z-index: 1;
+    font-family: var(--f-display); font-size: 18px;
+    background: #fff; border: var(--line) solid var(--ink);
+    box-shadow: 3px 3.5px 0 rgba(35,48,58,.9);
+  }
+  .stage-num.active { background: var(--teal); color: #fff; -webkit-text-stroke: .4px var(--ink); position: relative; }
+  .stage-num.active::after {
+    content: ''; position: absolute; inset: -9px; border-radius: 50%; z-index: -1;
+    background:
+      conic-gradient(var(--sunny) 0 8deg, transparent 8deg 45deg, var(--sunny) 45deg 53deg, transparent 53deg 90deg,
+        var(--sunny) 90deg 98deg, transparent 98deg 135deg, var(--sunny) 135deg 143deg, transparent 143deg 180deg,
+        var(--sunny) 180deg 188deg, transparent 188deg 225deg, var(--sunny) 225deg 233deg, transparent 233deg 270deg,
+        var(--sunny) 270deg 278deg, transparent 278deg 315deg, var(--sunny) 315deg 323deg, transparent 323deg);
+  }
+  .rail .line { flex: 1; width: 7px; margin: 5px 0;
+    background: repeating-linear-gradient(var(--ink) 0 10px, transparent 10px 19px);
+    border-radius: 99px; opacity: .55; }
+  .stage-card { flex: 1; margin-bottom: 17px; overflow: hidden; }
+  .stage-card.active { outline: 3.5px solid var(--teal); outline-offset: -3.5px;
+    box-shadow: var(--shadow-x) var(--shadow-y) 0 rgba(14,151,173,.95); }
+  .stage-img { position: relative; border-bottom: var(--line) solid var(--ink); }
+  .stage-img img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; }
+  .stage-img .num-tag {
+    position: absolute; left: 11px; top: 11px;
+    font-family: var(--f-display); font-size: 13px; color: #fff;
+    background: var(--coral); border: 3px solid var(--ink); border-radius: 999px;
+    padding: 3px 11px; box-shadow: 2px 2.5px 0 rgba(35,48,58,.9);
+  }
+  .stage-body { padding: 13px 14px 14px; }
+  .stage-title-row { display: flex; align-items: center; gap: 9px; }
+  .stage-title { flex: 1; font-family: var(--f-display); font-size: 17px; line-height: 1.2; }
+  .speak {
+    width: 34px; height: 34px; border-radius: 50%; flex: 0 0 auto; cursor: pointer;
+    background: var(--teal); border: 2.5px solid var(--ink);
+    box-shadow: 2px 2.5px 0 rgba(35,48,58,.9);
+    display: grid; place-items: center;
+    transition: transform .1s, box-shadow .1s;
+  }
+  .speak:active { transform: translate(2px,2.5px); box-shadow: .5px .5px 0 rgba(35,48,58,.9); }
+  .kid-txt { margin-top: 7px; font-size: 14.5px; line-height: 1.48; font-weight: 700; color: #33424c; }
+  .fun {
+    margin-top: 11px; display: flex; gap: 9px; align-items: flex-start;
+    background: #FFF3C4; border: 3px solid var(--ink); border-radius: 15px;
+    padding: 10px 12px; box-shadow: 2.5px 3px 0 rgba(35,48,58,.85);
+    font-size: 13px; font-weight: 800; line-height: 1.4; color: #5a4a12;
+    position: relative;
+  }
+  .fun::before {
+    content: 'BẠN CÓ BIẾT?'; position: absolute; top: -11px; left: 12px;
+    font-family: var(--f-display); font-size: 10px; letter-spacing: .5px; color: #fff;
+    background: var(--sunny-deep); border: 2.5px solid var(--ink); border-radius: 999px; padding: 1px 9px;
+  }
+
+  /* ===== predict card ===== */
+  .predict { padding: 15px; background: linear-gradient(180deg, #FFFFFF, #F2FBFD); }
+  .q { font-family: var(--f-display); font-size: 16.5px; margin-bottom: 11px; }
+  .opt {
+    display: flex; align-items: center; gap: 10px;
+    border: 3px solid var(--ink); border-radius: 15px; padding: 11px 13px;
+    font-weight: 900; font-size: 14px; margin-bottom: 9px; cursor: pointer;
+    background: #fff; box-shadow: 2.5px 3px 0 rgba(35,48,58,.85);
+    transition: transform .1s;
+  }
+  .opt:hover { transform: translateY(-1px); }
+  .opt.correct { background: #D9F7C5; border-color: var(--ink); }
+  .opt .dot { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--ink); flex: 0 0 auto; background: #fff; }
+  .opt.correct .dot { background: var(--mint); display: grid; place-items: center; }
+
+  /* ===== video block ===== */
+  .video-blk { overflow: hidden; }
+  .video-frame {
+    aspect-ratio: 16/9; position: relative; display: grid; place-items: center;
+    background:
+      radial-gradient(circle at 50% 42%, #14424d, #0c2a33 75%),
+      #0c2a33;
+    border-bottom: var(--line) solid var(--ink);
+  }
+  .play {
+    width: 62px; height: 62px; border-radius: 50%; cursor: pointer;
+    background: linear-gradient(180deg, #FFDF70, var(--sunny));
+    border: 3px solid var(--ink);
+    box-shadow: 3px 4px 0 rgba(0,0,0,.5);
+    display: grid; place-items: center;
+    transition: transform .12s;
+  }
+  .play:hover { transform: scale(1.07) rotate(-3deg); }
+  .video-cap { display: flex; align-items: center; gap: 9px; padding: 12px 14px; font-weight: 900; font-size: 14.5px; }
+
+  /* ===== trophy ===== */
+  .trophy { text-align: center; font-family: var(--f-display); font-size: 19px; padding: 4px 0 0;
+    text-shadow: 2px 2px 0 rgba(255,255,255,.8); }
+
+  /* confetti tĩnh trên nền */
+  .confetti { position: absolute; z-index: 15; pointer-events: none; }
+</style>
+</head>
+<body>
+<p class="note"><b>Mockup màn Timeline — style Cartoon Pop.</b> Bám đúng cấu trúc <code>timeline_screen.dart</code> (trạng thái đã hoàn thành) + nội dung thật của Cốc giấy. Cuộn được bên trong khung máy. Ảnh chặng là ảnh hiện tại — sẽ regen theo style cartoon ở phase sau.</p>
+
+<div class="phone"><div class="notch"></div><div class="screen">
+
+  <!-- confetti tĩnh -->
+  <svg class="confetti" style="top:86px;left:22px" width="18" height="18"><rect x="3" y="3" width="11" height="11" rx="3" transform="rotate(18 9 9)" fill="#FF7A5A" stroke="#23303A" stroke-width="2.5"/></svg>
+  <svg class="confetti" style="top:70px;right:30px" width="16" height="16"><circle cx="8" cy="8" r="5.5" fill="#7ED957" stroke="#23303A" stroke-width="2.5"/></svg>
+  <svg class="confetti" style="top:130px;right:78px" width="14" height="14"><rect x="2" y="2" width="9" height="9" rx="2" transform="rotate(-20 7 7)" fill="#A78BFA" stroke="#23303A" stroke-width="2.5"/></svg>
+
+  <div class="hdr">
+    <div class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#23303A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+    <div class="titles">
+      <div class="sub">Hành trình tạo ra</div>
+      <h1>Cốc giấy</h1>
+    </div>
+    <div class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#23303A" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M8.7 10.7l6.6-3.4M8.7 13.3l6.6 3.4"/></svg></div>
+  </div>
+
+  <div class="scroll">
+
+    <!-- hero -->
+    <div class="sticker hero">
+      <div class="avatar">🥤
+        <svg class="spark" width="22" height="22" viewBox="0 0 24 24"><path d="M12 2l2.2 6.4L21 11l-6.8 2.6L12 20l-2.2-6.4L3 11l6.8-2.6z" fill="#FFD644" stroke="#23303A" stroke-width="2.2" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <div class="nm">Cốc giấy</div>
+        <div class="chips">
+          <span class="chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#23303A" stroke-width="3"><path d="M9 3h6M10 3v5.5L4.6 18a2.4 2.4 0 002.1 3.5h10.6a2.4 2.4 0 002.1-3.5L14 8.5V3"/></svg>Giấy</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gap"></div>
+
+    <!-- badge banner -->
+    <div class="sticker badge-banner">
+      <svg class="burst" width="90" height="90" viewBox="0 0 24 24"><path d="M12 1l2.7 7.8L23 12l-8.3 3.2L12 23l-2.7-7.8L1 12l8.3-3.2z" fill="#fff"/></svg>
+      <div class="medal"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#23303A" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="9" r="5.5"/><path d="M8.5 13.5L7 21l5-2.6L17 21l-1.5-7.5"/></svg></div>
+      <div class="txt">Huy hiệu mới:<br/>Vật liệu Giấy!</div>
+    </div>
+
+    <div class="gap"></div>
+
+    <!-- history -->
+    <div class="sticker card-pad">
+      <div class="sec-head">
+        <div class="sec-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></div>
+        <b>Một chút lịch sử</b>
+      </div>
+      <div class="body-txt">Từ hơn một trăm năm trước, mọi người thường dùng chung một chiếc cốc kim loại ở nơi lấy nước công cộng. Vì dễ lây bệnh, người ta nghĩ ra chiếc cốc giấy dùng một lần để ai cũng có cốc sạch của riêng mình.</div>
+    </div>
+
+    <div class="gap"></div>
+
+    <button class="btn"><svg width="21" height="21" viewBox="0 0 24 24" fill="#fff" stroke="#23303A" stroke-width="2"><path d="M3 9v6h4l6 5V4L7 9H3z"/><path d="M17 8.5a5 5 0 010 7" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>Nghe kể chuyện</button>
+    <div class="txt-btn">Khám phá nhanh</div>
+
+    <div class="gap"></div>
+
+    <!-- progress -->
+    <div class="prog-label"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M12 2l2.2 6.4L21 11l-6.8 2.6L12 20l-2.2-6.4L3 11l6.8-2.6z" fill="#26C6DA" stroke="#23303A" stroke-width="2"/></svg>Con đã mở đủ 4 chặng!</div>
+    <div class="prog-track"><div class="prog-fill"></div></div>
+
+    <div style="height:18px"></div>
+
+    <!-- stage 1 -->
+    <div class="stage-row">
+      <div class="rail"><div class="stage-num">1</div><div class="line"></div></div>
+      <div class="sticker stage-card">
+        <div class="stage-img"><img src="img/paper_cup_stage0.png" alt=""/><span class="num-tag">CHẶNG 1</span></div>
+        <div class="stage-body">
+          <div class="stage-title-row">
+            <div class="stage-title">Bắt đầu từ cái cây 🌳</div>
+            <div class="speak"><svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><path d="M3 9v6h4l6 5V4L7 9H3z"/></svg></div>
+          </div>
+          <div class="kid-txt">Cốc giấy được làm từ gỗ của cây. Người ta trồng cả những khu rừng để lấy gỗ làm giấy.</div>
+          <div class="fun"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E08A00" stroke-width="2.6" stroke-linecap="round" style="flex:0 0 auto;margin-top:1px"><path d="M9 18h6M10 21h4M12 3a6.5 6.5 0 00-4 11.6c.7.6 1 1.4 1 2.4h6c0-1 .3-1.8 1-2.4A6.5 6.5 0 0012 3z"/></svg>Một cái cây lớn có thể làm ra hàng nghìn chiếc cốc giấy đấy!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- stage 2 (active) -->
+    <div class="stage-row">
+      <div class="rail"><div class="stage-num active">2</div><div class="line"></div></div>
+      <div class="sticker stage-card active">
+        <div class="stage-img"><img src="img/paper_cup_stage1.png" alt=""/><span class="num-tag" style="background:#26C6DA">ĐANG NGHE</span></div>
+        <div class="stage-body">
+          <div class="stage-title-row">
+            <div class="stage-title">Nấu gỗ thành bột giấy 🪵</div>
+            <div class="speak" style="background:#FF7A5A"><svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><rect x="5" y="5" width="14" height="14" rx="3"/></svg></div>
+          </div>
+          <div class="kid-txt">Gỗ được băm thành mảnh nhỏ rồi nấu với nước cho mềm nhũn ra, thành một thứ sền sệt gọi là bột giấy.</div>
+          <div class="fun"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E08A00" stroke-width="2.6" stroke-linecap="round" style="flex:0 0 auto;margin-top:1px"><path d="M9 18h6M10 21h4M12 3a6.5 6.5 0 00-4 11.6c.7.6 1 1.4 1 2.4h6c0-1 .3-1.8 1-2.4A6.5 6.5 0 0012 3z"/></svg>Bột giấy ướt nhèm trông giống như cháo loãng vậy!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- predict card (cổng công sức) -->
+    <div class="stage-row">
+      <div class="rail" style="width:42px"></div>
+      <div class="sticker predict" style="flex:1;margin-bottom:17px">
+        <div class="q">🤔 Gỗ băm nhỏ nấu với nước sẽ biến thành gì?</div>
+        <div class="opt correct"><span class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#23303A" stroke-width="4" stroke-linecap="round"><path d="M4 13l5 5L20 7"/></svg></span>Bột giấy sền sệt</div>
+        <div class="opt"><span class="dot"></span>Súp rau củ</div>
+        <div class="opt" style="margin-bottom:0"><span class="dot"></span>Cát mịn</div>
+      </div>
+    </div>
+
+    <!-- stage 3 -->
+    <div class="stage-row">
+      <div class="rail"><div class="stage-num">3</div><div class="line"></div></div>
+      <div class="sticker stage-card">
+        <div class="stage-img"><img src="img/paper_cup_stage2.png" alt=""/><span class="num-tag">CHẶNG 3</span></div>
+        <div class="stage-body">
+          <div class="stage-title-row">
+            <div class="stage-title">Cán thành tấm giấy 📄</div>
+            <div class="speak"><svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><path d="M3 9v6h4l6 5V4L7 9H3z"/></svg></div>
+          </div>
+          <div class="kid-txt">Bột giấy được trải mỏng, ép cho ráo nước rồi sấy khô, biến thành những cuộn giấy thật to.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- stage 4 -->
+    <div class="stage-row">
+      <div class="rail"><div class="stage-num">4</div></div>
+      <div class="sticker stage-card">
+        <div class="stage-img"><img src="img/paper_cup_stage3.png" alt=""/><span class="num-tag">CHẶNG 4</span></div>
+        <div class="stage-body">
+          <div class="stage-title-row">
+            <div class="stage-title">Cuộn thành cốc + tráng chống nước 🥤</div>
+            <div class="speak"><svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><path d="M3 9v6h4l6 5V4L7 9H3z"/></svg></div>
+          </div>
+          <div class="kid-txt">Giấy được cắt, cuộn lại thành hình cốc, rồi phủ một lớp màng mỏng bên trong để nước không thấm ra ngoài.</div>
+          <div class="fun"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E08A00" stroke-width="2.6" stroke-linecap="round" style="flex:0 0 auto;margin-top:1px"><path d="M9 18h6M10 21h4M12 3a6.5 6.5 0 00-4 11.6c.7.6 1 1.4 1 2.4h6c0-1 .3-1.8 1-2.4A6.5 6.5 0 0012 3z"/></svg>Nhờ lớp màng đó mà bạn rót nước vào cốc giấy không bị rỉ!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- experiment -->
+    <div class="sticker card-pad" style="background:linear-gradient(180deg,#E8FBEF,#D9F7C5)">
+      <div class="sec-head">
+        <div class="sec-ico" style="background:var(--mint)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#23303A" stroke-width="2.6" stroke-linecap="round"><path d="M9 3h6M10 3v5.5L4.6 18a2.4 2.4 0 002.1 3.5h10.6a2.4 2.4 0 002.1-3.5L14 8.5V3"/></svg></div>
+        <b>Thử nghiệm nhỏ tại nhà</b>
+      </div>
+      <div class="body-txt">Nhỏ một giọt nước vào mặt trong của cốc giấy, và một giọt lên tờ giấy thường — bên nào thấm, bên nào đọng thành giọt tròn?</div>
+    </div>
+
+    <div class="gap"></div>
+
+    <!-- video block -->
+    <div class="sticker video-blk">
+      <div class="video-frame">
+        <svg class="confetti" style="top:14px;left:16px" width="14" height="14"><circle cx="7" cy="7" r="4.5" fill="#26C6DA"/></svg>
+        <svg class="confetti" style="bottom:16px;right:20px" width="12" height="12"><rect width="9" height="9" x="1.5" y="1.5" rx="2" transform="rotate(15 6 6)" fill="#FFD644"/></svg>
+        <div class="play"><svg width="26" height="26" viewBox="0 0 24 24" style="margin-left:3px"><path d="M7 4.5v15L20 12z" fill="#23303A"/></svg></div>
+      </div>
+      <div class="video-cap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0E97AD" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="13" height="14" rx="3"/><path d="M15.5 10.5L21.5 7v10l-6-3.5"/></svg>Phim hành trình — cách tạo ra cốc giấy</div>
+    </div>
+
+    <div style="height:18px"></div>
+
+    <div class="trophy">🏆 Bạn vừa khám phá xong!</div>
+    <div class="gap"></div>
+
+    <button class="btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>Khám phá vật khác</button>
+    <div class="gap"></div>
+    <button class="btn grape"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M8.7 10.7l6.6-3.4M8.7 13.3l6.6 3.4"/></svg>Chia sẻ khám phá</button>
+    <div class="txt-btn">Xem bộ sưu tập</div>
+
+  </div>
+</div></div>
+
+<div style="background:#FFFDF7;border-radius:20px;padding:22px 28px;display:flex;flex-direction:column;gap:16px;align-items:center;max-width:520px">
+  <b style="font-family:'Baloo 2',sans-serif;font-size:16px;color:#23303A">3 phương án nút — bạn chọn 1</b>
+  <div style="display:flex;gap:30px;flex-wrap:wrap;justify-content:center;align-items:flex-end">
+    <div style="text-align:center">
+      <button style="display:flex;align-items:center;gap:8px;font-family:'Baloo 2',sans-serif;font-size:16px;font-weight:700;color:#fff;background:linear-gradient(180deg,#35D0E3,#1FB6CA);border:3px solid #23303A;border-radius:999px;padding:11px 24px;box-shadow:3px 4px 0 rgba(35,48,58,.9);cursor:pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>Khám phá vật khác</button>
+      <div style="font-size:12.5px;font-weight:800;color:#5A6E75;margin-top:10px">A — Pill sticker <span style="color:#0E97AD">(đang áp dụng)</span><br/>viền ink + shadow lệch</div>
+    </div>
+    <div style="text-align:center">
+      <button style="display:flex;align-items:center;gap:8px;font-family:'Baloo 2',sans-serif;font-size:16px;font-weight:700;color:#fff;background:#26C6DA;border:0;border-radius:18px;padding:12px 24px;box-shadow:0 5px 0 #0E97AD;cursor:pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>Khám phá vật khác</button>
+      <div style="font-size:12.5px;font-weight:800;color:#5A6E75;margin-top:10px">B — Jelly (kiểu Duolingo)<br/>không viền, đế màu đậm 5px</div>
+    </div>
+    <div style="text-align:center">
+      <button style="display:flex;align-items:center;gap:8px;font-family:'Baloo 2',sans-serif;font-size:16px;font-weight:700;color:#fff;background:linear-gradient(180deg,#35D0E3,#1FB6CA);border:3px solid #23303A;border-radius:16px;padding:11px 22px;box-shadow:3px 4px 0 rgba(35,48,58,.9);cursor:pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>Khám phá vật khác</button>
+      <div style="font-size:12.5px;font-weight:800;color:#5A6E75;margin-top:10px">C — Sticker vuông bo góc<br/>viền ink, góc 16px</div>
+    </div>
+  </div>
+</div>
+
+<p class="note">Token chính: outline thẻ <b>3.5px</b> / nút <b>3px</b> ink #23303A · offset solid shadow thẻ <b>5×6px</b> / nút <b>3×4px</b> · nền vàng <b>#FFE066</b> halftone + sọc chéo · font <b>Baloo 2</b> (tiêu đề) + <b>Nunito</b> (nội dung) · teal #26C6DA giữ làm màu thương hiệu.</p>
+</body>
+</html>

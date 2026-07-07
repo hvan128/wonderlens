@@ -78,7 +78,8 @@
 **Business rules:**
 - Hero content: load từ bundled assets (offline, < 2s)
 - AI live content: gọi `/api/generate-journey` + TTS qua `flutter_tts`
-- AI live content KHÔNG vào bộ sưu tập (chưa kiểm chứng)
+- AI live content vào khu "Khám phá thêm (AI)" của bộ sưu tập (nhãn AI);
+  KHÔNG tính level/huy hiệu (chưa kiểm chứng red-team)
 - Text mỗi stage ≤ 50 từ, ngôn ngữ trẻ 6–10
 - Giọng đọc tự chạy khi vào stage, không cần nhấn play
 
@@ -98,7 +99,9 @@
 **Contract out:** (cuối chain — không out)
 
 **Business rules:**
-- Chỉ hero objects được lưu vào bộ sưu tập
+- Hero objects → lưới chính + level/huy hiệu; vật AI-live → nhật ký
+  "Khám phá thêm (AI)" (lưu kèm nội dung journey để mở lại offline)
+- Level + huy hiệu CHỈ tính hero objects (AI content chưa red-team)
 - Mỗi object lưu 1 lần (dedup theo `objectId`)
 - Badge unlock ngay sau khi timeline xem xong
 - Confetti + haptics khi badge mở lần đầu

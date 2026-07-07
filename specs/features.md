@@ -92,7 +92,8 @@ Sau khám phá hero object → confetti + badge unlock → lưu vào bộ sưu t
 - [ ] Haptic feedback khi badge mở
 - [ ] Collection screen hiện tất cả vật đã khám phá
 - [ ] Data persist qua restart
-- [ ] Chỉ hero objects được lưu (không lưu AI live)
+- [ ] Hero objects vào lưới chính + huy hiệu/level; vật AI-live lưu vào khu
+      "Khám phá thêm (AI)" riêng (ảnh cutout thật + nhãn AI), KHÔNG tính level/huy hiệu
 - [ ] Dedup: cùng object khám phá nhiều lần → chỉ 1 entry
 
 ---
@@ -113,7 +114,8 @@ Vật không phải hero → gọi `/api/generate-journey` → sinh hành trình
 - [ ] Timeline hiện với nhãn "Khám phá vui (AI)" để phân biệt với curated
 - [ ] TTS on-device đọc nội dung sinh ra
 - [ ] Unknown object + offline → "Khám phá sau nhé!" (không crash)
-- [ ] AI output không vào bộ sưu tập
+- [ ] AI output lưu vào "Khám phá thêm (AI)" của bộ sưu tập (nhãn AI, mở lại
+      offline từ nội dung đã lưu) — không tính level/huy hiệu vì chưa red-team
 
 **⚠️ Blocker trước khi deploy thật:**  
 Guardrail hiện là prompt-only. Phải red-team output thật trước khi cho trẻ thật dùng.
@@ -143,6 +145,32 @@ Guardrail hiện là prompt-only. Phải red-team output thật trước khi cho
 Thay emoji placeholder bằng illustration thật cho mỗi stage. Trường `Stage.illustration` đã sẵn trong schema.
 
 **Why deferred:** Không ảnh hưởng demo. Cần design resource riêng (vẽ tay hoặc sinh sẵn).
+
+---
+
+## F-09: Timeline xem đơn giản (Supersedes effort gates)
+
+**Priority:** P1 | **Status:** Done | **Domain:** Timeline & Narration | **Ref:** [ADR-008](../adrs/ADR-008-effort-gated-discovery.md), [TASK-011](../../tasks/TASK-011-effort-gated-discovery.md)
+
+**Description:**
+Giữ timeline như một câu chuyện khoa học ngắn, trực quan: toàn bộ chặng hiện
+ngay theo thứ tự với ảnh, tiêu đề, chữ ngắn, fun fact và nút nghe lại từng
+chặng. Các dữ liệu `predict`, `action`, `experiment` vẫn parse để tương thích
+content cũ nhưng không render thành cổng chặn.
+
+**User story:**
+*Bé chụp bút bi. App hiện ngay các chặng "dầu mỏ → hạt nhựa → vỏ bút → cây bút",
+mỗi chặng có hình và câu ngắn để bé tự xem hoặc bấm nghe lại.*
+
+**Acceptance criteria:**
+- [ ] Toàn bộ chặng hiện ngay, không có chặng khoá.
+- [ ] Không render quiz/thí nghiệm/gesture gate trong timeline chính.
+- [ ] Nút nghe câu chuyện đọc toàn bộ hành trình.
+- [ ] Bé vẫn có thể nghe lại từng chặng.
+- [ ] Ghi bộ sưu tập khi trẻ xem tới cuối hoặc khi nội dung quá ngắn không cần cuộn.
+
+**Note:** Effort-gated flow cũ bị bỏ theo ADR-008 amendment 2026-07-05 vì tạo
+ma sát cao hơn giá trị học tập trong demo trẻ 6-10.
 
 ---
 
