@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WonderLens Promo — So sánh biến thể đồ hoạ</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0d1418; color: #e8f0f2; font: 15px/1.5 -apple-system, 'Segoe UI', sans-serif; padding: 28px 22px 60px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p.sub { color: #8fa5ac; margin: 0 0 26px; }
+  .row { margin-bottom: 34px; }
+  .row h2 { font-size: 17px; margin: 0 0 3px; display: flex; align-items: baseline; gap: 10px; }
+  .row h2 .tag { font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; background: #1c2c33; color: #7fd3e0; }
+  .row p.desc { color: #9db3ba; margin: 0 0 10px; font-size: 13.5px; }
+  .strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .cell { position: relative; }
+  .cell img { width: 100%; border-radius: 10px; display: block; border: 1px solid #22343c; cursor: zoom-in; transition: transform .12s ease; }
+  .cell img:hover { transform: scale(1.02); }
+  .cell .fr { position: absolute; top: 8px; left: 8px; font-size: 11px; font-weight: 700; background: rgba(13,20,24,.72); padding: 2px 8px; border-radius: 999px; color: #cfe6eb; pointer-events: none; }
+  /* lightbox */
+  .lb { display: none; position: fixed; inset: 0; background: rgba(5,9,11,.93); z-index: 10; align-items: center; justify-content: center; cursor: zoom-out; }
+  .lb:target { display: flex; }
+  .lb img { max-height: 94vh; max-width: 94vw; border-radius: 8px; }
+</style>
+</head>
+<body>
+<h1>WonderLens Promo — So sánh biến thể đồ hoạ</h1>
+<p class="sub">4 cảnh: <b>quét cốc</b> (f100) · <b>kết quả AI</b> (f230) · <b>timeline hành trình</b> (f340) · <b>logo</b> (f450). Bấm ảnh để phóng to.</p>
+
+<div id="rows"></div>
+
+<script>
+const FRAMES = [100, 230, 340, 450];
+const ROWS = [
+  { key: 'baseline', dir: '../out/baseline', title: 'Bản gốc', tag: 'baseline', desc: 'Flat design hiện tại — màu bệt, không gradient/bóng mềm.' },
+  { key: 'depth',  dir: 'depth/out',  title: 'Depth — Soft depth & light', tag: 'storybook 2.5D', desc: 'Giữ ngôn ngữ flat, thêm gradient có khối + rim light + bóng mềm + bokeh + grain phim. Ấm áp, hiền lành.' },
+  { key: 'glass',  dir: 'glass/out',  title: 'Glass — Liquid-glass Apple lens', tag: 'đồng bộ app', desc: 'Theo design system app thật: nền teal + blob, panel kính specular, lens khắc vạch. Cao cấp, high-tech.' },
+  { key: 'pop',    dir: 'pop/out',    title: 'Pop — Cartoon pop', tag: 'năng lượng cao', desc: 'Viền sticker đậm, màu bạo, halftone, bong bóng thoại, offset shadow. Vui nổ kiểu Duolingo/Nickelodeon.' },
+  { key: 'cinema', dir: 'cinema/out', title: 'Cinema — Cinematic glow', tag: 'trailer', desc: 'Đêm magic, spotlight lên cốc, neon scan + hạt sáng, god-rays, teal lạnh → vàng ấm. Phép màu công nghệ.' },
+];
+const rows = document.getElementById('rows');
+let lbs = '';
+for (const r of ROWS) {
+  const cells = FRAMES.map(f => {
+    const p = `${r.dir}/still-${String(f).padStart(3, '0')}.png`;
+    const id = `lb-${r.key}-${f}`;
+    lbs += `<a class="lb" href="#" id="${id}"><img loading="lazy" src="${p}"></a>`;
+    return `<div class="cell"><a href="#${id}"><img loading="lazy" src="${p}"></a><span class="fr">f${f}</span></div>`;
+  }).join('');
+  rows.insertAdjacentHTML('beforeend',
+    `<div class="row"><h2>${r.title} <span class="tag">${r.tag}</span></h2><p class="desc">${r.desc}</p><div class="strip">${cells}</div></div>`);
+}
+document.body.insertAdjacentHTML('beforeend', lbs);
+</script>
+</body>
+</html>

@@ -6,6 +6,11 @@
   "scripts": {
     "dev": "remotion studio",
     "render": "remotion render WonderLensPromo out/wonderlens-15s.mp4",
+    "render:orbit": "remotion render WonderLensOrbitPromo out/wonderlens-orbit-promo.mp4 --timeout=300000 --concurrency=1",
+    "render:cupwow": "remotion render WonderLensCupWowPromo out/wonderlens-cup-wow-promo.mp4 --timeout=300000 --concurrency=1",
+    "render:cupui": "remotion render WonderLensCupUiPromo out/wonderlens-cup-ui-promo.mp4 --timeout=300000 --concurrency=1",
+    "render:cupjourney": "remotion render WonderLensCupJourneyPromo out/wonderlens-cup-journey-promo.mp4 --timeout=300000 --concurrency=1",
+    "sora:cup-stages": "node scripts/generate-sora-cup-stage-videos.mjs",
     "still": "remotion still WonderLensPromo"
   },
   "dependencies": {

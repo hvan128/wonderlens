@@ -5,7 +5,7 @@ const TTS_MODEL = process.env.TTS_MODEL || 'gpt-4o-mini-tts';
 const TTS_VOICE = process.env.TTS_VOICE || 'nova';
 const TTS_INSTRUCTIONS =
   process.env.TTS_INSTRUCTIONS ||
-  'Đọc bằng tiếng Việt, giọng ấm áp và thân thiện, nói với nhịp độ NHANH GỌN, dứt khoát, rõ ràng và vui tươi như đang kể chuyện cho trẻ 6-10 tuổi.';
+  'Đọc bằng tiếng Việt, giọng ấm áp và thân thiện, nhịp độ nhanh gọn, rõ ràng, vui như đang dẫn một nhiệm vụ khoa học cho trẻ 6-10 tuổi.';
 
 // Tốc độ đọc cho tts-1 / tts-1-hd (0.25–4.0). gpt-4o-mini-tts điều tốc bằng
 // instructions chứ không nhận tham số speed.

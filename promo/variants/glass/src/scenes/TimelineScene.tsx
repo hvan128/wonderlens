@@ -1,0 +1,135 @@
+import { AbsoluteFill, useCurrentFrame, interpolate, Easing } from 'remotion';
+import { COLORS, withAlpha } from '../theme';
+import { HEADING, BODY } from '../fonts';
+import { BackgroundPaper } from '../components/BackgroundPaper';
+import { StageCard } from '../components/StageCard';
+import { Confetti } from '../components/Confetti';
+import { Badge } from '../components/Badge';
+import { IconCup } from '../components/Icons';
+import { CUP_STAGES, OBJECT_NAME } from '../content';
+
+const CARD_TOP = 356;
+const CARD_GAP = 300;
+const CARD_LEFT = 110;
+const SPINE_X = 256;
+
+const ease = (f: number, a: number, b: number) =>
+  interpolate(f, [a, b], [0, 1], {
+    easing: Easing.out(Easing.cubic),
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+
+/** Cảnh D: bên trong app — hành trình tạo ra cốc giấy + huy hiệu. */
+export const TimelineScene = () => {
+  const frame = useCurrentFrame();
+
+  const sceneOpacity = ease(frame, 0, 20);
+  const sceneScale = interpolate(frame, [0, 28], [1.06, 1], {
+    easing: Easing.out(Easing.cubic),
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+
+  const headerIn = ease(frame, 6, 28);
+  const badgeIn = ease(frame, 132, 152);
+  const spineGrow = ease(frame, 26, 120);
+
+  return (
+    <AbsoluteFill style={{ opacity: sceneOpacity }}>
+      <AbsoluteFill style={{ transform: `scale(${sceneScale})` }}>
+        <BackgroundPaper />
+
+        {/* header */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 150,
+            left: 0,
+            right: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 6,
+            opacity: headerIn,
+            transform: `translateY(${(1 - headerIn) * -24}px)`,
+          }}
+        >
+          <span
+            style={{
+              fontFamily: BODY,
+              fontWeight: 800,
+              fontSize: 30,
+              letterSpacing: 4,
+              color: withAlpha('#EAFBFE', 0.75),
+              textShadow: `0 1px 8px ${withAlpha('#02222B', 0.5)}`,
+            }}
+          >
+            HÀNH TRÌNH TẠO RA
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ filter: `drop-shadow(0 4px 10px ${withAlpha('#02222B', 0.4)})` }}>
+              <IconCup size={74} />
+            </div>
+            <span
+              style={{
+                fontFamily: HEADING,
+                fontWeight: 800,
+                fontSize: 86,
+                color: '#FFFFFF',
+                textShadow: `0 0 30px ${withAlpha(COLORS.teal, 0.65)}, 0 3px 14px ${withAlpha('#02222B', 0.5)}`,
+              }}
+            >
+              {OBJECT_NAME}
+            </span>
+          </div>
+        </div>
+
+        {/* đường timeline (spine) */}
+        <div
+          style={{
+            position: 'absolute',
+            left: SPINE_X - 4,
+            top: CARD_TOP + 134,
+            width: 8,
+            height: (3 * CARD_GAP) * spineGrow,
+            borderRadius: 4,
+            background: `linear-gradient(180deg, ${withAlpha('#7FE7F5', 0.95)} 0%, ${withAlpha(COLORS.teal, 0.75)} 100%)`,
+            boxShadow: `0 0 24px ${withAlpha(COLORS.teal, 0.8)}, 0 0 60px ${withAlpha(COLORS.teal, 0.35)}`,
+          }}
+        />
+
+        {/* 4 thẻ chặng */}
+        {CUP_STAGES.map((stage, i) => {
+          const start = 26 + i * 22;
+          const enter = ease(frame, start, start + 18);
+          return (
+            <div
+              key={stage.icon}
+              style={{ position: 'absolute', left: CARD_LEFT, top: CARD_TOP + i * CARD_GAP }}
+            >
+              <StageCard stage={stage} index={i} enter={enter} />
+            </div>
+          );
+        })}
+
+        {/* huy hiệu vật liệu */}
+        <div
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            top: 1632,
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          <Badge enter={badgeIn} />
+        </div>
+
+        {/* confetti khi mở huy hiệu */}
+        <Confetti originXRatio={0.5} originYRatio={0.74} startFrame={130} count={90} />
+      </AbsoluteFill>
+    </AbsoluteFill>
+  );
+};

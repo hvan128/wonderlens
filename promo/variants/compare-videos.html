@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WonderLens Promo — Pop vs Glass (video 16s)</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0d1418; color: #e8f0f2; font: 15px/1.5 -apple-system, 'Segoe UI', sans-serif; padding: 28px 22px 60px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p.sub { color: #8fa5ac; margin: 0 0 22px; }
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; max-width: 1300px; margin: 0 auto; }
+  .col h2 { font-size: 16px; margin: 0 0 2px; display: flex; align-items: baseline; gap: 8px; }
+  .col h2 .tag { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 999px; background: #1c2c33; color: #7fd3e0; }
+  .col p { color: #9db3ba; font-size: 13px; margin: 0 0 8px; }
+  video { width: 100%; border-radius: 14px; border: 1px solid #22343c; display: block; background: #000; }
+  .bar { max-width: 1300px; margin: 0 auto 14px; }
+  button { background: #26C6DA; color: #06282e; border: 0; font-weight: 700; font-size: 14px; padding: 9px 18px; border-radius: 999px; cursor: pointer; }
+  button:hover { filter: brightness(1.08); }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<h1>Pop vs Glass — video 16s đầy đủ</h1>
+<p class="sub">Bấm <b>Phát cả ba</b> để so cùng lúc (đã kèm bản gốc để đối chiếu).</p>
+<div class="bar"><button onclick="document.querySelectorAll('video').forEach(v => { v.currentTime = 0; v.play(); })">▶ Phát cả ba</button></div>
+<div class="grid">
+  <div class="col">
+    <h2>Bản gốc <span class="tag">baseline</span></h2>
+    <p>Flat design hiện tại.</p>
+    <video src="../out/wonderlens-15s.mp4" controls muted playsinline></video>
+  </div>
+  <div class="col">
+    <h2>Pop <span class="tag">cartoon pop</span></h2>
+    <p>Viền sticker, halftone, bong bóng thoại, squash & stretch.</p>
+    <video src="pop/out/wonderlens-pop.mp4" controls muted playsinline></video>
+  </div>
+  <div class="col">
+    <h2>Glass <span class="tag">liquid-glass</span></h2>
+    <p>Nền teal + blob, panel kính specular, đồng bộ app thật.</p>
+    <video src="glass/out/wonderlens-glass.mp4" controls muted playsinline></video>
+  </div>
+</div>
+</body>
+</html>
