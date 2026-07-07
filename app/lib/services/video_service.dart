@@ -17,15 +17,19 @@ class VideoService {
   static bool get available => AppSettings.useLiveApi;
 
   /// Sinh video cho [content]. Gọi [onProgress] (0..100) trong lúc render.
+  /// [isCancelled] trả true khi lời gọi bị bỏ (vd đổi sang vật khác) → dừng poll
+  /// và không tải về, tránh phí 4 phút + rác file cho job không còn cần.
   Future<File?> generate(
     ObjectContent content, {
     void Function(int progress)? onProgress,
+    bool Function()? isCancelled,
   }) async {
     if (!AppSettings.useLiveApi) return null;
+    bool cancelled() => isCancelled?.call() ?? false;
     try {
       onProgress?.call(0);
       final videoId = await _create(content);
-      if (videoId == null) return null;
+      if (videoId == null || cancelled()) return null;
 
       // Poll ~9s/lần, dừng theo wall-clock (~4 phút) để mạng chậm không kẹt lâu;
       // maxAttempts là chặn an toàn cứng.
@@ -33,12 +37,14 @@ class VideoService {
       const maxWall = Duration(minutes: 4);
       final clock = Stopwatch()..start();
       for (var i = 0; i < maxAttempts; i++) {
-        if (clock.elapsed > maxWall) break;
+        if (cancelled() || clock.elapsed > maxWall) return null;
         await Future<void>.delayed(const Duration(seconds: 9));
+        if (cancelled()) return null;
         final status = await _status(videoId);
         if (status == null) continue; // lỗi tạm thời → thử lại
         onProgress?.call(status.progress);
         if (status.state == 'completed') {
+          if (cancelled()) return null;
           return _download(videoId);
         }
         if (status.state == 'failed' || status.state == 'expired') {
