@@ -12,6 +12,7 @@ CustomTransitionPage<T> wonderPage<T>({
   required LocalKey key,
   required Widget child,
   SharedAxisTransitionType type = SharedAxisTransitionType.horizontal,
+  bool fade = false,
 }) {
   return CustomTransitionPage<T>(
     key: key,
@@ -19,7 +20,9 @@ CustomTransitionPage<T> wonderPage<T>({
     reverseTransitionDuration: WonderTokens.durBase,
     child: child,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      if (reduceMotionOf(context)) {
+      // fade = true (vd vào hành trình): chỉ cross-fade để nối liền mạch với màn
+      // tách-nền, không "trượt sang màn khác".
+      if (fade || reduceMotionOf(context)) {
         return FadeTransition(opacity: animation, child: child);
       }
       return SharedAxisTransition(

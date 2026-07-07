@@ -27,7 +27,12 @@ class SpeechService {
         '${_voiceVersion}_${t.hashCode.toUnsigned(32).toRadixString(16)}';
     return _inflight.putIfAbsent(
       key,
-      () => _synth(t, key).whenComplete(() => _inflight.remove(key)),
+      // Dùng BLOCK body, KHÔNG arrow: `Map.remove` trả về chính future đang lưu
+      // ở key; nếu để `=> _inflight.remove(key)` thì whenComplete tưởng callback
+      // trả Future và await chính nó → DEADLOCK (synthesize treo mãi, giọng câm).
+      () => _synth(t, key).whenComplete(() {
+        _inflight.remove(key);
+      }),
     );
   }
 

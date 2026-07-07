@@ -37,6 +37,138 @@ import Vision
         SubjectCutout.run(path: path, result: result)
       }
     }
+    // Liquid Glass native (iOS 26+) cho thanh tab — glass thật của hệ điều hành.
+    if let glassRegistrar = engineBridge.pluginRegistry.registrar(
+      forPlugin: "WonderLensLiquidGlass")
+    {
+      glassRegistrar.register(LiquidGlassFactory(), withId: "wonder_liquid_glass")
+    }
+    // Thanh tab NATIVE của iOS (UITabBar) — có Liquid Glass + chỉ báo chọn morph
+    // "giọt nước" mượt của iOS 26. Sự kiện chọn tab gửi về Flutter qua channel.
+    if let tabRegistrar = engineBridge.pluginRegistry.registrar(
+      forPlugin: "WonderLensTabBar")
+    {
+      tabRegistrar.register(
+        NativeTabBarFactory(messenger: tabRegistrar.messenger()),
+        withId: "wonder_native_tabbar")
+    }
+  }
+}
+
+/// PlatformView bọc **UITabBar native**. iOS 26 tự khoác Liquid Glass + hiệu ứng
+/// chọn tab morph mượt. Chạm tab → gửi index về Flutter qua `wonderlens/tabbar`;
+/// Flutter có thể set lại index bằng `setIndex`.
+final class NativeTabBarFactory: NSObject, FlutterPlatformViewFactory {
+  private let messenger: FlutterBinaryMessenger
+  init(messenger: FlutterBinaryMessenger) { self.messenger = messenger }
+  func create(
+    withFrame frame: CGRect,
+    viewIdentifier viewId: Int64,
+    arguments args: Any?
+  ) -> FlutterPlatformView {
+    NativeTabBarView(frame: frame, messenger: messenger, args: args)
+  }
+  func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
+    FlutterStandardMessageCodec.sharedInstance()
+  }
+}
+
+final class NativeTabBarView: NSObject, FlutterPlatformView, UITabBarDelegate {
+  private let bar = UITabBar()
+  private let channel: FlutterMethodChannel
+
+  init(frame: CGRect, messenger: FlutterBinaryMessenger, args: Any?) {
+    channel = FlutterMethodChannel(name: "wonderlens/tabbar", binaryMessenger: messenger)
+    super.init()
+    let dict = args as? [String: Any]
+    let labels = (dict?["labels"] as? [String]) ?? ["Trang chủ", "Rương", "Hồ sơ"]
+    let iconData = dict?["icons"] as? [FlutterStandardTypedData]
+    let fallback = ["house.fill", "square.grid.2x2.fill", "person.fill"]
+    // Icon lấy từ app (render sẵn bên Flutter) → template để native tự tô màu
+    // theo trạng thái chọn; thiếu thì rớt về SF Symbol.
+    let items: [UITabBarItem] = (0..<3).map { i in
+      var image: UIImage?
+      if let d = iconData, i < d.count {
+        // scale 3.0: PNG render ở pixel → coi là @3x (≈28pt) cho đúng cỡ tab bar
+        // (mặc định scale 1.0 sẽ coi px = pt → icon khổng lồ).
+        image = UIImage(data: d[i].data, scale: 3.0)?
+          .withRenderingMode(.alwaysTemplate)
+      }
+      if image == nil { image = UIImage(systemName: fallback[i]) }
+      let title = i < labels.count ? labels[i] : ""
+      return UITabBarItem(title: title, image: image, tag: i)
+    }
+    bar.setItems(items, animated: false)
+    var initial = 0
+    if let idx = dict?["index"] as? Int { initial = idx }
+    bar.selectedItem = items[min(max(initial, 0), items.count - 1)]
+    bar.delegate = self
+    channel.setMethodCallHandler { [weak self] call, result in
+      guard let self = self else { result(nil); return }
+      if call.method == "setIndex",
+        let i = call.arguments as? Int,
+        let items = self.bar.items, i >= 0, i < items.count
+      {
+        self.bar.selectedItem = items[i]
+        result(nil)
+      } else {
+        result(FlutterMethodNotImplemented)
+      }
+    }
+  }
+
+  func view() -> UIView { bar }
+
+  func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
+    channel.invokeMethod("onSelect", arguments: item.tag)
+  }
+}
+
+/// PlatformView: nền **Liquid Glass native của iOS 26** (`UIGlassEffect`), rớt
+/// về material blur trên iOS cũ. Không nhận chạm (các nút tab là widget Flutter
+/// phủ lên trên). Tự bo capsule theo chiều cao.
+final class LiquidGlassFactory: NSObject, FlutterPlatformViewFactory {
+  func create(
+    withFrame frame: CGRect,
+    viewIdentifier viewId: Int64,
+    arguments args: Any?
+  ) -> FlutterPlatformView {
+    LiquidGlassPlatformView(frame: frame)
+  }
+}
+
+final class LiquidGlassPlatformView: NSObject, FlutterPlatformView {
+  private let capsule: GlassCapsuleView
+  init(frame: CGRect) {
+    capsule = GlassCapsuleView(frame: frame)
+    super.init()
+  }
+  func view() -> UIView { capsule }
+}
+
+final class GlassCapsuleView: UIView {
+  private let effectView: UIVisualEffectView
+
+  override init(frame: CGRect) {
+    if #available(iOS 26.0, *) {
+      effectView = UIVisualEffectView(effect: UIGlassEffect())
+    } else {
+      effectView = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterial))
+    }
+    super.init(frame: frame)
+    backgroundColor = .clear
+    isUserInteractionEnabled = false
+    effectView.clipsToBounds = true
+    effectView.layer.cornerCurve = .continuous
+    addSubview(effectView)
+  }
+
+  required init?(coder: NSCoder) { fatalError("not implemented") }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    effectView.frame = bounds
+    effectView.layer.cornerRadius = min(bounds.width, bounds.height) / 2.0
   }
 }
 

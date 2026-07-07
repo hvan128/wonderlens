@@ -13,8 +13,8 @@ void main() {
     // Cho các Timer delay (animation vào màn + blob nền) kích hoạt hết.
     await tester.pump(const Duration(seconds: 2));
 
-    expect(find.text('WonderLens'), findsOneWidget);
+    // Thanh tab là UITabBar native (không phải Flutter widget) → chỉ kiểm phần
+    // Flutter của trang chủ.
     expect(find.text('Chạm vòng tròn để soi đồ vật'), findsOneWidget);
-    expect(find.text('Xem rương'), findsOneWidget);
   });
 }

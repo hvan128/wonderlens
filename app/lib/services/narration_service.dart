@@ -3,37 +3,31 @@ import 'dart:async';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:video_player/video_player.dart';
 
 import '../data/app_settings.dart';
 import 'speech_service.dart';
 
-/// Đọc to nội dung. Bật API thật → **giọng OpenAI** (MP3 cache từ proxy, phát
-/// qua **just_audio**). Dùng MỘT [AudioPlayer] tái sử dụng: đổi đoạn chỉ cần
-/// `setFilePath` (rất nhanh) thay vì tạo/huỷ controller mỗi đoạn như video_player
-/// → gần như không còn khoảng lặng đầu mỗi chặng (ADR-011). Offline/lỗi → rớt về
-/// **giọng máy** on-device (flutter_tts) để không bao giờ im. Lỗi nuốt best-effort.
+/// Đọc to nội dung. Bật API thật → **giọng OpenAI** (MP3 từ proxy, phát qua
+/// video_player — audio-only). Offline/lỗi → rớt về **giọng máy** (flutter_tts)
+/// để không bao giờ im. Lỗi nuốt best-effort — giọng là phụ trợ, không chặn flow.
+///
+/// Trước mỗi lần đọc set audio session sang **playback** (loa ngoài): camera để
+/// session ở `playAndRecord` (định tuyến ra loa tai) nên phải ép lại.
 class NarrationService {
   final FlutterTts _tts = FlutterTts();
   bool _ttsReady = false;
   final SpeechService _speech = SpeechService();
 
-  AudioPlayer? _player;
+  VideoPlayerController? _audio;
   Completer<void>? _playDone;
   bool _stopped = false;
-  bool _sessionReady = false;
 
-  /// Cấu hình iOS audio session sang **playback** (ra loa, bỏ qua công tắc im)
-  /// MỘT lần — thiếu bước này just_audio phát mà không có tiếng.
   Future<void> _ensureSession() async {
-    if (_sessionReady) return;
     try {
       final session = await AudioSession.instance;
-      // music() = category playback → ra LOA, to, bỏ qua công tắc im (speech()
-      // dùng mode spokenAudio có thể định tuyến khác). setActive để chắc chắn bật.
       await session.configure(const AudioSessionConfiguration.music());
       await session.setActive(true);
-      _sessionReady = true;
     } catch (e) {
       debugPrint('audio session config error: $e');
     }
@@ -52,6 +46,7 @@ class NarrationService {
   Future<void> speak(String text) async {
     _stopped = false;
     if (text.trim().isEmpty) return;
+    await _ensureSession(); // ép loa ngoài cho cả video_player lẫn giọng máy
     if (AppSettings.useLiveApi) {
       final ok = await _speakOpenAI(text);
       if (ok || _stopped) return;
@@ -65,30 +60,35 @@ class NarrationService {
     if (file == null) return false;
     if (_stopped) return true;
     try {
-      await _ensureSession();
-      final player = _player ??= AudioPlayer();
-      await player.setFilePath(file.path); // nhanh với file local đã cache
-      if (_stopped) return true;
-
-      // Hoàn tất khi phát HẾT (processingState.completed) HOẶC bị stop() (stop()
-      // complete _playDone) — khớp hợp đồng timeline dựa vào: speak() trả về
-      // giống nhau ở cả hai trường hợp.
+      await _disposeAudio();
+      final ctrl = VideoPlayerController.file(file);
+      _audio = ctrl;
+      await ctrl.initialize();
+      if (_stopped) {
+        await _disposeAudio();
+        return true;
+      }
       final done = Completer<void>();
       _playDone = done;
-      final sub = player.playerStateStream.listen((s) {
-        if (s.processingState == ProcessingState.completed &&
-            !done.isCompleted) {
-          done.complete();
-        }
-      });
-      unawaited(player.play());
+      void onTick() {
+        final v = ctrl.value;
+        final finished = v.isCompleted ||
+            v.hasError ||
+            (v.duration > Duration.zero && v.position >= v.duration);
+        if (finished && !done.isCompleted) done.complete();
+      }
+
+      ctrl.addListener(onTick);
+      await ctrl.play();
       await done.future;
-      await sub.cancel();
+      ctrl.removeListener(onTick);
       _playDone = null;
+      await _disposeAudio();
       return true;
     } catch (e) {
-      debugPrint('just_audio play error: $e');
+      debugPrint('openai tts play error: $e');
       _playDone = null;
+      await _disposeAudio();
       return false;
     }
   }
@@ -107,22 +107,35 @@ class NarrationService {
   Future<void> stop() async {
     _stopped = true;
     final done = _playDone;
-    _playDone = null;
     if (done != null && !done.isCompleted) done.complete();
+    _playDone = null;
     try {
-      await _player?.stop();
+      await _audio?.pause();
     } catch (_) {}
+    await _disposeAudio();
     try {
       await _tts.stop();
     } catch (_) {}
   }
 
+  Future<void> _disposeAudio() async {
+    final a = _audio;
+    _audio = null;
+    if (a != null) {
+      try {
+        await a.dispose();
+      } catch (_) {}
+    }
+  }
+
   void dispose() {
     _stopped = true;
     final done = _playDone;
-    _playDone = null;
     if (done != null && !done.isCompleted) done.complete();
-    _player?.dispose();
+    _playDone = null;
+    final audio = _audio;
+    _audio = null;
+    audio?.dispose();
     _tts.stop().catchError((_) {});
   }
 }

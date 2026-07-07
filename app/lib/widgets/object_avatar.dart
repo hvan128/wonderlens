@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 
@@ -107,9 +108,9 @@ class ObjectAvatar extends StatelessWidget {
       filterQuality: FilterQuality.medium,
       errorBuilder: (context, error, stack) => _emojiBadge(),
     );
-    // srcATop + trắng: giữ nguyên alpha ảnh nhưng nhuộm trắng toàn bộ → silhouette.
-    Widget whiteSilhouette() => ColorFiltered(
-      colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcATop),
+    // srcATop + màu: giữ nguyên alpha ảnh nhưng nhuộm đặc → silhouette theo hình.
+    Widget silhouette(Color c) => ColorFiltered(
+      colorFilter: ColorFilter.mode(c, BlendMode.srcATop),
       child: Image.file(
         file,
         width: inner,
@@ -118,22 +119,39 @@ class ObjectAvatar extends StatelessWidget {
         gaplessPlayback: true,
       ),
     );
+    // Bóng đổ mềm ôm theo hình (đặt sau lưng) → sticker nổi trên mọi nền, kể cả
+    // nền sáng đồng tông (viền trắng vẫn tách khỏi nền).
+    final Widget shadow = Transform.translate(
+      offset: Offset(0, border * 0.9),
+      child: Opacity(
+        opacity: 0.22,
+        child: ImageFiltered(
+          imageFilter: ImageFilter.blur(sigmaX: border, sigmaY: border),
+          child: silhouette(Colors.black),
+        ),
+      ),
+    );
 
-    return SizedBox(
-      width: diameter,
-      height: diameter,
-      child: Stack(
-        alignment: Alignment.center,
-        children: <Widget>[
-          for (var i = 0; i < 8; i++)
-            Transform.translate(
-              offset:
-                  Offset(math.cos(i * math.pi / 4), math.sin(i * math.pi / 4)) *
-                  border,
-              child: whiteSilhouette(),
-            ),
-          photo(),
-        ],
+    // RepaintBoundary: raster sticker (gồm cả blur bóng) MỘT lần → lúc kéo modal
+    // chỉ re-composite (transform), không blur lại mỗi frame ⇒ hết giật.
+    return RepaintBoundary(
+      child: SizedBox(
+        width: diameter,
+        height: diameter,
+        child: Stack(
+          alignment: Alignment.center,
+          children: <Widget>[
+            shadow,
+            for (var i = 0; i < 8; i++)
+              Transform.translate(
+                offset:
+                    Offset(math.cos(i * math.pi / 4), math.sin(i * math.pi / 4)) *
+                    border,
+                child: silhouette(Colors.white),
+              ),
+            photo(),
+          ],
+        ),
       ),
     );
   }

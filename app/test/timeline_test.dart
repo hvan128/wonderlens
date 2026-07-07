@@ -90,14 +90,19 @@ void main() {
     expect(find.text('Bé đã xem hết hành trình!'), findsOneWidget);
   });
 
-  testWidgets('chạm để bỏ qua sang chặng sau ngay', (tester) async {
+  testWidgets('vuốt lên để bỏ qua sang chặng sau ngay', (tester) async {
     final n = _FakeNarration();
     await tester.pumpWidget(host(n));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100)); // đang ở cover
     expect(find.text('Cốc giấy'), findsOneWidget);
 
-    await tester.tap(find.byType(TimelineScreen)); // chạm giữa màn = đi tiếp
+    // Vuốt LÊN giữa màn = đi tiếp (thay cho chạm).
+    await tester.fling(
+      find.byType(TimelineScreen),
+      const Offset(0, -250),
+      1000,
+    );
     await tester.pump(const Duration(milliseconds: 120));
     expect(find.text('Bắt đầu từ cái cây'), findsOneWidget); // đã sang chặng 1
     expect(n.stops, greaterThan(0)); // đã dừng giọng cover khi bỏ qua

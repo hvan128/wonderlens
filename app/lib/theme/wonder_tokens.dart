@@ -103,6 +103,9 @@ abstract final class WonderTokens {
   static const double iconBtnSize = 54;
   static const double scanSize = 96;
 
+  /// Chiều cao vùng bị thanh tab nổi che — các tab chừa padding đáy này.
+  static const double tabBarClearance = 96;
+
   // Panel nổi (GlassPanel).
   static const double panelMinWidth = 200;
   static const double panelMinHeight = 150;

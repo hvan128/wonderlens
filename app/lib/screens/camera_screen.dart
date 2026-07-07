@@ -12,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../app_route_observer.dart';
 import '../data/capture_store.dart';
 import '../data/content_repository.dart';
+import '../services/camera_warmup.dart';
 import '../models/object_content.dart';
 import '../services/generate_service.dart';
 import '../services/image_cutout.dart';
@@ -21,6 +22,7 @@ import '../services/recognition_service.dart';
 import '../services/segmentation_service.dart';
 import '../ui/ui.dart';
 import '../widgets/dev_panel.dart';
+import 'timeline_screen.dart';
 
 /// Màn khám phá tối giản kiểu CapWords: preview camera tràn màn hình + 4 góc
 /// ngắm, một dòng gợi ý và nút quét cầu vồng. Chụp xong → nền ảnh **tan biến**
@@ -34,12 +36,12 @@ class CameraScreen extends StatefulWidget {
 
 class _CameraScreenState extends State<CameraScreen>
     with WidgetsBindingObserver, RouteAware {
-  CameraController? _controller;
-  bool _initializing = true;
   bool _busy = false;
-  bool _permanentlyDenied = false;
-  bool _settingUp = false;
-  String? _error;
+
+  // Controller + trạng thái lỗi lấy từ CameraWarmup (đã nạp sẵn từ trang chủ).
+  CameraController? get _controller => CameraWarmup.instance.controller;
+  String? get _error => CameraWarmup.instance.error;
+  bool get _permanentlyDenied => CameraWarmup.instance.permanentlyDenied;
 
   String? _msgTitle;
   String? _msgBody;
@@ -50,6 +52,8 @@ class _CameraScreenState extends State<CameraScreen>
   // Kết quả AI: null lúc đang dựng → set khi xong để hiện tên + nút NGAY trên
   // màn tách-nền (không modal, không quay về camera).
   ObjectContent? _dissolveContent;
+  // Same-screen: ấn ✓ → bật hành trình NGAY trong overlay (không điều hướng).
+  bool _journeyStarted = false;
 
   final _service = RecognitionService();
   final _generate = GenerateService();
@@ -76,7 +80,8 @@ class _CameraScreenState extends State<CameraScreen>
     appRouteObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _narration.dispose();
-    _controller?.dispose();
+    // Rời màn camera → nhả AVCaptureSession (đừng giữ máy ảnh khi về home).
+    unawaited(CameraWarmup.instance.release());
     super.dispose();
   }
 
@@ -84,9 +89,7 @@ class _CameraScreenState extends State<CameraScreen>
   /// (tránh xung đột với video player) và để preview không đen khi quay lại.
   @override
   void didPushNext() {
-    final c = _controller;
-    _controller = null;
-    c?.dispose();
+    unawaited(CameraWarmup.instance.release());
     if (mounted) setState(() {});
   }
 
@@ -106,81 +109,28 @@ class _CameraScreenState extends State<CameraScreen>
   /// quay lại từ background (OS có thể thu hồi camera).
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    final controller = _controller;
-    if (controller == null || !controller.value.isInitialized) return;
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused) {
-      controller.dispose();
-      _controller = null;
+      if (CameraWarmup.instance.isReady) {
+        unawaited(CameraWarmup.instance.release());
+        if (mounted) setState(() {});
+      }
     } else if (state == AppLifecycleState.resumed) {
       _setup();
     }
   }
 
+  /// Đảm bảo camera sẵn sàng — thường đã được trang chủ nạp sẵn trong lúc vòng
+  /// khẩu độ xoay, nên hầu như trả về ngay. Idempotent.
   Future<void> _setup() async {
-    if (_settingUp) return;
-    _settingUp = true;
-    final old = _controller;
-    _controller = null;
-    await old?.dispose();
-    if (!mounted) {
-      _settingUp = false;
-      return;
-    }
-    setState(() {
-      _initializing = true;
-      _error = null;
-      _permanentlyDenied = false;
-    });
-    try {
-      final status = await Permission.camera.request();
-      if (!mounted) return;
-      if (!status.isGranted) {
-        setState(() {
-          _permanentlyDenied = status.isPermanentlyDenied;
-          _error = 'Bé mở quyền camera để soi đồ vật nhé!';
-          _initializing = false;
-        });
-        return;
-      }
-      final cameras = await availableCameras();
-      if (!mounted) return;
-      if (cameras.isEmpty) {
-        setState(() {
-          _error = 'Ống kính trên thiết bị đang đi vắng rồi.';
-          _initializing = false;
-        });
-        return;
-      }
-      final back = cameras.firstWhere(
-        (c) => c.lensDirection == CameraLensDirection.back,
-        orElse: () => cameras.first,
-      );
-      final controller = CameraController(
-        back,
-        ResolutionPreset.medium,
-        enableAudio: false,
-      );
-      await controller.initialize();
-      if (!mounted) {
-        await controller.dispose();
-        return;
-      }
-      setState(() {
-        _controller = controller;
-        _initializing = false;
-      });
-    } catch (e) {
-      debugPrint('Camera setup error: $e');
-      if (mounted) {
-        setState(() {
-          _error = 'Ống kính chưa sẵn sàng. Bé thử lại nhé!';
-          _initializing = false;
-        });
-      }
-    } finally {
-      _settingUp = false;
-    }
+    await CameraWarmup.instance.prewarm();
+    if (mounted) setState(() {});
+  }
+
+  /// Thử lại sau lỗi (quyền/thiết bị).
+  Future<void> _retry() async {
+    await CameraWarmup.instance.retry();
+    if (mounted) setState(() {});
   }
 
   Future<void> _capture() async {
@@ -380,16 +330,33 @@ class _CameraScreenState extends State<CameraScreen>
   }
 
   void _openJourney(ObjectContent content) {
-    // Kết quả đã hiện ngay trên màn tách-nền → mở thẳng hành trình khoa học.
-    // Overlay được dọn khi quay lại (didPopNext).
+    // SAME-SCREEN: không điều hướng — bật hành trình NGAY trong overlay. Cùng
+    // AnimatedSwitcher đang bọc _buildOverlay() sẽ crossfade CaptureDissolve →
+    // TimelineScreen (liền mạch, không "nhảy sang màn khác").
     WonderHaptics.primary();
     _narration.stop();
-    context.push('/timeline', extra: content);
+    // Nhả camera khi đang xem hành trình (overlay phủ kín preview).
+    unawaited(CameraWarmup.instance.release());
+    setState(() => _journeyStarted = true);
+  }
+
+  /// Đóng hành trình → quay lại chụp: dọn overlay + mở lại camera.
+  void _closeJourney() {
+    setState(() {
+      _journeyStarted = false;
+      _dissolveFrame = null;
+      _dissolveMask = null;
+      _dissolveContent = null;
+      _msgTitle = null;
+      _msgBody = null;
+    });
+    _setup();
   }
 
   @override
   Widget build(BuildContext context) {
-    final cameraReady = _controller != null && !_initializing && _error == null;
+    final cameraReady =
+        (_controller?.value.isInitialized ?? false) && _error == null;
     final overlayUp = _msgTitle != null || _dissolveFrame != null;
     final showChrome = cameraReady && !overlayUp;
 
@@ -465,6 +432,14 @@ class _CameraScreenState extends State<CameraScreen>
         onRetake: _dismissOverlay,
       );
     }
+    // Same-screen: hành trình nhúng thẳng (crossfade từ CaptureDissolve).
+    if (_journeyStarted && _dissolveContent != null) {
+      return TimelineScreen(
+        key: const ValueKey<String>('journey'),
+        content: _dissolveContent,
+        onExit: _closeJourney,
+      );
+    }
     final frame = _dissolveFrame;
     final mask = _dissolveMask;
     if (frame != null && mask != null) {
@@ -485,14 +460,8 @@ class _CameraScreenState extends State<CameraScreen>
   }
 
   Widget _buildPreview() {
-    if (_initializing) {
-      return const _StatusCard(
-        icon: PhosphorIconsDuotone.camera,
-        title: 'Đang bật ống kính…',
-        body: 'Mình đang chuẩn bị phòng thí nghiệm mini!',
-        spinner: true,
-      );
-    }
+    // Không còn card "Đang bật ống kính": máy ảnh đã nạp sẵn từ trang chủ
+    // trong lúc vòng khẩu độ xoay. Chưa kịp sẵn sàng → nền đen thoáng qua.
     if (_error != null) {
       final demoMode = !_permanentlyDenied && !kReleaseMode;
       return _StatusCard(
@@ -509,7 +478,7 @@ class _CameraScreenState extends State<CameraScreen>
         accent: demoMode ? WonderColors.grape : WonderColors.cyan,
         actionLabel: _permanentlyDenied ? 'Mở Cài đặt' : 'Thử lại ống kính',
         actionIcon: PhosphorIconsBold.arrowClockwise,
-        onAction: _permanentlyDenied ? openAppSettings : _setup,
+        onAction: _permanentlyDenied ? openAppSettings : _retry,
         secondaryActionLabel: demoMode ? 'Chạy demo mock' : null,
         secondaryActionIcon: PhosphorIconsFill.sparkle,
         onSecondaryAction: demoMode ? _runMockDiscovery : null,
@@ -663,7 +632,16 @@ class _BottomBar extends StatelessWidget {
               child: Stack(
                 alignment: Alignment.center,
                 children: <Widget>[
-                  Center(child: ScanRingButton(busy: busy, onTap: onScan)),
+                  Center(
+                    child: ApertureCaptureButton(
+                      size: WonderTokens.scanSize,
+                      busy: busy,
+                      showGuide: false,
+                      animateOnTap: false,
+                      onCapture: onScan,
+                      semanticLabel: 'Chụp để soi đồ vật',
+                    ),
+                  ),
                   Align(
                     alignment: Alignment.centerRight,
                     child: Padding(
@@ -907,7 +885,6 @@ class _StatusCard extends StatelessWidget {
   final String? kicker;
   final String title;
   final String body;
-  final bool spinner;
   final Color accent;
   final String? actionLabel;
   final IconData? actionIcon;
@@ -921,7 +898,6 @@ class _StatusCard extends StatelessWidget {
     this.kicker,
     required this.title,
     required this.body,
-    this.spinner = false,
     this.accent = WonderColors.cyan,
     this.actionLabel,
     this.actionIcon,
@@ -972,11 +948,7 @@ class _StatusCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       Center(
-                        child: _StatusOrb(
-                          icon: icon,
-                          accent: accent,
-                          spinner: spinner,
-                        ),
+                        child: _StatusOrb(icon: icon, accent: accent),
                       ),
                       if (kicker != null) ...<Widget>[
                         const SizedBox(height: 18),
@@ -1074,13 +1046,8 @@ class _StatusGlow extends StatelessWidget {
 class _StatusOrb extends StatelessWidget {
   final IconData icon;
   final Color accent;
-  final bool spinner;
 
-  const _StatusOrb({
-    required this.icon,
-    required this.accent,
-    required this.spinner,
-  });
+  const _StatusOrb({required this.icon, required this.accent});
 
   @override
   Widget build(BuildContext context) {
@@ -1109,16 +1076,6 @@ class _StatusOrb extends StatelessWidget {
               child: PhosphorIcon(icon, size: 42, color: Colors.white),
             ),
           ),
-          if (spinner)
-            const Positioned.fill(
-              child: Padding(
-                padding: EdgeInsets.all(7),
-                child: CircularProgressIndicator(
-                  strokeWidth: 3,
-                  valueColor: AlwaysStoppedAnimation<Color>(WonderColors.cyan),
-                ),
-              ),
-            ),
         ],
       ),
     );

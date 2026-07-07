@@ -129,10 +129,7 @@ class _TopBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 16, 0),
       child: Row(
         children: <Widget>[
-          GlassIconButton(
-            icon: PhosphorIconsBold.arrowLeft,
-            tone: GlassTone.light,
-            size: 44,
+          WonderBackButton(
             onTap: onClose,
             semanticLabel: 'Quay lại ống kính',
           ),

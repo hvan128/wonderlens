@@ -66,6 +66,7 @@ abstract final class PhosphorIconsBold {
   static const IconData history = IconsaxPlusLinear.clock;
   static const IconData grid = IconsaxPlusLinear.grid_2;
   static const IconData journey = IconsaxPlusLinear.routing_2;
+  static const IconData user = IconsaxPlusLinear.user;
 }
 
 /// Tầng ĐẶC (fill) — trạng thái, kết quả, điểm nhấn.
@@ -83,6 +84,7 @@ abstract final class PhosphorIconsFill {
   static const IconData question = IconsaxPlusBold.message_question;
   static const IconData sealCheck = IconsaxPlusBold.verify;
   static const IconData sparkle = IconsaxPlusBold.magic_star;
+  static const IconData star = IconsaxPlusBold.star;
   static const IconData speakerSimpleHigh = IconsaxPlusBold.volume_high;
   static const IconData trophy = IconsaxPlusBold.cup;
   static const IconData warningCircle = IconsaxPlusBold.warning_2;

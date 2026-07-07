@@ -64,14 +64,23 @@ class JourneyWarmup {
     if (_id == content.id) return;
     _id = content.id;
     _images = _imageSvc.generate(content);
-    _audio
-      ..clear()
-      ..addAll(journeyNarrationTexts(content).map(_speech.synthesize));
-    if ((content.video ?? '').trim().isNotEmpty) {
-      _video = Future<File?>.value(null); // hero có phim bundle → khỏi sinh
-    } else {
-      final gen = ++_videoGen; // huỷ job của vật trước nếu còn đang poll
-      _video = _videoSvc.generate(content, isCancelled: () => gen != _videoGen);
+    _audio.clear();
+    _warmAudio(content); // ưu tiên cover trước (xem _warmAudio)
+    // TẠM DỪNG gen video (theo yêu cầu): không sinh phim ngầm nữa.
+    _video = Future<File?>.value(null);
+  }
+
+  /// Pre-sinh giọng đọc. Câu ĐẦU (cover/lịch sử) dài nhất và cần đọc TRƯỚC →
+  /// synth RIÊNG để được full băng thông, xong sớm nhất (bớt trễ lúc mới vào
+  /// màn); các chặng synth SAU (song song) vì bé nghe cover xong mới tới.
+  Future<void> _warmAudio(ObjectContent content) async {
+    final texts = journeyNarrationTexts(content);
+    if (texts.isEmpty) return;
+    final first = _speech.synthesize(texts.first);
+    _audio.add(first);
+    await first;
+    for (final t in texts.skip(1)) {
+      _audio.add(_speech.synthesize(t));
     }
   }
 
