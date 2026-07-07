@@ -1,0 +1,43 @@
+<!-- @dsCard group="Thành phần" name="Bottom sheet" subtitle="GlassSheet — grabber, spring entrance, tối đa 86% màn hình" -->
+<meta charset="utf-8">
+<title>WonderLens — GlassSheet</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:#15233B;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px;gap:40px;flex-wrap:wrap;background:#E9EEF6}
+.frame{position:relative;width:340px;height:620px;border-radius:44px;overflow:hidden;box-shadow:0 24px 60px rgba(11,18,32,.3),0 0 0 8px #0B1220}
+.bg{position:absolute;inset:0;background:radial-gradient(300px 240px at 20% 10%,rgba(38,198,218,.2),transparent 60%),radial-gradient(280px 220px at 85% 25%,rgba(183,148,244,.2),transparent 60%),linear-gradient(180deg,#EAF8FB,#F4EFFF)}
+.scrim{position:absolute;inset:0;background:rgba(11,18,32,.28)}
+.sheet{position:absolute;left:0;right:0;bottom:0;height:62%;border-radius:34px 34px 0 0;border:1px solid rgba(255,255,255,.55);border-bottom:none;background:linear-gradient(180deg,rgba(255,255,255,.62),rgba(255,255,255,.5));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 -10px 30px rgba(11,18,32,.18);padding:10px 20px 20px;display:flex;flex-direction:column;gap:12px}
+.sheet::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.32),transparent 45%);pointer-events:none}
+.grab{width:44px;height:5px;border-radius:99px;background:rgba(84,101,127,.35);margin:2px auto 4px}
+h3{font-size:17px;font-weight:900;letter-spacing:.2px}
+p{font-size:15px;font-weight:700;line-height:1.45;color:#15233B}
+.opt{position:relative;display:flex;align-items:center;gap:10px;padding:13px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.7);background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(255,255,255,.62));font-size:15px;font-weight:800;box-shadow:0 4px 10px rgba(0,0,0,.05)}
+.opt .k{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#26C6DA,#38BDF8);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex:none}
+.opt.sel{border-color:rgba(38,198,218,.55);background:linear-gradient(180deg,rgba(38,198,218,.22),rgba(38,198,218,.12));color:#0E97AC}
+.btn{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;height:56px;margin-top:auto;border:1px solid rgba(255,255,255,.35);border-radius:20px;background:linear-gradient(135deg,#22D3EE,#26C6DA,#38BDF8);color:#fff;font-size:17px;font-weight:900;letter-spacing:.2px;box-shadow:0 0 22px 1px rgba(38,198,218,.45)}
+.btn::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 50%);pointer-events:none}
+.notes{max-width:280px;font-size:12.5px;font-weight:700;color:#54657F;line-height:1.6}
+.notes b{color:#15233B}
+</style>
+
+<div class="frame">
+  <div class="bg"></div>
+  <div class="scrim"></div>
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3>Đố em: chai nhựa cũ sẽ đi đâu tiếp?</h3>
+    <p>Chọn một đáp án rồi mình cùng kiểm tra nhé!</p>
+    <div class="opt"><span class="k">A</span>Ra bãi biển nằm chơi</div>
+    <div class="opt sel"><span class="k" style="background:linear-gradient(135deg,#0E97AC,#26C6DA)">B</span>Đến nhà máy tái chế</div>
+    <div class="opt"><span class="k">C</span>Bay lên mặt trăng</div>
+    <div class="btn">Kiểm tra đáp án</div>
+  </div>
+</div>
+
+<div class="notes">
+  <b>GlassSheet</b><br>
+  Bo góc trên radiusXl 34 · grabber 44×5 · vào bằng spring interactive (response 0.24, damping 0.86), bàn giao velocity khi kéo thả.<br><br>
+  Cao tối đa <b>86% màn hình</b>, luôn kéo xuống để đóng được.<br><br>
+  Gate dự đoán: <b>1 câu hỏi, 2–3 lựa chọn</b>, verb xúc giác — chạm, kéo, vuốt, nhấn giữ.
+</div>

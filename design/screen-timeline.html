@@ -1,0 +1,121 @@
+<!-- @dsCard group="Màn hình" name="Hành trình đồ vật" subtitle="Cutout thật · chặng kể chuyện · gate dự đoán" viewport="450x920" -->
+<meta charset="utf-8">
+<title>WonderLens — Màn Hành trình</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:#15233B;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;padding:28px;background:#E9EEF6}
+.phone{position:relative;margin:auto;flex:none;width:390px;height:844px;border-radius:54px;overflow:hidden;box-shadow:0 30px 80px rgba(11,18,32,.35),0 0 0 10px #0B1220,0 0 0 12px #33405c;
+background:radial-gradient(380px 300px at 12% 6%,rgba(38,198,218,.18),transparent 60%),radial-gradient(340px 280px at 92% 22%,rgba(183,148,244,.18),transparent 60%),radial-gradient(400px 320px at 50% 104%,rgba(94,234,212,.16),transparent 60%),linear-gradient(180deg,#EAF8FB,#F4EFFF)}
+.island{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:122px;height:34px;border-radius:20px;background:#0B1220;z-index:60}
+.status{position:absolute;top:16px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 30px;z-index:55;font-size:14px;font-weight:800;color:#15233B}
+.home{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:99px;background:rgba(11,18,32,.8);z-index:60}
+.content{position:absolute;inset:0;padding:64px 18px 0;display:flex;flex-direction:column;gap:12px}
+.glass{position:relative;border-radius:28px;border:1px solid rgba(255,255,255,.55);background:linear-gradient(180deg,rgba(255,255,255,.51),rgba(255,255,255,.46));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 8px 18px rgba(0,0,0,.1)}
+.glass::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.30),transparent 55%);pointer-events:none}
+.glass::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.2px;background:linear-gradient(135deg,rgba(255,255,255,.85),rgba(255,255,255,0) 55%,rgba(255,255,255,.21));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;pointer-events:none}
+.hdr{display:flex;align-items:center;gap:12px}
+.ibtn{position:relative;width:44px;height:44px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.55);background:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,.48));box-shadow:0 6px 14px rgba(0,0,0,.08);color:#15233B}
+.title{font-size:21px;font-weight:900;letter-spacing:.2px;flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 13px;border-radius:999px;font-size:13px;font-weight:800;flex:none}
+.chip.teal{color:#0E97AC;background:linear-gradient(180deg,rgba(38,198,218,.26),rgba(38,198,218,.16));border:1px solid rgba(38,198,218,.35)}
+.chip.sunny{color:#7A4E00;background:linear-gradient(180deg,rgba(255,200,87,.42),rgba(255,200,87,.26));border:1px solid rgba(255,200,87,.5)}
+.hero{display:flex;align-items:center;gap:14px;padding:12px 16px}
+.cut{position:relative;width:86px;flex:none;display:flex;justify-content:center}
+.cut::before{content:"";position:absolute;inset:-6px;border-radius:50%;background:radial-gradient(circle,rgba(94,234,212,.45),transparent 70%)}
+.hero .info{display:flex;flex-direction:column;gap:6px}
+.hero .cap{font-size:12.5px;font-weight:700;color:#54657F}
+.hero h2{font-size:17px;font-weight:900;letter-spacing:.2px}
+.dots{display:flex;align-items:center;justify-content:center;gap:0;padding:2px 8px}
+.dot{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center}
+.dot.done{background:#26C6DA;color:#fff}
+.dot.cur{background:conic-gradient(from 0deg,#26C6DA,#38BDF8,#B794F4,#FFC857,#5EEAD4,#26C6DA);padding:3px}
+.dot.cur i{display:block;width:100%;height:100%;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;font-weight:900;color:#0E97AC}
+.dot.todo{background:rgba(255,255,255,.75);border:1.5px solid rgba(84,101,127,.25);font-size:12px;font-weight:900;color:#8fa0b8}
+.link{width:22px;height:3px;border-radius:2px;background:rgba(38,198,218,.5);flex:none}
+.link.off{background:rgba(84,101,127,.2)}
+.stage{padding:14px;display:flex;flex-direction:column;gap:11px}
+.art{position:relative;height:158px;border-radius:20px;overflow:hidden;background:linear-gradient(180deg,#BEE9F5 0%,#D7F3EC 100%)}
+.stage h2{font-size:17px;font-weight:900;letter-spacing:.2px}
+.stage p{font-size:15px;font-weight:700;line-height:1.45}
+.fact{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;font-size:12.5px;font-weight:800;color:#7A4E00;background:linear-gradient(180deg,rgba(255,200,87,.42),rgba(255,200,87,.26));border:1px solid rgba(255,200,87,.5);align-self:flex-start}
+.act{display:flex;gap:12px;align-items:center}
+.ibtn.big{width:54px;height:54px}
+.btn{position:relative;flex:1;display:flex;align-items:center;justify-content:center;gap:8px;height:54px;border:1px solid rgba(255,255,255,.35);border-radius:20px;background:linear-gradient(135deg,#22D3EE,#26C6DA,#38BDF8);color:#fff;font-size:17px;font-weight:900;letter-spacing:.2px;box-shadow:0 0 22px 1px rgba(38,198,218,.45)}
+.btn::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 50%);pointer-events:none}
+.gate{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.gate h2{font-size:17px;font-weight:900}
+.opt{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.75);background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,.65));font-size:15px;font-weight:800}
+.opt .k{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#26C6DA,#38BDF8);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex:none}
+</style>
+
+<div class="phone">
+  <div class="island"></div>
+  <div class="status"><span>9:41</span><span style="display:flex;gap:6px;align-items:center">
+    <svg width="18" height="12" viewBox="0 0 18 12" fill="#15233B"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1" opacity=".35"/></svg>
+    <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="0" width="21" height="12" rx="4" fill="none" stroke="#15233B" stroke-opacity=".4"/><rect x="2" y="2" width="14" height="8" rx="2" fill="#15233B"/><rect x="22.5" y="3.5" width="2.5" height="5" rx="1" fill="#15233B" opacity=".4"/></svg>
+  </span></div>
+
+  <div class="content">
+    <div class="hdr">
+      <div class="ibtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+      <div class="title">Chai nhựa</div>
+      <span class="chip teal">Nhựa PET</span>
+    </div>
+
+    <div class="glass hero">
+      <div class="cut">
+        <svg width="62" height="134" viewBox="0 0 120 260" style="position:relative">
+          <defs><linearGradient id="pb2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#cdeef8"/><stop offset=".5" stop-color="#9adcef"/><stop offset="1" stop-color="#6cc5e2"/></linearGradient></defs>
+          <rect x="46" y="4" width="28" height="20" rx="5" fill="#1FA8C9"/>
+          <path d="M50 24h20v10c0 8 16 16 16 34v150c0 20-12 30-26 30s-26-10-26-30V68c0-18 16-26 16-34V24z" fill="url(#pb2)" opacity=".96"/>
+          <rect x="36" y="118" width="48" height="48" rx="8" fill="#fff" opacity=".9"/>
+          <path d="M42 60v130" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".55"/>
+        </svg>
+      </div>
+      <div class="info">
+        <span class="cap">Ảnh em chụp lúc 16:20</span>
+        <h2>Chai nhựa của em</h2>
+        <div style="display:flex;gap:8px"><span class="chip sunny" style="height:28px"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.2L21 9l-5 4.2 1.6 6.8L12 16.4 6.4 20 8 13.2 3 9l6.8-.8L12 2z"/></svg>+30 điểm</span></div>
+      </div>
+    </div>
+
+    <div class="dots">
+      <div class="dot done"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4.5 4.5L19 7"/></svg></div>
+      <div class="link"></div>
+      <div class="dot cur"><i>2</i></div>
+      <div class="link off"></div><div class="dot todo">3</div>
+      <div class="link off"></div><div class="dot todo">4</div>
+      <div class="link off"></div><div class="dot todo">5</div>
+    </div>
+
+    <div class="glass stage">
+      <div class="art">
+        <svg width="100%" height="100%" viewBox="0 0 354 158" preserveAspectRatio="xMidYMax slice">
+          <circle cx="300" cy="26" r="18" fill="#FFC857" opacity=".9"/>
+          <rect x="30" y="52" width="150" height="80" rx="8" fill="#7C8CF8" opacity=".85"/>
+          <rect x="52" y="70" width="24" height="20" rx="4" fill="#EAF8FB"/><rect x="90" y="70" width="24" height="20" rx="4" fill="#EAF8FB"/><rect x="128" y="70" width="24" height="20" rx="4" fill="#EAF8FB"/>
+          <rect x="58" y="24" width="18" height="34" rx="4" fill="#5b6ad1"/>
+          <circle cx="67" cy="16" r="8" fill="#fff" opacity=".8"/><circle cx="80" cy="8" r="6" fill="#fff" opacity=".6"/>
+          <rect x="20" y="132" width="314" height="10" rx="5" fill="#54657F" opacity=".5"/>
+          <g fill="#9adcef"><rect x="205" y="102" width="16" height="30" rx="6"/><rect x="240" y="102" width="16" height="30" rx="6"/><rect x="275" y="102" width="16" height="30" rx="6"/></g>
+          <g fill="#1FA8C9"><rect x="208" y="96" width="10" height="7" rx="2"/><rect x="243" y="96" width="10" height="7" rx="2"/><rect x="278" y="96" width="10" height="7" rx="2"/></g>
+        </svg>
+      </div>
+      <h2>Chặng 2 — Nhà máy thổi chai</h2>
+      <p>Hạt nhựa nhỏ như hạt gạo được nung chảy, rồi thổi phồng trong khuôn — phù! — thành hình chai em đang cầm.</p>
+      <span class="fact"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2z"/></svg>Thổi xong một chai chỉ mất 3 giây!</span>
+      <div class="act">
+        <div class="ibtn big"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19.5 6a9 9 0 0 1 0 12"/></svg></div>
+        <div class="btn">Chặng tiếp theo<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></div>
+      </div>
+    </div>
+
+    <div class="glass gate">
+      <h2>Đố em: chai cũ sẽ đi đâu tiếp?</h2>
+      <div class="opt"><span class="k">A</span>Ra bãi biển nằm chơi</div>
+      <div class="opt"><span class="k">B</span>Đến nhà máy tái chế</div>
+    </div>
+  </div>
+
+  <div class="home"></div>
+</div>

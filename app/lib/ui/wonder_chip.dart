@@ -25,16 +25,30 @@ class WonderChip extends StatelessWidget {
     final dark = tone == GlassTone.dark;
     final base = color ?? (dark ? Colors.white : WonderColors.teal);
     final fg = dark ? Colors.white : WonderColors.textStrong;
+    final br = BorderRadius.circular(WonderTokens.radiusSm);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: WonderTokens.space12,
-        vertical: 7,
+        vertical: WonderTokens.space8,
       ),
       decoration: BoxDecoration(
         color: base.withValues(alpha: dark ? 0.16 : 0.14),
-        borderRadius: BorderRadius.circular(WonderTokens.radiusSm),
+        borderRadius: br,
         border: Border.all(
           color: base.withValues(alpha: dark ? 0.28 : 0.30),
+        ),
+      ),
+      // Sheen mềm ở đỉnh — cùng chất kính với GlassSurface, không đổi layout.
+      foregroundDecoration: BoxDecoration(
+        borderRadius: br,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: <Color>[
+            Colors.white.withValues(alpha: 0.10),
+            Colors.transparent,
+          ],
+          stops: const <double>[0.0, 0.55],
         ),
       ),
       child: Row(
@@ -44,12 +58,13 @@ class WonderChip extends StatelessWidget {
             PhosphorIcon(icon!, size: 14, color: dark ? fg : base),
             const SizedBox(width: 6),
           ],
-          Text(
-            label,
-            style: TextStyle(
-              color: fg,
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
+          // Nhãn dài (vật liệu AI-live) cắt bớt thay vì tràn khỏi pill.
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: WonderType.label.copyWith(color: fg),
             ),
           ),
         ],

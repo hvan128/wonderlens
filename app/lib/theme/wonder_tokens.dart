@@ -17,6 +17,9 @@ abstract final class WonderColors {
   static const Color grape = Color(0xFFB794F4);
   static const Color mint = Color(0xFF5EEAD4);
   static const Color sunny = Color(0xFFFFC857);
+
+  /// Cam mật ong đậm — icon huy hiệu/cúp trên nền sáng (sunny quá nhạt cho icon).
+  static const Color sunnyDeep = Color(0xFFE08A00);
   static const Color coral = Color(0xFFFF8A65);
 
   // Nền tối cho kính đặt trên camera (chữ trắng luôn đọc rõ).
@@ -30,6 +33,9 @@ abstract final class WonderColors {
   // Nền sáng cho các màn nội dung.
   static const Color canvasTop = Color(0xFFEAF8FB);
   static const Color canvasBottom = Color(0xFFF4EFFF);
+
+  // Nền giấy ấm — fallback Scaffold cho màn chưa bọc WonderBackground.
+  static const Color paper = Color(0xFFFFFDF7);
 }
 
 /// Dải gradient dùng lại nhiều nơi.
@@ -56,6 +62,11 @@ abstract final class WonderGradients {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: <Color>[WonderColors.teal, WonderColors.sky],
+  );
+
+  /// Hành động phụ nổi bật (khoe/chia sẻ, AI) — tím mộng mơ.
+  static const LinearGradient secondary = LinearGradient(
+    colors: <Color>[WonderColors.grape, WonderColors.indigo],
   );
 
   /// Nền màn nội dung (sáng, dịu mắt cho trẻ đọc).
@@ -92,6 +103,13 @@ abstract final class WonderTokens {
   static const double iconBtnSize = 54;
   static const double scanSize = 96;
 
+  // Panel nổi (GlassPanel).
+  static const double panelMinWidth = 200;
+  static const double panelMinHeight = 150;
+  static const double panelBarHeight = 44;
+  static const double panelSnapMargin = 12;
+  static const double resizeHitSize = 28;
+
   // Thời lượng animation.
   static const Duration durFast = Duration(milliseconds: 160);
   static const Duration durBase = Duration(milliseconds: 280);
@@ -101,6 +119,81 @@ abstract final class WonderTokens {
   static const Curve curveStandard = Curves.easeOutCubic;
   static const Curve curveEmphasized = Curves.easeOutBack;
   static const Curve curveSpring = Curves.elasticOut;
+}
+
+/// Thang chữ dùng chung — KHÔNG set fontFamily để kế thừa font hệ thống mỗi
+/// Font BUNDLE offline (ADR-010): Baloo 2 cho display/title/brand — tròn mập,
+/// ấm áp; Nunito cho toàn bộ chữ còn lại — x-height cao, đọc tốt cho trẻ.
+/// Baloo 2 cố ý KHÔNG dùng ở cỡ nhỏ/weight nặng: dấu tiếng Việt chồng tầng
+/// (ắ, ậ, ỗ…) dễ dính nét ở 17px trở xuống. Không font tải mạng.
+/// Màu chữ áp tại call-site bằng `.copyWith(color: …)` theo [GlassTone].
+abstract final class WonderType {
+  static const String displayFamily = 'Baloo 2';
+  static const String bodyFamily = 'Nunito';
+
+  /// Số to / màn chào — điểm nhấn lớn nhất.
+  static const TextStyle display = TextStyle(
+    fontFamily: displayFamily,
+    fontSize: 28,
+    fontWeight: FontWeight.w800, // Baloo 2 tối đa 800
+    letterSpacing: 0.2,
+    height: 1.15, // Baloo cao ascender hơn — nới nhẹ để dấu không chạm dòng trên
+  );
+
+  /// Tiêu đề màn / header.
+  static const TextStyle title = TextStyle(
+    fontFamily: displayFamily,
+    fontSize: 21,
+    fontWeight: FontWeight.w800,
+    letterSpacing: 0.2,
+    height: 1.1,
+  );
+
+  /// Tiêu đề khối nội dung (card, chặng) — Nunito để giữ nét rõ ở cỡ 17.
+  static const TextStyle heading = TextStyle(
+    fontFamily: bodyFamily,
+    fontSize: 17,
+    fontWeight: FontWeight.w900,
+    letterSpacing: 0.2,
+    height: 1.2,
+  );
+
+  /// Chữ đọc chính cho trẻ — nâng 15→16 cho dễ đọc, thoáng dòng.
+  static const TextStyle body = TextStyle(
+    fontFamily: bodyFamily,
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+    height: 1.45,
+  );
+
+  /// Chữ trên nút chính.
+  static const TextStyle button = TextStyle(
+    fontFamily: bodyFamily,
+    fontSize: 17,
+    fontWeight: FontWeight.w900,
+    letterSpacing: 0.2,
+  );
+
+  /// Nút phụ dạng chữ.
+  static const TextStyle textButton = TextStyle(
+    fontFamily: bodyFamily,
+    fontSize: 15,
+    fontWeight: FontWeight.w800,
+  );
+
+  /// Nhãn chip / tag.
+  static const TextStyle label = TextStyle(
+    fontFamily: bodyFamily,
+    fontSize: 13,
+    fontWeight: FontWeight.w800,
+  );
+
+  /// Phụ đề / chú thích nhỏ.
+  static const TextStyle caption = TextStyle(
+    fontFamily: bodyFamily,
+    fontSize: 12.5,
+    fontWeight: FontWeight.w700,
+  );
 }
 
 /// Shadow dùng chung.

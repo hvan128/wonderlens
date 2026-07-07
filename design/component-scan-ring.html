@@ -1,0 +1,47 @@
+<!-- @dsCard group="Thành phần" name="Nút quét" subtitle="ScanRingButton — vòng cầu vồng xoay, trạng thái busy" -->
+<meta charset="utf-8">
+<title>WonderLens — ScanRingButton</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;align-items:center;justify-content:center;gap:72px;flex-wrap:wrap;padding:40px;
+background:radial-gradient(500px 380px at 80% 0%,rgba(56,189,248,.22),transparent 60%),radial-gradient(420px 360px at 10% 95%,rgba(183,148,244,.2),transparent 60%),linear-gradient(160deg,#1A2B3F,#0B1220);color:#fff}
+.demo{display:flex;flex-direction:column;align-items:center;gap:18px}
+.scan{position:relative;width:96px;height:96px}
+.ring,.glow{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,#26C6DA,#38BDF8,#B794F4,#FFC857,#5EEAD4,#26C6DA);animation:spin 7s linear infinite}
+.ring{-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 13px),#000 calc(100% - 12px));mask:radial-gradient(farthest-side,transparent calc(100% - 13px),#000 calc(100% - 12px))}
+.glow{-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 20px),#000 calc(100% - 19px));mask:radial-gradient(farthest-side,transparent calc(100% - 20px),#000 calc(100% - 19px));filter:blur(7px);opacity:.85}
+.busy .ring,.busy .glow{animation-duration:1.4s}
+.busy .glow{filter:blur(11px);opacity:1}
+.core{position:absolute;inset:21%;border-radius:50%;background:radial-gradient(circle at 50% 38%,#fff 55%,#EAF8FB);box-shadow:0 3px 10px rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;color:#0E97AC}
+.spinner{width:26px;height:26px;border-radius:50%;border:3px solid rgba(38,198,218,.2);border-top-color:#26C6DA;animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(1turn)}}
+h3{font-size:17px;font-weight:900;letter-spacing:.2px}
+.cap{font-size:12.5px;font-weight:700;color:rgba(255,255,255,.72);text-align:center;max-width:240px;line-height:1.5}
+</style>
+
+<div class="demo">
+  <div class="scan">
+    <div class="glow"></div><div class="ring"></div>
+    <div class="core"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></div>
+  </div>
+  <h3>Sẵn sàng</h3>
+  <div class="cap">96px · vòng ring gradient xoay 7s · glow mềm blur 7 · lõi đĩa trắng 58% với kính lúp tealDeep.</div>
+</div>
+
+<div class="demo busy">
+  <div class="scan">
+    <div class="glow"></div><div class="ring"></div>
+    <div class="core"><div class="spinner"></div></div>
+  </div>
+  <h3>Đang soi manh mối…</h3>
+  <div class="cap">Busy: xoay nhanh 1.4s, glow dày &amp; sáng hơn (blur 11), lõi hiện spinner teal.</div>
+</div>
+
+<div class="demo">
+  <div class="scan" style="transform:scale(.9)">
+    <div class="glow"></div><div class="ring"></div>
+    <div class="core"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></div>
+  </div>
+  <h3>Đang nhấn</h3>
+  <div class="cap">Nhấn: thu 0.9 (spring snappy) · nhả: nảy về 1.0 (spring bouncy, bàn giao velocity) · haptic mediumImpact.</div>
+</div>

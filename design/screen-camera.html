@@ -1,0 +1,88 @@
+<!-- @dsCard group="Màn hình" name="Camera" subtitle="Camera preview chiếm trọn · kính tối · ScanRingButton trung tâm" viewport="450x920" -->
+<meta charset="utf-8">
+<title>WonderLens — Màn Camera</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;padding:28px;background:#E9EEF6}
+.phone{position:relative;margin:auto;flex:none;width:390px;height:844px;border-radius:54px;overflow:hidden;box-shadow:0 30px 80px rgba(11,18,32,.35),0 0 0 10px #0B1220,0 0 0 12px #33405c;background:#0B1220}
+.island{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:122px;height:34px;border-radius:20px;background:#0B1220;z-index:60}
+.status{position:absolute;top:16px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 30px;z-index:55;font-size:14px;font-weight:800;color:#fff}
+.status svg{display:block}
+.home{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:99px;background:rgba(255,255,255,.85);z-index:60}
+/* "Camera preview": bàn học + chai nhựa */
+.preview{position:absolute;inset:0;background:
+ radial-gradient(340px 260px at 78% 14%,rgba(255,200,87,.22),transparent 60%),
+ radial-gradient(400px 320px at 8% 40%,rgba(56,189,248,.16),transparent 60%),
+ linear-gradient(180deg,#243850 0%,#16273c 52%,#0E1A2C 62%)}
+.desk{position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(180deg,#4A3728,#2B1F15)}
+.desk::before{content:"";position:absolute;left:0;right:0;top:0;height:10px;background:rgba(255,255,255,.08)}
+.obj{position:absolute;left:50%;bottom:26%;transform:translateX(-50%)}
+.shadow{position:absolute;left:50%;bottom:25%;transform:translateX(-50%);width:150px;height:22px;border-radius:50%;background:rgba(0,0,0,.4);filter:blur(8px)}
+/* Khung ngắm */
+.frame{position:absolute;left:50%;top:39%;transform:translate(-50%,-50%);width:230px;height:300px}
+.frame i{position:absolute;width:34px;height:34px;border:3.5px solid rgba(255,255,255,.75);display:block}
+.frame i:nth-child(1){left:0;top:0;border-right:none;border-bottom:none;border-radius:16px 0 0 0}
+.frame i:nth-child(2){right:0;top:0;border-left:none;border-bottom:none;border-radius:0 16px 0 0}
+.frame i:nth-child(3){left:0;bottom:0;border-right:none;border-top:none;border-radius:0 0 0 16px}
+.frame i:nth-child(4){right:0;bottom:0;border-left:none;border-top:none;border-radius:0 0 16px 0}
+/* Kính tối */
+.ibtn{position:relative;width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.24);background:linear-gradient(180deg,rgba(11,18,32,.39),rgba(11,18,32,.34));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 8px 18px rgba(0,0,0,.12);color:#fff}
+.ibtn::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.14),transparent 55%);pointer-events:none}
+.ibtn::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.2px;background:linear-gradient(135deg,rgba(255,255,255,.55),rgba(255,255,255,0) 55%,rgba(255,255,255,.14));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;pointer-events:none}
+.top{position:absolute;top:64px;left:20px;right:20px;display:flex;justify-content:space-between;z-index:40}
+.hint{position:absolute;left:50%;bottom:176px;transform:translateX(-50%);display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 16px;border-radius:999px;font-size:13px;font-weight:800;color:#fff;border:1px solid rgba(255,255,255,.24);background:linear-gradient(180deg,rgba(11,18,32,.55),rgba(11,18,32,.45));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);white-space:nowrap;z-index:40}
+.controls{position:absolute;left:0;right:0;bottom:40px;display:flex;align-items:center;justify-content:center;gap:44px;z-index:40}
+/* ScanRingButton */
+.scan{position:relative;width:96px;height:96px}
+.ring,.glow{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,#26C6DA,#38BDF8,#B794F4,#FFC857,#5EEAD4,#26C6DA);animation:spin 7s linear infinite}
+.ring{-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 13px),#000 calc(100% - 12px));mask:radial-gradient(farthest-side,transparent calc(100% - 13px),#000 calc(100% - 12px))}
+.glow{-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 20px),#000 calc(100% - 19px));mask:radial-gradient(farthest-side,transparent calc(100% - 20px),#000 calc(100% - 19px));filter:blur(7px);opacity:.85}
+.core{position:absolute;inset:21%;border-radius:50%;background:radial-gradient(circle at 50% 38%,#fff 55%,#EAF8FB);box-shadow:0 3px 10px rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;color:#0E97AC}
+@keyframes spin{to{transform:rotate(1turn)}}
+</style>
+
+<div class="phone">
+  <div class="preview">
+    <div class="desk"></div>
+    <div class="shadow"></div>
+    <div class="obj">
+      <svg width="130" height="282" viewBox="0 0 120 260">
+        <defs><linearGradient id="pb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#cdeef8"/><stop offset=".5" stop-color="#9adcef"/><stop offset="1" stop-color="#6cc5e2"/></linearGradient></defs>
+        <rect x="46" y="4" width="28" height="20" rx="5" fill="#1FA8C9"/>
+        <path d="M50 24h20v10c0 8 16 16 16 34v150c0 20-12 30-26 30s-26-10-26-30V68c0-18 16-26 16-34V24z" fill="url(#pb)" opacity=".96"/>
+        <rect x="36" y="118" width="48" height="48" rx="8" fill="#fff" opacity=".9"/>
+        <rect x="44" y="130" width="32" height="6" rx="3" fill="#26C6DA"/>
+        <rect x="44" y="142" width="24" height="6" rx="3" fill="#B0BEC5"/>
+        <path d="M42 60v130" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".55"/>
+      </svg>
+    </div>
+    <div class="frame"><i></i><i></i><i></i><i></i></div>
+  </div>
+
+  <div class="island"></div>
+  <div class="status">
+    <span>9:41</span>
+    <span style="display:flex;gap:6px;align-items:center">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="#fff"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1" opacity=".4"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="0" width="21" height="12" rx="4" fill="none" stroke="#fff" stroke-opacity=".5"/><rect x="2" y="2" width="14" height="8" rx="2" fill="#fff"/><rect x="22.5" y="3.5" width="2.5" height="5" rx="1" fill="#fff" opacity=".5"/></svg>
+    </span>
+  </div>
+
+  <div class="top">
+    <div class="ibtn"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></div>
+    <div class="ibtn"><svg width="23" height="23" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg></div>
+  </div>
+
+  <div class="hint"><svg width="15" height="15" viewBox="0 0 24 24" fill="#FFC857"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2zM19 15l.9 3.1L23 19l-3.1.9L19 23l-.9-3.1L15 19l3.1-.9L19 15z"/></svg>Soi vào một đồ vật quanh em</div>
+
+  <div class="controls">
+    <div class="ibtn"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="4"/><circle cx="9" cy="10" r="1.6" fill="currentColor" stroke="none"/><path d="M3 17l5-4.5 4 3.5 4-3 5 4"/></svg></div>
+    <div class="scan">
+      <div class="glow"></div><div class="ring"></div>
+      <div class="core"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></div>
+    </div>
+    <div class="ibtn"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.5-3.5M4 13a8 8 0 0 0 14.5 3.5"/><path d="M5.5 3.5v4h4M18.5 20.5v-4h-4"/></svg></div>
+  </div>
+
+  <div class="home"></div>
+</div>

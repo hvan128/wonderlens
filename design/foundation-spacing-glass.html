@@ -1,0 +1,56 @@
+<!-- @dsCard group="Nền tảng" name="Spacing · Bo góc · Chất kính" subtitle="WonderTokens — thang 4pt, radius, thông số liquid glass" -->
+<meta charset="utf-8">
+<title>WonderLens — Spacing &amp; Kính</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:#15233B;-webkit-font-smoothing:antialiased;min-height:100vh;padding:32px;
+background:radial-gradient(420px 320px at 12% 8%,rgba(38,198,218,.14),transparent 60%),radial-gradient(380px 300px at 88% 18%,rgba(183,148,244,.14),transparent 60%),linear-gradient(180deg,#EAF8FB,#F4EFFF)}
+h1{font-size:21px;font-weight:900;letter-spacing:.2px}
+.sub{font-size:12.5px;font-weight:700;color:#54657F;margin:4px 0 20px}
+h2{font-size:17px;font-weight:900;margin:26px 0 12px}
+.card{padding:18px 20px;border-radius:20px;background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.7);box-shadow:0 8px 18px rgba(0,0,0,.06)}
+.sp{display:flex;align-items:center;gap:14px;padding:4px 0}
+.sp .n{width:80px;font-size:13px;font-weight:800}
+.sp .bar{height:16px;border-radius:6px;background:linear-gradient(135deg,#22D3EE,#38BDF8)}
+.sp .v{font-size:12px;font-weight:700;color:#54657F}
+.rad{display:flex;gap:16px;flex-wrap:wrap}
+.rad .box{width:110px;height:84px;background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.7));border:1px solid rgba(14,151,172,.25);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.rad b{font-size:13px;font-weight:800}
+.rad span{font-size:12px;font-weight:700;color:#54657F}
+.specs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:8px}
+.specs .s{font-size:13px;font-weight:700;color:#54657F;line-height:1.5}
+.specs b{color:#15233B;font-weight:800}
+</style>
+<h1>Spacing · Bo góc · Chất kính</h1>
+<div class="sub">Nguồn sự thật: WonderTokens — thang 4pt, radius theo vai trò, thông số kính cố định.</div>
+
+<h2>Spacing (thang 4pt)</h2>
+<div class="card">
+  <div class="sp"><div class="n">space4</div><div class="bar" style="width:4px"></div><div class="v">4</div></div>
+  <div class="sp"><div class="n">space8</div><div class="bar" style="width:8px"></div><div class="v">8</div></div>
+  <div class="sp"><div class="n">space12</div><div class="bar" style="width:12px"></div><div class="v">12</div></div>
+  <div class="sp"><div class="n">space16</div><div class="bar" style="width:16px"></div><div class="v">16 — padding mặc định của kính</div></div>
+  <div class="sp"><div class="n">space20</div><div class="bar" style="width:20px"></div><div class="v">20</div></div>
+  <div class="sp"><div class="n">space24</div><div class="bar" style="width:24px"></div><div class="v">24 — padding ngang nút chính</div></div>
+  <div class="sp"><div class="n">space32</div><div class="bar" style="width:32px"></div><div class="v">32</div></div>
+  <div class="sp"><div class="n">space40</div><div class="bar" style="width:40px"></div><div class="v">40</div></div>
+</div>
+
+<h2>Bo góc</h2>
+<div class="rad">
+  <div class="box" style="border-radius:14px"><b>radiusSm</b><span>14 · chip, nhóm nhỏ</span></div>
+  <div class="box" style="border-radius:20px"><b>radiusMd</b><span>20 · nút chính</span></div>
+  <div class="box" style="border-radius:28px"><b>radiusLg</b><span>28 · card kính</span></div>
+  <div class="box" style="border-radius:34px"><b>radiusXl</b><span>34 · sheet, panel</span></div>
+  <div class="box" style="border-radius:999px;width:84px"><b>pill</b><span>999</span></div>
+</div>
+
+<h2>Thông số liquid glass</h2>
+<div class="card specs">
+  <div class="s"><b>Blur:</b> 18 (sigma) · mỗi bề mặt đúng <b>1 BackdropFilter</b>. Trên camera/video dùng <b>blur: 0</b> để giữ FPS.</div>
+  <div class="s"><b>Tint:</b> tối = ink α .39→.34 · sáng = trắng α .51→.46 (đỉnh đậm hơn đáy cho cảm giác khối kính).</div>
+  <div class="s"><b>Hairline:</b> trắng α .24 (tối) / .55 (sáng) · <b>Sheen:</b> vệt trắng mềm từ đỉnh, tắt ở 55%.</div>
+  <div class="s"><b>Specular rim:</b> stroke 1.2 gradient trên-trái sáng → dưới-phải mờ, cường độ .55 (tối) / .85 (sáng).</div>
+  <div class="s"><b>Shadow soft:</b> đen 12% · blur 18 · y 8. <b>Card:</b> tealDeep 12% · blur 28 · y 14. <b>Glow:</b> màu nhấn 50% · blur 22.</div>
+  <div class="s"><b>Cấm:</b> kính lồng trong kính · quá 3 bề mặt blur cùng lúc · saturation trên BackdropFilter.</div>
+</div>

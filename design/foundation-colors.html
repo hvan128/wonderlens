@@ -1,0 +1,54 @@
+<!-- @dsCard group="Nền tảng" name="Màu sắc & Gradient" subtitle="WonderColors · WonderGradients" -->
+<meta charset="utf-8">
+<title>WonderLens — Màu sắc</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:#15233B;-webkit-font-smoothing:antialiased;min-height:100vh;padding:32px;
+background:radial-gradient(420px 320px at 12% 8%,rgba(38,198,218,.16),transparent 60%),radial-gradient(380px 300px at 88% 18%,rgba(183,148,244,.16),transparent 60%),radial-gradient(460px 340px at 50% 104%,rgba(94,234,212,.15),transparent 60%),linear-gradient(180deg,#EAF8FB,#F4EFFF)}
+h1{font-size:21px;font-weight:900;letter-spacing:.2px}
+.sub{font-size:12.5px;font-weight:700;color:#54657F;margin:4px 0 20px}
+h2{font-size:17px;font-weight:900;margin:28px 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.sw{border-radius:20px;overflow:hidden;background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.7);box-shadow:0 8px 18px rgba(0,0,0,.08)}
+.sw .c{height:64px}
+.sw .m{padding:10px 12px}
+.sw .n{font-size:13px;font-weight:800}
+.sw .h{font-size:12px;font-weight:700;color:#54657F;font-variant-numeric:tabular-nums}
+.sw .r{font-size:11.5px;font-weight:700;color:#54657F;margin-top:2px}
+.gr{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.gcard{border-radius:20px;background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.7);box-shadow:0 8px 18px rgba(0,0,0,.08);padding:14px;min-width:220px}
+.gcard .bar{height:56px;border-radius:14px}
+.gcard .n{font-size:13px;font-weight:800;margin-top:10px}
+.gcard .h{font-size:11.5px;font-weight:700;color:#54657F;margin-top:2px}
+.ring{width:96px;height:96px;border-radius:50%;margin:0 auto;background:conic-gradient(from 0deg,#26C6DA,#38BDF8,#B794F4,#FFC857,#5EEAD4,#26C6DA);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 13px),#000 calc(100% - 12px));mask:radial-gradient(farthest-side,transparent calc(100% - 13px),#000 calc(100% - 12px))}
+</style>
+<h1>Màu sắc &amp; Gradient</h1>
+<div class="sub">Nguồn sự thật: app/lib/theme/wonder_tokens.dart — mọi màu trong UI lấy từ đây.</div>
+
+<h2>Bảng màu thương hiệu</h2>
+<div class="grid">
+  <div class="sw"><div class="c" style="background:#26C6DA"></div><div class="m"><div class="n">teal</div><div class="h">#26C6DA</div><div class="r">Chủ đạo · năng lượng quét · active</div></div></div>
+  <div class="sw"><div class="c" style="background:#0E97AC"></div><div class="m"><div class="n">tealDeep</div><div class="h">#0E97AC</div><div class="r">Icon, chữ nhấn, chiều sâu</div></div></div>
+  <div class="sw"><div class="c" style="background:#22D3EE"></div><div class="m"><div class="n">cyan</div><div class="h">#22D3EE</div><div class="r">Đầu gradient CTA</div></div></div>
+  <div class="sw"><div class="c" style="background:#38BDF8"></div><div class="m"><div class="n">sky</div><div class="h">#38BDF8</div><div class="r">Cuối gradient CTA · ring</div></div></div>
+  <div class="sw"><div class="c" style="background:#7C8CF8"></div><div class="m"><div class="n">indigo</div><div class="h">#7C8CF8</div><div class="r">Nhấn lạnh thứ cấp</div></div></div>
+  <div class="sw"><div class="c" style="background:#B794F4"></div><div class="m"><div class="n">grape</div><div class="h">#B794F4</div><div class="r">Kỳ diệu · phần thưởng</div></div></div>
+  <div class="sw"><div class="c" style="background:#5EEAD4"></div><div class="m"><div class="n">mint</div><div class="h">#5EEAD4</div><div class="r">Thành công · khám phá an toàn</div></div></div>
+  <div class="sw"><div class="c" style="background:#FFC857"></div><div class="m"><div class="n">sunny</div><div class="h">#FFC857</div><div class="r">Huy hiệu · đèn pin bật</div></div></div>
+  <div class="sw"><div class="c" style="background:#FF8A65"></div><div class="m"><div class="n">coral</div><div class="h">#FF8A65</div><div class="r">Chú ý ấm · cảnh báo nhẹ</div></div></div>
+  <div class="sw"><div class="c" style="background:#0B1220"></div><div class="m"><div class="n">ink</div><div class="h">#0B1220</div><div class="r">Kính tối trên camera/video</div></div></div>
+  <div class="sw"><div class="c" style="background:#14203A"></div><div class="m"><div class="n">inkSoft</div><div class="h">#14203A</div><div class="r">Kính tối dịu, bề mặt phụ</div></div></div>
+  <div class="sw"><div class="c" style="background:#15233B"></div><div class="m"><div class="n">textStrong</div><div class="h">#15233B</div><div class="r">Chữ chính trên nền sáng</div></div></div>
+  <div class="sw"><div class="c" style="background:#54657F"></div><div class="m"><div class="n">textSoft</div><div class="h">#54657F</div><div class="r">Chữ phụ trên nền sáng</div></div></div>
+  <div class="sw"><div class="c" style="background:#EAF8FB"></div><div class="m"><div class="n">canvasTop</div><div class="h">#EAF8FB</div><div class="r">Đỉnh nền màn nội dung</div></div></div>
+  <div class="sw"><div class="c" style="background:#F4EFFF"></div><div class="m"><div class="n">canvasBottom</div><div class="h">#F4EFFF</div><div class="r">Đáy nền màn nội dung</div></div></div>
+  <div class="sw"><div class="c" style="background:#FFFDF7"></div><div class="m"><div class="n">paper</div><div class="h">#FFFDF7</div><div class="r">Nền giấy ấm — fallback</div></div></div>
+</div>
+
+<h2>Gradient</h2>
+<div class="gr">
+  <div class="gcard" style="flex:1;min-width:260px"><div class="bar" style="background:linear-gradient(135deg,#22D3EE,#26C6DA,#38BDF8)"></div><div class="n">WonderGradients.cta</div><div class="h">cyan → teal → sky · nút hành động chính</div></div>
+  <div class="gcard" style="flex:1;min-width:260px"><div class="bar" style="background:linear-gradient(135deg,#26C6DA,#38BDF8)"></div><div class="n">WonderGradients.badge</div><div class="h">teal → sky · huy hiệu, điểm nhấn tròn</div></div>
+  <div class="gcard" style="flex:1;min-width:260px"><div class="bar" style="background:linear-gradient(180deg,#EAF8FB,#F4EFFF);border:1px solid rgba(0,0,0,.05)"></div><div class="n">WonderGradients.canvas</div><div class="h">canvasTop → canvasBottom · nền màn nội dung</div></div>
+  <div class="gcard" style="min-width:180px"><div class="ring"></div><div class="n" style="text-align:center">WonderGradients.ring</div><div class="h" style="text-align:center">teal · sky · grape · sunny · mint · teal</div></div>
+</div>

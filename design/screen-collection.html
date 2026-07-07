@@ -1,0 +1,115 @@
+<!-- @dsCard group="Màn hình" name="Bộ sưu tập" subtitle="Tile hero · cấp độ & huy hiệu · khu Khám phá thêm (AI)" viewport="450x920" -->
+<meta charset="utf-8">
+<title>WonderLens — Màn Bộ sưu tập</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:#15233B;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;padding:28px;background:#E9EEF6}
+.phone{position:relative;margin:auto;flex:none;width:390px;height:844px;border-radius:54px;overflow:hidden;box-shadow:0 30px 80px rgba(11,18,32,.35),0 0 0 10px #0B1220,0 0 0 12px #33405c;
+background:radial-gradient(380px 300px at 12% 6%,rgba(38,198,218,.18),transparent 60%),radial-gradient(340px 280px at 92% 22%,rgba(255,200,87,.16),transparent 60%),radial-gradient(400px 320px at 50% 104%,rgba(183,148,244,.16),transparent 60%),linear-gradient(180deg,#EAF8FB,#F4EFFF)}
+.island{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:122px;height:34px;border-radius:20px;background:#0B1220;z-index:60}
+.status{position:absolute;top:16px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 30px;z-index:55;font-size:14px;font-weight:800;color:#15233B}
+.home{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:99px;background:rgba(11,18,32,.8);z-index:60}
+.content{position:absolute;inset:0;padding:64px 18px 0;display:flex;flex-direction:column;gap:12px}
+.glass{position:relative;border-radius:28px;border:1px solid rgba(255,255,255,.55);background:linear-gradient(180deg,rgba(255,255,255,.51),rgba(255,255,255,.46));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 8px 18px rgba(0,0,0,.1)}
+.glass::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.30),transparent 55%);pointer-events:none}
+.glass::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.2px;background:linear-gradient(135deg,rgba(255,255,255,.85),rgba(255,255,255,0) 55%,rgba(255,255,255,.21));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;pointer-events:none}
+.hdr{display:flex;align-items:center;justify-content:space-between}
+.title{font-size:21px;font-weight:900;letter-spacing:.2px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 13px;border-radius:999px;font-size:13px;font-weight:800}
+.chip.sunny{color:#7A4E00;background:linear-gradient(180deg,rgba(255,200,87,.42),rgba(255,200,87,.26));border:1px solid rgba(255,200,87,.5)}
+.chip.grape{color:#7A4FC4;background:linear-gradient(180deg,rgba(183,148,244,.3),rgba(183,148,244,.18));border:1px solid rgba(183,148,244,.4)}
+.prog{padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.prog .t{font-size:13px;font-weight:800}
+.prog .row{display:flex;align-items:center;gap:10px}
+.bar{flex:1;height:12px;border-radius:99px;background:rgba(84,101,127,.15);overflow:hidden}
+.bar i{display:block;height:100%;width:70%;border-radius:99px;background:linear-gradient(90deg,#22D3EE,#26C6DA,#38BDF8)}
+.prog .n{font-size:12.5px;font-weight:800;color:#0E97AC;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{padding:8px 10px 10px;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center}
+.ph{width:100%;height:86px;border-radius:20px;display:flex;align-items:center;justify-content:center}
+.tile h3{font-size:15px;font-weight:900}
+.tile .chip{height:26px;padding:0 11px;font-size:12px}
+.chip.teal{color:#0E97AC;background:linear-gradient(180deg,rgba(38,198,218,.26),rgba(38,198,218,.16));border:1px solid rgba(38,198,218,.35)}
+.chip.plain{color:#54657F;background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(255,255,255,.6));border:1px solid rgba(255,255,255,.8)}
+.chip.mint{color:#0B7A6A;background:linear-gradient(180deg,rgba(94,234,212,.36),rgba(94,234,212,.2));border:1px solid rgba(94,234,212,.5)}
+.tile.lock{border-style:dashed;border-color:rgba(84,101,127,.3);background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,.24));box-shadow:none}
+.tile.lock::after,.tile.lock::before{display:none}
+.tile.lock .ph{color:#8fa0b8}
+.tile.lock h3{color:#8fa0b8}
+.sect{display:flex;align-items:center;gap:8px;margin-top:2px}
+.sect h2{font-size:16px;white-space:nowrap;font-weight:900;color:#7A4FC4}
+.sect .cap{font-size:12px;font-weight:700;color:#54657F;margin-left:auto}
+.jrow{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:22px}
+.jrow .ic{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 45% 35%,rgba(183,148,244,.35),rgba(183,148,244,.15));display:flex;align-items:center;justify-content:center;flex:none}
+.jrow .tx{flex:1}
+.jrow h3{font-size:15px;font-weight:900}
+.jrow .cap{font-size:12px;font-weight:700;color:#54657F}
+</style>
+
+<div class="phone">
+  <div class="island"></div>
+  <div class="status"><span>9:41</span><span style="display:flex;gap:6px;align-items:center">
+    <svg width="18" height="12" viewBox="0 0 18 12" fill="#15233B"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1" opacity=".35"/></svg>
+    <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="0" width="21" height="12" rx="4" fill="none" stroke="#15233B" stroke-opacity=".4"/><rect x="2" y="2" width="14" height="8" rx="2" fill="#15233B"/><rect x="22.5" y="3.5" width="2.5" height="5" rx="1" fill="#15233B" opacity=".4"/></svg>
+  </span></div>
+
+  <div class="content">
+    <div class="hdr">
+      <div class="title">Bộ sưu tập</div>
+      <span class="chip sunny"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.2L21 9l-5 4.2 1.6 6.8L12 16.4 6.4 20 8 13.2 3 9l6.8-.8L12 2z"/></svg>Cấp 3 · Nhà thám hiểm</span>
+    </div>
+
+    <div class="glass prog">
+      <div class="t">Còn 2 món nữa là được huy hiệu Nhà máy!</div>
+      <div class="row"><div class="bar"><i></i></div><span class="n">12/16</span></div>
+    </div>
+
+    <div class="grid">
+      <div class="glass tile">
+        <div class="ph" style="background:radial-gradient(circle at 50% 42%,rgba(56,189,248,.28),rgba(56,189,248,.08))">
+          <svg width="36" height="76" viewBox="0 0 120 260"><defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#cdeef8"/><stop offset=".5" stop-color="#9adcef"/><stop offset="1" stop-color="#6cc5e2"/></linearGradient></defs><rect x="46" y="4" width="28" height="20" rx="5" fill="#1FA8C9"/><path d="M50 24h20v10c0 8 16 16 16 34v150c0 20-12 30-26 30s-26-10-26-30V68c0-18 16-26 16-34V24z" fill="url(#b)"/><path d="M42 60v130" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".55"/></svg>
+        </div>
+        <h3>Chai nhựa</h3><span class="chip teal">Nhựa PET</span>
+      </div>
+      <div class="glass tile">
+        <div class="ph" style="background:radial-gradient(circle at 50% 42%,rgba(255,200,87,.3),rgba(255,200,87,.08))">
+          <svg width="31" height="76" viewBox="0 0 80 200"><path d="M30 42 40 10l10 32z" fill="#E8C79A"/><path d="M37 20 40 10l3 10z" fill="#414b59"/><rect x="30" y="42" width="20" height="118" fill="#FFC857"/><rect x="30" y="42" width="6" height="118" fill="#F2AE2E"/><rect x="30" y="160" width="20" height="8" fill="#c3ccda"/><rect x="30" y="168" width="20" height="18" rx="6" fill="#FF8A65"/></svg>
+        </div>
+        <h3>Bút chì</h3><span class="chip sunny">Gỗ</span>
+      </div>
+      <div class="glass tile">
+        <div class="ph" style="background:radial-gradient(circle at 50% 42%,rgba(255,138,101,.24),rgba(255,138,101,.06))">
+          <svg width="54" height="64" viewBox="0 0 120 140"><path d="M25 22h70l-10 108H35z" fill="#FFFDF7" stroke="#e3e9f2" stroke-width="2"/><ellipse cx="60" cy="21" rx="36" ry="8" fill="#fff" stroke="#e3e9f2" stroke-width="2"/><path d="M29 52h62l-2 22H31z" fill="#FF8A65" opacity=".85"/><path d="M34 96c8-6 16 6 24 0s16 6 24 0" fill="none" stroke="#26C6DA" stroke-width="4" stroke-linecap="round"/></svg>
+        </div>
+        <h3>Cốc giấy</h3><span class="chip plain">Giấy</span>
+      </div>
+      <div class="glass tile">
+        <div class="ph" style="background:radial-gradient(circle at 50% 42%,rgba(94,234,212,.3),rgba(94,234,212,.08))">
+          <svg width="30" height="62" viewBox="0 0 90 160"><rect x="33" y="6" width="24" height="14" rx="4" fill="#9aa7b8"/><rect x="18" y="18" width="54" height="136" rx="12" fill="#5EEAD4"/><rect x="18" y="18" width="54" height="42" rx="12" fill="#2fd4b8"/><rect x="24" y="70" width="42" height="40" rx="6" fill="#fff" opacity=".9"/><text x="45" y="97" text-anchor="middle" font-size="22" font-weight="900" fill="#0E97AC">AA</text></svg>
+        </div>
+        <h3>Pin AA</h3><span class="chip mint">Kim loại</span>
+      </div>
+      <div class="glass tile lock">
+        <div class="ph"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5" stroke-dasharray="3 3"/><path d="M15.5 15.5 21 21"/></svg></div>
+        <h3>Món bí ẩn</h3><span class="chip plain">Quét để mở</span>
+      </div>
+      <div class="glass tile lock">
+        <div class="ph"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5" stroke-dasharray="3 3"/><path d="M15.5 15.5 21 21"/></svg></div>
+        <h3>Món bí ẩn</h3><span class="chip plain">Quét để mở</span>
+      </div>
+    </div>
+
+    <div class="sect">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="#7A4FC4"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2zM19 15l.9 3.1L23 19l-3.1.9L19 23l-.9-3.1L15 19l3.1-.9L19 15z"/></svg>
+      <h2>Khám phá thêm (AI)</h2>
+      <span class="cap">AI — chưa kiểm chứng</span>
+    </div>
+    <div class="glass jrow">
+      <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7A4FC4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-5 0-8-3-8-8 0-6 8-10 8-10s8 4 8 10c0 5-3 8-8 8z"/><path d="M12 21c0-6 0-9 3-13"/></svg></div>
+      <div class="tx"><h3>Lá cây khô</h3><div class="cap">Hôm qua · 16:04</div></div>
+      <span class="chip grape">AI khám phá</span>
+    </div>
+  </div>
+
+  <div class="home"></div>
+</div>

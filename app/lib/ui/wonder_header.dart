@@ -154,24 +154,14 @@ class _TitleBlock extends StatelessWidget {
           title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: strong,
-            fontSize: 21,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 0.2,
-            height: 1.05,
-          ),
+          style: WonderType.title.copyWith(color: strong),
         ),
         if (subtitle != null && subtitle!.isNotEmpty)
           Text(
             subtitle!,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: soft,
-              fontSize: 12.5,
-              fontWeight: FontWeight.w700,
-            ),
+            style: WonderType.caption.copyWith(color: soft),
           ),
       ],
     );
@@ -223,11 +213,10 @@ class _Wordmark extends StatelessWidget {
           LinearGradient(colors: colors).createShader(rect),
       child: Text(
         'WonderLens',
-        style: TextStyle(
-          color: Colors.white,
+        // Trắng để ShaderMask nhuộm gradient; cỡ 22 nhỉnh hơn title thường.
+        style: WonderType.title.copyWith(
           fontSize: 22,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 0.2,
+          color: Colors.white,
           shadows: dark
               ? const <Shadow>[Shadow(color: Colors.black54, blurRadius: 8)]
               : null,
@@ -259,14 +248,23 @@ class _CircleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!floating) {
-      return GlassIconButton(
+      // Non-floating chỉ dùng đè trực tiếp camera preview → blur: 0 để giữ
+      // ngân sách ≤3 bề mặt blur (DESIGN.md §6).
+      Widget button = GlassIconButton(
         icon: icon,
         onTap: onTap,
         tone: tone,
         active: active,
         size: 48,
         semanticLabel: tooltip,
+        blur: 0,
       );
+      // Cùng hợp đồng với nhánh floating: có tooltip là phải bọc Tooltip
+      // (test tap bằng find.byTooltip; long-press phải hiện nhãn).
+      if (tooltip != null) {
+        button = Tooltip(message: tooltip!, child: button);
+      }
+      return button;
     }
 
     final dark = tone == GlassTone.dark;

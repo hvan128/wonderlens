@@ -1,0 +1,47 @@
+<!-- @dsCard group="Thành phần" name="Bề mặt kính" subtitle="GlassSurface — tone dark / light, sheen, specular rim" -->
+<meta charset="utf-8">
+<title>WonderLens — GlassSurface</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:#15233B;-webkit-font-smoothing:antialiased;min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
+.scene{position:relative;padding:40px;display:flex;flex-direction:column;justify-content:center;gap:16px;overflow:hidden}
+.cam{background:radial-gradient(360px 280px at 75% 18%,rgba(255,200,87,.30),transparent 60%),radial-gradient(420px 340px at 15% 80%,rgba(56,189,248,.30),transparent 60%),linear-gradient(160deg,#22374e,#0E1A2C 60%,#0B1220)}
+.cam .blob{position:absolute;border-radius:50%;filter:blur(2px)}
+.canvas{background:radial-gradient(420px 320px at 18% 12%,rgba(38,198,218,.22),transparent 60%),radial-gradient(400px 320px at 85% 75%,rgba(183,148,244,.22),transparent 60%),linear-gradient(180deg,#EAF8FB,#F4EFFF)}
+.glass{position:relative;border-radius:28px;border:1px solid rgba(255,255,255,.55);background:linear-gradient(180deg,rgba(255,255,255,.51),rgba(255,255,255,.46));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 8px 18px rgba(0,0,0,.12);padding:16px}
+.glass::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.30),transparent 55%);pointer-events:none}
+.glass::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.2px;background:linear-gradient(135deg,rgba(255,255,255,.85),rgba(255,255,255,0) 55%,rgba(255,255,255,.21));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;pointer-events:none}
+.glass.dark{border-color:rgba(255,255,255,.24);background:linear-gradient(180deg,rgba(11,18,32,.39),rgba(11,18,32,.34));color:#fff}
+.glass.dark::before{background:linear-gradient(180deg,rgba(255,255,255,.14),transparent 55%)}
+.glass.dark::after{background:linear-gradient(135deg,rgba(255,255,255,.55),rgba(255,255,255,0) 55%,rgba(255,255,255,.14))}
+h3{font-size:17px;font-weight:900;letter-spacing:.2px;margin-bottom:4px}
+p{font-size:15px;font-weight:700;line-height:1.45}
+.cap{position:relative;font-size:12.5px;font-weight:700;color:rgba(255,255,255,.75)}
+.canvas .cap{color:#54657F}
+</style>
+
+<div class="scene cam">
+  <div class="blob" style="width:150px;height:150px;left:12%;top:12%;background:rgba(94,234,212,.5)"></div>
+  <div class="blob" style="width:110px;height:110px;right:14%;bottom:16%;background:rgba(255,138,101,.45)"></div>
+  <div class="glass dark">
+    <h3>GlassTone.dark</h3>
+    <p>Đặt trên camera preview và nền rực rỡ. Chữ trắng luôn đọc rõ nhờ tint ink 34–39%.</p>
+  </div>
+  <div class="glass dark" style="-webkit-backdrop-filter:none;backdrop-filter:none">
+    <h3>blur: 0</h3>
+    <p>Lối thoát hiệu năng: bỏ hẳn BackdropFilter khi đè trên camera/video — vẫn giữ tint, hairline, sheen, rim.</p>
+  </div>
+  <div class="cap">Mỗi surface đúng 1 BackdropFilter · không kính lồng kính · tối đa 3 mặt blur cùng lúc.</div>
+</div>
+
+<div class="scene canvas">
+  <div class="glass">
+    <h3>GlassTone.light</h3>
+    <p>Đặt trên nền canvas dịu. Tint trắng 46–51%, hairline trắng 55%, sheen 30%, rim specular 85%.</p>
+  </div>
+  <div class="glass" style="border-radius:34px">
+    <h3>radiusXl = 34</h3>
+    <p>Sheet và panel nổi dùng bo góc lớn hơn card (28) để phân cấp bề mặt.</p>
+  </div>
+  <div class="cap">Cấu tạo kính: blur nền → tint gradient (đỉnh đậm hơn) → hairline → sheen mềm ở đỉnh → rim bắt sáng trên-trái.</div>
+</div>
