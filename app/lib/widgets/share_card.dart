@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import '../ui/phosphor_compat.dart';
 
 import '../data/capture_store.dart';
 import '../models/object_content.dart';
@@ -90,13 +90,16 @@ class ShareCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final stages = content.stages;
-    final shown =
-        stages.length > _maxStages ? stages.sublist(0, _maxStages) : stages;
+    final shown = stages.length > _maxStages
+        ? stages.sublist(0, _maxStages)
+        : stages;
     final hiddenCount = stages.length - shown.length;
 
     return _WonderCardShell(
       children: <Widget>[
-        Center(child: _HeroPhoto(objectId: content.id, emoji: content.emoji)),
+        Center(
+          child: _HeroPhoto(objectId: content.id, emoji: content.emoji),
+        ),
         const SizedBox(height: 16),
         Center(
           child: Text(
@@ -119,14 +122,14 @@ class ShareCard extends StatelessWidget {
             children: <Widget>[
               if (content.materialBadge.isNotEmpty)
                 _Pill(
-                  icon: Symbols.science,
+                  icon: PhosphorIconsFill.flask,
                   text: content.materialBadge,
                   color: WonderColors.teal,
                 ),
               if (content.source == 'live')
                 const _Pill(
-                  icon: Symbols.auto_awesome,
-                  text: 'Khám phá vui (AI)',
+                  icon: PhosphorIconsFill.sparkle,
+                  text: 'AI kể chuyện vui',
                   color: WonderColors.sunny,
                 ),
             ],
@@ -135,7 +138,10 @@ class ShareCard extends StatelessWidget {
         const SizedBox(height: 20),
         const _Divider(),
         const SizedBox(height: 16),
-        const _Label(icon: Symbols.timeline, text: 'HÀNH TRÌNH TẠO RA'),
+        const _Label(
+          icon: PhosphorIconsBold.journey,
+          text: 'HÀNH TRÌNH KHOA HỌC',
+        ),
         const SizedBox(height: 12),
         for (var i = 0; i < shown.length; i++)
           _StageRow(index: i, title: shown[i].title),
@@ -143,7 +149,7 @@ class ShareCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 38, top: 2),
             child: Text(
-              '… và $hiddenCount chặng nữa',
+              '… và $hiddenCount manh mối nữa',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.6),
                 fontSize: 13,
@@ -192,12 +198,10 @@ class CollectionShareCard extends StatelessWidget {
               gradient: WonderGradients.badge,
               boxShadow: WonderShadows.glow(WonderColors.teal, opacity: 0.5),
             ),
-            child: Icon(
-              complete ? Symbols.trophy : Symbols.science,
+            child: PhosphorIcon(
+              complete ? PhosphorIconsFill.trophy : PhosphorIconsFill.flask,
               size: 52,
               color: Colors.white,
-              fill: 1,
-              weight: 600,
             ),
           ),
         ),
@@ -217,7 +221,7 @@ class CollectionShareCard extends StatelessWidget {
         const SizedBox(height: 14),
         Center(
           child: Text(
-            'Đã khám phá $discoveredCount/$totalCount đồ vật',
+            'Đã mở khóa $discoveredCount/$totalCount đồ vật',
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.85),
               fontSize: 15,
@@ -231,19 +235,26 @@ class CollectionShareCard extends StatelessWidget {
         const _Divider(),
         const SizedBox(height: 16),
         if (earnedMaterials.isNotEmpty) ...<Widget>[
-          const _Label(icon: Symbols.workspace_premium, text: 'HUY HIỆU VẬT LIỆU'),
+          const _Label(
+            icon: PhosphorIconsFill.medal,
+            text: 'HUY HIỆU CHẤT LIỆU',
+          ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: <Widget>[
               for (final m in earnedMaterials)
-                _Pill(icon: Symbols.workspace_premium, text: m, color: WonderColors.sunny),
+                _Pill(
+                  icon: PhosphorIconsFill.medal,
+                  text: m,
+                  color: WonderColors.sunny,
+                ),
             ],
           ),
           const SizedBox(height: 18),
         ],
-        const _Label(icon: Symbols.grid_view, text: 'ĐỒ VẬT ĐÃ SƯU TẦM'),
+        const _Label(icon: PhosphorIconsBold.grid, text: 'ĐỒ VẬT ĐÃ MỞ KHÓA'),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
@@ -253,11 +264,10 @@ class CollectionShareCard extends StatelessWidget {
               _MiniTile(child: Text(e, style: const TextStyle(fontSize: 26))),
             for (var i = 0; i < lockedCount; i++)
               _MiniTile(
-                child: Icon(
-                  Symbols.lock,
+                child: PhosphorIcon(
+                  PhosphorIconsBold.lockSimple,
                   size: 22,
                   color: Colors.white.withValues(alpha: 0.4),
-                  fill: 1,
                 ),
               ),
           ],
@@ -288,7 +298,10 @@ class _HeroPhoto extends StatelessWidget {
                 colors: <Color>[Color(0xFFFFFFFF), Color(0xFFD9EEF4)],
               )
             : WonderGradients.badge,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.92), width: 3),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.92),
+          width: 3,
+        ),
         boxShadow: WonderShadows.glow(WonderColors.teal, opacity: 0.55),
       ),
       child: file != null
@@ -299,8 +312,9 @@ class _HeroPhoto extends StatelessWidget {
                 fit: BoxFit.contain,
                 filterQuality: FilterQuality.high,
                 gaplessPlayback: true,
-                errorBuilder: (_, _, _) =>
-                    Center(child: Text(emoji, style: const TextStyle(fontSize: 70))),
+                errorBuilder: (_, _, _) => Center(
+                  child: Text(emoji, style: const TextStyle(fontSize: 70)),
+                ),
               ),
             )
           : Center(child: Text(emoji, style: const TextStyle(fontSize: 78))),
@@ -323,8 +337,11 @@ class _Brand extends StatelessWidget {
             shape: BoxShape.circle,
             gradient: WonderGradients.cta,
           ),
-          child: const Icon(Symbols.travel_explore,
-              size: 20, color: Colors.white, fill: 1, weight: 600),
+          child: const PhosphorIcon(
+            PhosphorIconsDuotone.binoculars,
+            size: 20,
+            color: Colors.white,
+          ),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -340,7 +357,7 @@ class _Brand extends StatelessWidget {
                 ),
               ),
               Text(
-                'Khám phá khoa học cho bé',
+                'Khoa học vui cho bé tò mò',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -363,7 +380,7 @@ class _Tagline extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        'Quét đồ vật • Nghe kể chuyện • Sưu tầm huy hiệu',
+        'Soi đồ vật • Mở manh mối • Gom huy hiệu',
         textAlign: TextAlign.center,
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.55),
@@ -384,7 +401,7 @@ class _Label extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        Icon(icon, size: 16, color: WonderColors.mint, fill: 1, weight: 600),
+        PhosphorIcon(icon, size: 16, color: WonderColors.mint),
         const SizedBox(width: 7),
         Text(
           text,
@@ -452,7 +469,7 @@ class _Pill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Icon(icon, size: 15, color: color, fill: 1, weight: 600),
+          PhosphorIcon(icon, size: 15, color: color),
           const SizedBox(width: 6),
           Text(
             text,

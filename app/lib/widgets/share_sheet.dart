@@ -1,7 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../models/object_content.dart';
 import '../services/share_service.dart';
+import '../ui/ui.dart';
 import 'share_card.dart';
 
 /// Mở bảng xem trước một lần khám phá (màn Hành trình).
@@ -83,8 +86,9 @@ class _SharePreviewState extends State<_SharePreview> {
     setState(() => _sharing = true);
     // Vị trí neo popover share sheet trên iPad: dùng khung của sheet.
     final box = context.findRenderObject() as RenderBox?;
-    final origin =
-        box != null ? box.localToGlobal(Offset.zero) & box.size : null;
+    final origin = box != null
+        ? box.localToGlobal(Offset.zero) & box.size
+        : null;
     try {
       await widget.onShare(_cardKey, origin);
     } finally {
@@ -97,7 +101,11 @@ class _SharePreviewState extends State<_SharePreview> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    // Máy 320px: thẻ 340px + padding 32 sẽ tràn — co theo bề ngang thực tế.
+    final buttonWidth = math.min(
+      kShareCardWidth,
+      MediaQuery.sizeOf(context).width - 32,
+    );
     return SafeArea(
       top: false,
       child: Padding(
@@ -120,30 +128,22 @@ class _SharePreviewState extends State<_SharePreview> {
               ),
             ),
             const SizedBox(height: 20),
+            // Nút của design system thay FilledButton/Icons Material trần —
+            // cùng chất liệu với mọi CTA khác trong app.
             SizedBox(
-              width: kShareCardWidth,
-              child: FilledButton.icon(
-                onPressed: _sharing ? null : _share,
-                icon: _sharing
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.ios_share_rounded),
-                label: Text(_sharing ? 'Đang chuẩn bị…' : 'Chia sẻ ngay'),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  textStyle: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w800),
-                ),
+              width: buttonWidth,
+              child: WonderButton(
+                label: _sharing ? 'Đang chuẩn bị…' : 'Khoe ngay',
+                icon: _sharing ? null : PhosphorIconsBold.shareNetwork,
+                gradient: WonderGradients.secondary,
+                onTap: _sharing ? null : _share,
               ),
             ),
             const SizedBox(height: 4),
-            TextButton(
-              onPressed:
-                  _sharing ? null : () => Navigator.of(context).maybePop(),
-              child: const Text('Để sau'),
+            WonderTextButton(
+              label: 'Để sau nhé',
+              color: Colors.white.withValues(alpha: 0.9),
+              onTap: _sharing ? null : () => Navigator.of(context).maybePop(),
             ),
           ],
         ),

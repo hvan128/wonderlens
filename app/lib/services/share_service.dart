@@ -17,10 +17,10 @@ class ShareService {
   /// Caption cho một lần khám phá (dùng cho cả ảnh lẫn fallback text-only).
   static String caption(ObjectContent c) {
     final stages = c.stages.map((s) => '• ${s.title}').join('\n');
-    return 'Mình vừa khám phá hành trình tạo ra "${c.name}" ${c.emoji} '
-        'cùng WonderLens!\n\n'
+    return 'Mình vừa mở khóa hành trình khoa học về "${c.name}" ${c.emoji} '
+        'trên WonderLens!\n\n'
         '$stages\n\n'
-        'Tải WonderLens để cùng tò mò khám phá thế giới quanh ta nhé! 🔭';
+        'Tải WonderLens để soi đồ vật, mở manh mối và gom huy hiệu nhé! 🔭';
   }
 
   /// Caption khoe thành tích bộ sưu tập.
@@ -31,9 +31,9 @@ class ShareService {
     required int earnedCount,
   }) {
     return 'Mình đang là "$levelTitle" trên WonderLens! 🔭\n'
-        'Đã khám phá $discoveredCount/$totalCount đồ vật và mở $earnedCount '
+        'Đã mở khóa $discoveredCount/$totalCount đồ vật và gom $earnedCount '
         'huy hiệu vật liệu 🏅\n\n'
-        'Cùng tải WonderLens để tò mò khám phá thế giới quanh ta nhé!';
+        'Cùng tải WonderLens để biến đồ vật quanh mình thành câu chuyện khoa học nhé!';
   }
 
   /// Chia sẻ một lần khám phá (màn Hành trình).
@@ -45,7 +45,7 @@ class ShareService {
     return _shareImageOrText(
       boundaryKey: boundaryKey,
       text: caption(content),
-      subject: 'WonderLens — Hành trình tạo ra ${content.name}',
+      subject: 'WonderLens — Nhiệm vụ khoa học về ${content.name}',
       fileBase: 'discovery_${content.id}',
       origin: origin,
     );
@@ -68,7 +68,7 @@ class ShareService {
         totalCount: totalCount,
         earnedCount: earnedCount,
       ),
-      subject: 'WonderLens — Bộ sưu tập khám phá của mình',
+      subject: 'WonderLens — Rương khám phá của mình',
       fileBase: 'collection',
       origin: origin,
     );

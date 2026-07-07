@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../models/object_content.dart';
+import '../services/journey_warmup.dart';
 import '../services/video_service.dart';
 import '../ui/ui.dart';
 
@@ -31,11 +30,9 @@ enum _Phase { idle, generating, ready, error }
 
 class JourneyVideoState extends State<JourneyVideo> {
   VideoPlayerController? _controller;
-  final _service = VideoService();
   _Phase _phase = _Phase.idle;
   int _progress = 0;
   bool _wasPlaying = false;
-  File? _tempFile; // file tạm của video AI-live, dọn khi dispose
 
   bool get _hasAsset => (widget.content.video ?? '').isNotEmpty;
   bool get _canGenerate => VideoService.available;
@@ -52,11 +49,8 @@ class JourneyVideoState extends State<JourneyVideo> {
   void dispose() {
     _controller?.removeListener(_onTick);
     _controller?.dispose();
-    // Dọn file tạm của chính widget này (best-effort).
-    final f = _tempFile;
-    if (f != null) {
-      f.delete().catchError((_) => f);
-    }
+    // KHÔNG xoá file phim: đây là artifact DÙNG CHUNG do JourneyWarmup sở hữu
+    // (re-scan cùng vật dùng lại). Coordinator/OS temp lo dọn.
     super.dispose();
   }
 
@@ -83,7 +77,9 @@ class JourneyVideoState extends State<JourneyVideo> {
     try {
       await ctrl.initialize();
       await ctrl.setLooping(false);
-      await ctrl.setVolume(0); // tắt tiếng: phim chạy độc lập, không chặn narration
+      await ctrl.setVolume(
+        0,
+      ); // tắt tiếng: phim chạy độc lập, không chặn narration
       if (!mounted) {
         await ctrl.dispose();
         return;
@@ -99,23 +95,20 @@ class JourneyVideoState extends State<JourneyVideo> {
     }
   }
 
-  Future<void> _generate() async {
+  Future<void> _generate({bool forceFresh = false}) async {
     setState(() {
       _phase = _Phase.generating;
       _progress = 0;
     });
-    final file = await _service.generate(
-      widget.content,
-      onProgress: (p) {
-        if (mounted) setState(() => _progress = p);
-      },
-    );
+    // Dùng phim từ warm-up (đã bắt đầu render từ lúc chụp) — không tạo job mới.
+    // forceFresh = true (nút "Thử lại") → coordinator bỏ cache, sinh job mới.
+    final file = await JourneyWarmup.instance
+        .video(widget.content, forceFresh: forceFresh);
     if (!mounted) return;
     if (file == null) {
       setState(() => _phase = _Phase.error);
       return;
     }
-    _tempFile = file;
     await _initController(VideoPlayerController.file(file));
     // KHÔNG tự phát: sinh xong chỉ chuyển sang trạng thái sẵn sàng (nút play).
     // Người dùng chủ động bấm mới chiếu.
@@ -127,7 +120,7 @@ class JourneyVideoState extends State<JourneyVideo> {
       setState(() => _phase = _Phase.idle);
       _initController(VideoPlayerController.asset(widget.content.video!));
     } else {
-      _generate();
+      _generate(forceFresh: true); // tạo job phim mới (bỏ cache warm-up hỏng)
     }
   }
 
@@ -176,8 +169,11 @@ class JourneyVideoState extends State<JourneyVideo> {
                   gradient: WonderGradients.badge,
                 ),
                 child: const Center(
-                  child: PhosphorIcon(PhosphorIconsFill.filmStrip,
-                      size: 18, color: Colors.white),
+                  child: PhosphorIcon(
+                    PhosphorIconsFill.filmStrip,
+                    size: 18,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -219,8 +215,9 @@ class JourneyVideoState extends State<JourneyVideo> {
         ClipRRect(
           borderRadius: BorderRadius.circular(WonderTokens.radiusMd),
           child: AspectRatio(
-            aspectRatio:
-                c.value.aspectRatio == 0 ? 16 / 9 : c.value.aspectRatio,
+            aspectRatio: c.value.aspectRatio == 0
+                ? 16 / 9
+                : c.value.aspectRatio,
             child: GestureDetector(
               onTap: _togglePlay,
               child: Stack(
@@ -232,12 +229,17 @@ class JourneyVideoState extends State<JourneyVideo> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: WonderGradients.badge,
-                        boxShadow:
-                            WonderShadows.glow(WonderColors.teal, opacity: 0.5),
+                        boxShadow: WonderShadows.glow(
+                          WonderColors.teal,
+                          opacity: 0.5,
+                        ),
                       ),
                       padding: const EdgeInsets.all(12),
-                      child: const PhosphorIcon(PhosphorIconsFill.play,
-                          size: 38, color: Colors.white),
+                      child: const PhosphorIcon(
+                        PhosphorIconsFill.play,
+                        size: 38,
+                        color: Colors.white,
+                      ),
                     ),
                 ],
               ),
@@ -276,11 +278,8 @@ class JourneyVideoState extends State<JourneyVideo> {
           ),
           const SizedBox(height: 4),
           Text(
-            '(có thể mất vài phút, chờ chút nhé!)',
-            style: TextStyle(
-              color: WonderColors.textSoft,
-              fontSize: 12.5,
-            ),
+            '(phim hơi lâu một chút, bé chờ xíu nhé!)',
+            style: TextStyle(color: WonderColors.textSoft, fontSize: 12.5),
           ),
         ],
       ),
@@ -303,12 +302,15 @@ class JourneyVideoState extends State<JourneyVideo> {
   Widget _autoHint() {
     return Row(
       children: <Widget>[
-        const PhosphorIcon(PhosphorIconsFill.filmSlate,
-            size: 20, color: WonderColors.grape),
+        const PhosphorIcon(
+          PhosphorIconsFill.filmSlate,
+          size: 20,
+          color: WonderColors.grape,
+        ),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
-            'Phim hành trình sẽ tự xuất hiện sau khi nghe xong câu chuyện nhé!',
+            'Phim hành trình sẽ tự xuất hiện sau khi bé nghe xong câu chuyện!',
             style: TextStyle(
               color: WonderColors.textStrong.withValues(alpha: 0.85),
               fontSize: 14,
@@ -327,11 +329,14 @@ class JourneyVideoState extends State<JourneyVideo> {
         const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            PhosphorIcon(PhosphorIconsFill.warningCircle,
-                size: 20, color: WonderColors.coral),
+            PhosphorIcon(
+              PhosphorIconsFill.warningCircle,
+              size: 20,
+              color: WonderColors.coral,
+            ),
             SizedBox(width: 8),
             Text(
-              'Chưa mở được phim lần này',
+              'Phim hành trình chưa mở được lần này',
               style: TextStyle(
                 color: WonderColors.textStrong,
                 fontSize: 14.5,
@@ -346,9 +351,7 @@ class JourneyVideoState extends State<JourneyVideo> {
           WonderButton(
             label: 'Thử lại',
             icon: PhosphorIconsBold.arrowClockwise,
-            gradient: const LinearGradient(
-              colors: <Color>[WonderColors.grape, WonderColors.indigo],
-            ),
+            gradient: WonderGradients.secondary,
             onTap: _retry,
           ),
         ],

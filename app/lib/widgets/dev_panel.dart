@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/app_settings.dart';
+import '../screens/playground_screen.dart';
 import '../ui/ui.dart';
 
 /// Bảng Dev ẩn: chuyển **Mock offline ↔ API thật** + chỉnh Proxy URL/token ngay
@@ -148,6 +149,23 @@ class _DevPanelState extends State<_DevPanel> {
                   icon: Symbols.check,
                   onTap: _saveAndClose,
                 ),
+                const SizedBox(height: 12),
+                WonderButton(
+                  label: 'Playground UI v2',
+                  icon: PhosphorIconsFill.sparkle,
+                  onTap: () {
+                    // Bắt Navigator TRƯỚC khi pop — sau pop, context của sheet
+                    // deactivate, tra cứu ancestor không còn an toàn (cùng lý
+                    // do _saveAndClose bắt ScaffoldMessenger trước khi pop).
+                    final navigator = Navigator.of(context);
+                    navigator.pop();
+                    navigator.push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const PlaygroundScreen(),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -179,7 +197,7 @@ class _ModeToggle extends StatelessWidget {
             size: 24,
             fill: 1,
             weight: 600,
-            color: live ? WonderColors.tealDeep : const Color(0xFFE08A00),
+            color: live ? WonderColors.tealDeep : WonderColors.sunnyDeep,
           ),
           const SizedBox(width: 12),
           Expanded(

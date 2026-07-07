@@ -4,23 +4,31 @@ import 'app_route_observer.dart';
 import 'models/object_content.dart';
 import 'screens/camera_screen.dart';
 import 'screens/collection_screen.dart';
-import 'screens/onboarding_screen.dart';
+import 'screens/discovery_reveal_screen.dart';
+import 'screens/home_screen.dart';
 import 'screens/timeline_screen.dart';
 import 'ui/ui.dart';
 
 final appRouter = GoRouter(
-  initialLocation: '/onboarding',
+  initialLocation: '/home',
   observers: [appRouteObserver],
   routes: <RouteBase>[
     GoRoute(
-      path: '/onboarding',
+      path: '/home',
       pageBuilder: (context, state) =>
-          wonderPage(key: state.pageKey, child: const OnboardingScreen()),
+          wonderPage(key: state.pageKey, child: const HomeScreen()),
     ),
     GoRoute(
       path: '/camera',
       pageBuilder: (context, state) =>
           wonderPage(key: state.pageKey, child: const CameraScreen()),
+    ),
+    GoRoute(
+      path: '/reveal',
+      pageBuilder: (context, state) => wonderPage(
+        key: state.pageKey,
+        child: DiscoveryRevealScreen(content: state.extra as ObjectContent),
+      ),
     ),
     GoRoute(
       path: '/timeline',
