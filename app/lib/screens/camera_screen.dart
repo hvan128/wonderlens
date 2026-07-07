@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -13,14 +14,17 @@ import '../data/capture_store.dart';
 import '../data/content_repository.dart';
 import '../models/object_content.dart';
 import '../services/generate_service.dart';
+import '../services/image_cutout.dart';
+import '../services/journey_warmup.dart';
+import '../services/narration_service.dart';
 import '../services/recognition_service.dart';
 import '../services/segmentation_service.dart';
 import '../ui/ui.dart';
 import '../widgets/dev_panel.dart';
-import '../widgets/object_avatar.dart';
 
-/// Màn khám phá kiểu "Apple lens" cho trẻ: preview camera tràn màn hình + lớp
-/// điều khiển liquid-glass. Toàn bộ logic camera/permission/nhận diện giữ nguyên.
+/// Màn khám phá tối giản kiểu CapWords: preview camera tràn màn hình + 4 góc
+/// ngắm, một dòng gợi ý và nút quét cầu vồng. Chụp xong → nền ảnh **tan biến**
+/// và **viền chủ thể được vẽ dần** (fragment shader) trong lúc AI dựng chuyện.
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
 
@@ -35,21 +39,23 @@ class _CameraScreenState extends State<CameraScreen>
   bool _busy = false;
   bool _permanentlyDenied = false;
   bool _settingUp = false;
-  bool _generating = false;
-  bool _torch = false;
   String? _error;
 
-  ObjectContent? _pendingContent;
-  bool _pendingConfident = false;
   String? _msgTitle;
   String? _msgBody;
+
+  // Ảnh cho hiệu ứng tan biến (widget CaptureDissolve sở hữu & tự giải phóng).
+  ui.Image? _dissolveFrame;
+  ui.Image? _dissolveMask;
+  // Kết quả AI: null lúc đang dựng → set khi xong để hiện tên + nút NGAY trên
+  // màn tách-nền (không modal, không quay về camera).
+  ObjectContent? _dissolveContent;
 
   final _service = RecognitionService();
   final _generate = GenerateService();
   final _repo = ContentRepository();
   final _segmentation = SegmentationService();
-
-  static const double _confidenceThreshold = 0.6;
+  final _narration = NarrationService();
 
   @override
   void initState() {
@@ -69,6 +75,7 @@ class _CameraScreenState extends State<CameraScreen>
   void dispose() {
     appRouteObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
+    _narration.dispose();
     _controller?.dispose();
     super.dispose();
   }
@@ -83,9 +90,15 @@ class _CameraScreenState extends State<CameraScreen>
     if (mounted) setState(() {});
   }
 
-  /// Quay lại màn camera → mở lại camera.
+  /// Quay lại màn camera → dọn overlay khám phá (được giữ lại làm nguồn hero
+  /// trong lúc chuyển màn) rồi mở lại camera.
   @override
   void didPopNext() {
+    _msgTitle = null;
+    _msgBody = null;
+    _dissolveFrame = null;
+    _dissolveMask = null;
+    _dissolveContent = null;
     _setup();
   }
 
@@ -118,7 +131,6 @@ class _CameraScreenState extends State<CameraScreen>
       _initializing = true;
       _error = null;
       _permanentlyDenied = false;
-      _torch = false;
     });
     try {
       final status = await Permission.camera.request();
@@ -126,7 +138,7 @@ class _CameraScreenState extends State<CameraScreen>
       if (!status.isGranted) {
         setState(() {
           _permanentlyDenied = status.isPermanentlyDenied;
-          _error = 'Cần quyền camera để khám phá nhé!';
+          _error = 'Bé mở quyền camera để soi đồ vật nhé!';
           _initializing = false;
         });
         return;
@@ -135,7 +147,7 @@ class _CameraScreenState extends State<CameraScreen>
       if (!mounted) return;
       if (cameras.isEmpty) {
         setState(() {
-          _error = 'Không tìm thấy camera trên thiết bị.';
+          _error = 'Ống kính trên thiết bị đang đi vắng rồi.';
           _initializing = false;
         });
         return;
@@ -162,7 +174,7 @@ class _CameraScreenState extends State<CameraScreen>
       debugPrint('Camera setup error: $e');
       if (mounted) {
         setState(() {
-          _error = 'Chưa mở được máy ảnh. Bạn thử lại nhé!';
+          _error = 'Ống kính chưa sẵn sàng. Bé thử lại nhé!';
           _initializing = false;
         });
       }
@@ -174,62 +186,83 @@ class _CameraScreenState extends State<CameraScreen>
   Future<void> _capture() async {
     final controller = _controller;
     if (controller == null || _busy) return;
-    HapticFeedback.selectionClick();
+    WonderHaptics.primary();
     setState(() => _busy = true);
     XFile? shot;
     try {
       shot = await controller.takePicture();
-      final bytes = await File(shot.path).readAsBytes();
-      // Tách nền chạy song song nhận diện (offline, độc lập với mạng). Await ở
-      // đây để chắc chắn native đọc xong file trước khi `finally` xoá ảnh tạm.
-      final cutoutFuture = _segmentation.cutout(shot.path);
-      final result = await _service.recognize(bytes);
-      final cutout = await cutoutFuture;
-      if (!mounted) return;
+      final Uint8List bytes = await File(shot.path).readAsBytes();
 
-      // Lưu "ảnh sản phẩm" cho id vật đã quyết (hero, mock, hoặc AI-live).
-      Future<void> saveCapture(String id) async {
-        if (cutout == null) return;
-        await CaptureStore.instance.save(id, cutout);
-      }
-
-      ObjectContent? content;
-      if (result.objectId != 'unknown') {
-        content = await _repo.load(result.objectId);
-        if (!mounted) return;
-      }
-      if (content != null) {
-        await saveCapture(content.id);
-        if (!mounted) return;
-        _present(content, confident: result.confidence >= _confidenceThreshold);
-        return;
-      }
-
+      // LUÔN để AI sinh hành trình cho MỌI vật. Cần proxy + token; offline/lỗi
+      // → báo thân thiện, không vào hiệu ứng.
       if (!GenerateService.available) {
         _presentMessage(
-          'Mình chưa nhận ra món này',
-          'Thử chĩa gần hơn vào một đồ vật rồi quét lại nhé!',
+          'Cần kết nối để AI kể chuyện',
+          'Bé bật wifi rồi quét lại nhé!',
         );
         return;
       }
-      setState(() => _generating = true);
-      final live = await _generate.generate(bytes);
+
+      // Tách nền (offline) MỘT lần: foreground toàn khung dùng cho hiệu ứng tan
+      // biến, đồng thời cắt sát để lưu cutout vào bộ sưu tập.
+      final Uint8List? raw = await _segmentation.foreground(shot.path);
       if (!mounted) return;
-      setState(() => _generating = false);
-      if (live == null) {
-        _presentMessage(
-          'Mình chưa khám phá được món này',
-          'Thử một đồ vật khác nhé!',
-        );
-      } else {
-        await saveCapture(live.id);
-        if (!mounted) return;
-        _present(live, confident: true);
+
+      // Flutter tự áp EXIF khi decode (kiểm chứng trên máy) → frame đã dựng đứng,
+      // khớp mask native (cũng đã dựng đứng). KHÔNG tự xoay thêm ở Dart, kẻo
+      // xoay chồng thành ảnh nằm ngang.
+      final ui.Image frameImage = await _decodeImage(bytes);
+      final ui.Image maskImage;
+      try {
+        maskImage = await _resolveMask(raw, frameImage);
+      } catch (_) {
+        // Chưa bàn giao quyền sở hữu cho CaptureDissolve → tự dọn frameImage.
+        frameImage.dispose();
+        rethrow;
       }
+      if (!mounted) {
+        frameImage.dispose();
+        maskImage.dispose();
+        return;
+      }
+
+      // Vào hiệu ứng tan biến + chạy AI song song. minShow đảm bảo hiệu ứng
+      // luôn được chạy trọn dù AI trả về nhanh.
+      _showDissolve(frameImage, maskImage);
+      final Future<void> minShow =
+          Future<void>.delayed(const Duration(milliseconds: 1500));
+      ObjectContent? content = await _generate.generate(bytes);
+      if (!mounted) return;
+
+      // AI lỗi/hết quota → rớt về vật hero (dữ liệu đóng gói) để không kẹt
+      // "bí ẩn" và vẫn dựng đủ hành trình cho việc test UI offline / hết credit.
+      content ??= await _repo.load(_service.mockOffline().objectId);
+      if (!mounted) return;
+      if (content == null) {
+        _presentMessage(
+          'Món này còn hơi bí ẩn',
+          'Bé thử đổi góc chụp hoặc quét lại nhé!',
+        );
+        return;
+      }
+      final ObjectContent live = content;
+      // Sinh ngầm MỌI thứ (ảnh chặng + giọng đọc + phim) NGAY khi có nội dung —
+      // để lúc bé vào timeline đã có sẵn, không phải chờ.
+      JourneyWarmup.instance.start(live);
+      if (raw != null) {
+        final Uint8List? cut = await tightCropTransparentPng(raw);
+        if (cut != null) await CaptureStore.instance.save(live.id, cut);
+      }
+      await minShow;
+      // Bé có thể đã bấm "Huỷ" lúc đang dựng (overlay đã dọn) → đừng bung kết quả.
+      if (!mounted || _dissolveFrame == null) return;
+      // Hiện kết quả NGAY trên màn tách-nền: tên + nút mở hành trình.
+      WonderHaptics.success();
+      setState(() => _dissolveContent = live);
     } catch (e) {
       debugPrint('Capture error: $e');
       if (!mounted) return;
-      _presentMessage('Quét chưa được', 'Bạn thử lại lần nữa nhé!');
+      _presentMessage('Ống kính chưa bắt kịp', 'Bé thử quét lại lần nữa nhé!');
     } finally {
       if (shot != null) {
         final path = shot.path;
@@ -239,57 +272,126 @@ class _CameraScreenState extends State<CameraScreen>
     }
   }
 
-  void _present(ObjectContent content, {required bool confident}) {
-    HapticFeedback.mediumImpact();
+  Future<void> _runMockDiscovery() async {
+    if (_busy) return;
+    WonderHaptics.selection();
+    setState(() => _busy = true);
+    try {
+      final result = _service.mockOffline();
+      final content = await _repo.load(result.objectId);
+      if (!mounted) return;
+      if (content == null) {
+        _presentMessage(
+          'Demo chưa có nội dung',
+          'Mình chưa tìm thấy dữ liệu cho ${result.displayName}.',
+        );
+        return;
+      }
+      // Mock không có ảnh chụp → vào thẳng hành trình (demo simulator).
+      _openJourney(content);
+    } catch (e) {
+      debugPrint('Mock discovery error: $e');
+      if (!mounted) return;
+      _presentMessage('Demo chưa sẵn sàng', 'Bé thử bấm lại lần nữa nhé!');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Giải mã bytes ảnh → `ui.Image` (Flutter tự áp EXIF orientation).
+  Future<ui.Image> _decodeImage(Uint8List bytes) async {
+    final ui.Codec codec = await ui.instantiateImageCodec(bytes);
+    final ui.FrameInfo frame = await codec.getNextFrame();
+    codec.dispose();
+    return frame.image;
+  }
+
+  /// Mask cho hiệu ứng tan biến: chỉ dùng foreground native khi **cùng tỉ lệ
+  /// khung** với ảnh gốc (đảm bảo chủ thể khớp toạ độ). Lệch tỉ lệ (native cắt
+  /// sát bbox / xoay 90°) hoặc không tách được → mask 1x1 trong suốt: cả khung
+  /// tan biến — không bao giờ xoá nền sai chỗ chủ thể.
+  Future<ui.Image> _resolveMask(Uint8List? raw, ui.Image frame) async {
+    if (raw == null) return _transparentPixel();
+    final ui.Image decoded = await _decodeImage(raw);
+    if (_aspectClose(decoded, frame)) return decoded;
+    debugPrint(
+      'Dissolve mask lệch khung (${decoded.width}x${decoded.height} vs '
+      '${frame.width}x${frame.height}) → tan biến cả khung.',
+    );
+    decoded.dispose();
+    return _transparentPixel();
+  }
+
+  /// Hai ảnh coi là cùng khung khi tỉ lệ w/h sai lệch ≤ 4%.
+  static bool _aspectClose(ui.Image a, ui.Image b) {
+    if (a.width == 0 || a.height == 0 || b.width == 0 || b.height == 0) {
+      return false;
+    }
+    final double ar = a.width / a.height;
+    final double br = b.width / b.height;
+    return (ar - br).abs() <= br * 0.04;
+  }
+
+  /// Mask 1x1 trong suốt khi không tách được chủ thể → cả khung ảnh tan biến.
+  Future<ui.Image> _transparentPixel() async {
+    final ui.PictureRecorder recorder = ui.PictureRecorder();
+    Canvas(recorder);
+    final ui.Picture picture = recorder.endRecording();
+    final ui.Image img = await picture.toImage(1, 1);
+    picture.dispose();
+    return img;
+  }
+
+  void _showDissolve(ui.Image frame, ui.Image mask) {
     setState(() {
-      _pendingContent = content;
-      _pendingConfident = confident;
+      _dissolveFrame = frame;
+      _dissolveMask = mask;
+      _dissolveContent = null;
       _msgTitle = null;
       _msgBody = null;
     });
   }
 
   void _presentMessage(String title, String body) {
-    HapticFeedback.lightImpact();
+    WonderHaptics.tick();
     setState(() {
       _msgTitle = title;
       _msgBody = body;
-      _pendingContent = null;
+      _dissolveFrame = null;
+      _dissolveMask = null;
+      _dissolveContent = null;
     });
   }
 
   void _dismissOverlay() {
+    _narration.stop();
     setState(() {
-      _pendingContent = null;
       _msgTitle = null;
       _msgBody = null;
+      _dissolveFrame = null;
+      _dissolveMask = null;
+      _dissolveContent = null;
     });
   }
 
-  void _openJourney(ObjectContent content) {
-    setState(() => _pendingContent = null);
-    context.push('/timeline', extra: content);
+  void _speak(String name) {
+    WonderHaptics.selection();
+    _narration.speak(name);
   }
 
-  Future<void> _toggleTorch() async {
-    final controller = _controller;
-    if (controller == null || _busy) return;
-    final next = !_torch;
-    try {
-      await controller.setFlashMode(next ? FlashMode.torch : FlashMode.off);
-      if (!mounted) return;
-      setState(() => _torch = next);
-      HapticFeedback.selectionClick();
-    } catch (e) {
-      debugPrint('Torch error: $e');
-    }
+  void _openJourney(ObjectContent content) {
+    // Kết quả đã hiện ngay trên màn tách-nền → mở thẳng hành trình khoa học.
+    // Overlay được dọn khi quay lại (didPopNext).
+    WonderHaptics.primary();
+    _narration.stop();
+    context.push('/timeline', extra: content);
   }
 
   @override
   Widget build(BuildContext context) {
     final cameraReady = _controller != null && !_initializing && _error == null;
-    final overlayUp =
-        _pendingContent != null || _msgTitle != null || _generating;
+    final overlayUp = _msgTitle != null || _dissolveFrame != null;
+    final showChrome = cameraReady && !overlayUp;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -298,77 +400,119 @@ class _CameraScreenState extends State<CameraScreen>
         children: <Widget>[
           _buildPreview(),
           const _Scrims(),
-          SafeArea(
-            child: WonderHeader(
-              branded: true,
-              tone: GlassTone.dark,
-              floating: false,
-              actions: <WonderHeaderAction>[
-                WonderHeaderAction(
-                  icon: PhosphorIconsBold.houseSimple,
-                  tooltip: 'Về màn hình chính',
-                  onTap: () => context.go('/onboarding'),
-                ),
-              ],
+          // 4 góc ngắm canh giữa — mờ đi khi có overlay/chưa sẵn sàng.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: showChrome ? 1 : 0,
+                duration: WonderTokens.durBase,
+                child: const _FramingCorners(),
+              ),
             ),
           ),
+          // Thanh trên: ngày + nút về phòng khám phá.
+          SafeArea(
+            child: IgnorePointer(
+              ignoring: !showChrome,
+              child: AnimatedOpacity(
+                opacity: showChrome ? 1 : 0,
+                duration: WonderTokens.durBase,
+                child: _TopBar(
+                  onHome: () => context.go('/home'),
+                  onSecret: () => showDevPanel(context),
+                ),
+              ),
+            ),
+          ),
+          // Đáy: gợi ý + nút quét cầu vồng + nút rương.
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
             child: IgnorePointer(
-              ignoring: !cameraReady || overlayUp,
+              ignoring: !showChrome,
               child: AnimatedOpacity(
-                opacity: (cameraReady && !overlayUp) ? 1 : 0,
+                opacity: showChrome ? 1 : 0,
                 duration: WonderTokens.durBase,
-                child: _BottomControls(
+                child: _BottomBar(
                   busy: _busy,
-                  torch: _torch,
                   onScan: _busy ? null : _capture,
-                  onTorch: _toggleTorch,
                   onCollection: () => context.push('/collection'),
                 ),
               ),
             ),
           ),
-          if (_generating) const _GeneratingOverlay(),
-          if (_pendingContent != null)
-            _DiscoveryOverlay(
-              content: _pendingContent!,
-              confident: _pendingConfident,
-              onSeeJourney: () => _openJourney(_pendingContent!),
-              onRetake: _dismissOverlay,
-            ),
-          if (_msgTitle != null)
-            _MessageOverlay(
-              title: _msgTitle!,
-              body: _msgBody ?? '',
-              onRetake: _dismissOverlay,
-            ),
+          AnimatedSwitcher(
+            duration: WonderTokens.durBase,
+            reverseDuration: WonderTokens.durFast,
+            switchInCurve: WonderTokens.curveStandard,
+            switchOutCurve: WonderTokens.curveStandard,
+            child: _buildOverlay(),
+          ),
         ],
       ),
     );
+  }
+
+  /// Lớp phủ hiện hành (tan biến+kết quả / thông báo) qua một AnimatedSwitcher
+  /// chung: vào crossfade, ra mờ nhanh hơn vào. Kết quả AI hiện NGAY trong
+  /// [CaptureDissolve] (đổi từ loading sang tên+nút) — không modal riêng.
+  Widget _buildOverlay() {
+    if (_msgTitle != null) {
+      return _MessageOverlay(
+        title: _msgTitle!,
+        body: _msgBody ?? '',
+        onRetake: _dismissOverlay,
+      );
+    }
+    final frame = _dissolveFrame;
+    final mask = _dissolveMask;
+    if (frame != null && mask != null) {
+      final content = _dissolveContent;
+      return CaptureDissolve(
+        key: const ValueKey<String>('dissolve'),
+        frame: frame,
+        mask: mask,
+        title: content?.name,
+        onOpen: () {
+          if (content != null) _openJourney(content);
+        },
+        onRetake: _dismissOverlay,
+        onSpeak: content != null ? () => _speak(content.name) : null,
+      );
+    }
+    return const SizedBox.shrink();
   }
 
   Widget _buildPreview() {
     if (_initializing) {
       return const _StatusCard(
         icon: PhosphorIconsDuotone.camera,
-        title: 'Đang mở máy ảnh…',
-        body: 'Chờ mình một chút nhé!',
+        title: 'Đang bật ống kính…',
+        body: 'Mình đang chuẩn bị phòng thí nghiệm mini!',
         spinner: true,
       );
     }
     if (_error != null) {
+      final demoMode = !_permanentlyDenied && !kReleaseMode;
       return _StatusCard(
-        icon: PhosphorIconsDuotone.lockSimple,
-        title: _error!,
-        body: _permanentlyDenied
-            ? 'Hãy bật quyền camera trong Cài đặt giúp mình nhé.'
-            : 'Chạm để thử lại nào!',
-        actionLabel: _permanentlyDenied ? 'Mở Cài đặt' : 'Thử lại',
+        icon: demoMode
+            ? PhosphorIconsFill.sparkle
+            : PhosphorIconsDuotone.lockSimple,
+        kicker: demoMode ? 'Demo trên simulator' : null,
+        title: demoMode ? 'Simulator chưa có camera thật' : _error!,
+        body: demoMode
+            ? 'Bé vẫn có thể chạy một màn quét mẫu để đi trọn hành trình WonderLens.'
+            : _permanentlyDenied
+            ? 'Vào Cài đặt bật camera để bé tiếp tục hành trình nhé.'
+            : 'Chạm để khởi động lại ống kính nào!',
+        accent: demoMode ? WonderColors.grape : WonderColors.cyan,
+        actionLabel: _permanentlyDenied ? 'Mở Cài đặt' : 'Thử lại ống kính',
         actionIcon: PhosphorIconsBold.arrowClockwise,
         onAction: _permanentlyDenied ? openAppSettings : _setup,
+        secondaryActionLabel: demoMode ? 'Chạy demo mock' : null,
+        secondaryActionIcon: PhosphorIconsFill.sparkle,
+        onSecondaryAction: demoMode ? _runMockDiscovery : null,
       );
     }
     final controller = _controller;
@@ -412,13 +556,13 @@ class _Scrims extends StatelessWidget {
       child: Column(
         children: <Widget>[
           Container(
-            height: 150,
+            height: 160,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: <Color>[
-                  Colors.black.withValues(alpha: 0.45),
+                  Colors.black.withValues(alpha: 0.42),
                   Colors.transparent,
                 ],
               ),
@@ -426,14 +570,14 @@ class _Scrims extends StatelessWidget {
           ),
           const Spacer(),
           Container(
-            height: 330,
+            height: 300,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: <Color>[
                   Colors.transparent,
-                  Colors.black.withValues(alpha: 0.58),
+                  Colors.black.withValues(alpha: 0.55),
                 ],
               ),
             ),
@@ -444,18 +588,62 @@ class _Scrims extends StatelessWidget {
   }
 }
 
-class _BottomControls extends StatelessWidget {
+/// Thanh trên tối giản: ngày (nhấn giữ = mở Dev panel) + nút về phòng khám phá.
+class _TopBar extends StatelessWidget {
+  final VoidCallback onHome;
+  final VoidCallback onSecret;
+
+  const _TopBar({required this.onHome, required this.onSecret});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(22, 12, 14, 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onLongPress: onSecret,
+              child: Text(
+                _friendlyDate(),
+                style: WonderType.display.copyWith(
+                  color: Colors.white,
+                  fontSize: 25,
+                  shadows: const <Shadow>[
+                    Shadow(
+                      color: Colors.black38,
+                      blurRadius: 12,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          GlassIconButton(
+            icon: PhosphorIconsBold.houseSimple,
+            size: 44,
+            blur: 0,
+            semanticLabel: 'Về phòng khám phá',
+            onTap: onHome,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Đáy: dòng gợi ý + nút quét cầu vồng canh giữa, nút rương nổi bên phải.
+class _BottomBar extends StatelessWidget {
   final bool busy;
-  final bool torch;
   final VoidCallback? onScan;
-  final VoidCallback onTorch;
   final VoidCallback onCollection;
 
-  const _BottomControls({
+  const _BottomBar({
     required this.busy,
-    required this.torch,
     required this.onScan,
-    required this.onTorch,
     required this.onCollection,
   });
 
@@ -464,53 +652,29 @@ class _BottomControls extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(22, 0, 22, 16),
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 22),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            _HintPill(busy: busy),
-            const SizedBox(height: 18),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                GlassIconButton(
-                  icon: PhosphorIconsBold.books,
-                  semanticLabel: 'Bộ sưu tập',
-                  onTap: onCollection,
-                ),
-                ScanRingButton(busy: busy, onTap: onScan),
-                GlassIconButton(
-                  icon: torch
-                      ? PhosphorIconsFill.lightning
-                      : PhosphorIconsBold.flashlight,
-                  semanticLabel: torch ? 'Tắt đèn' : 'Bật đèn',
-                  active: torch,
-                  onTap: onTorch,
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              // Cử chỉ ẩn: nhấn giữ nhãn để mở Dev panel (Mock ↔ API thật).
-              onLongPress: () => showDevPanel(context),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+            _HintText(busy: busy),
+            const SizedBox(height: 20),
+            SizedBox(
+              height: WonderTokens.scanSize + 6,
+              child: Stack(
+                alignment: Alignment.center,
                 children: <Widget>[
-                  PhosphorIcon(
-                    PhosphorIconsFill.sparkle,
-                    size: 13,
-                    color: Colors.white.withValues(alpha: 0.85),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'CHẾ ĐỘ KHÁM PHÁ',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.85),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 2,
+                  Center(child: ScanRingButton(busy: busy, onTap: onScan)),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: GlassIconButton(
+                        icon: PhosphorIconsFill.image,
+                        size: 52,
+                        blur: 0,
+                        semanticLabel: 'Rương khám phá',
+                        onTap: onCollection,
+                      ),
                     ),
                   ),
                 ],
@@ -523,169 +687,120 @@ class _BottomControls extends StatelessWidget {
   }
 }
 
-class _HintPill extends StatelessWidget {
+class _HintText extends StatelessWidget {
   final bool busy;
-  const _HintPill({required this.busy});
+  const _HintText({required this.busy});
+
+  static const List<Shadow> _shadow = <Shadow>[
+    Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 1)),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return GlassSurface(
-      radius: WonderTokens.pill,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-      tintOpacity: 0.32,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          PhosphorIcon(
-            busy ? PhosphorIconsBold.magnifyingGlass : PhosphorIconsBold.camera,
-            size: 17,
-            color: Colors.white,
+    if (busy) {
+      return Text(
+        'Đang soi manh mối…',
+        textAlign: TextAlign.center,
+        style: WonderType.body.copyWith(color: Colors.white, shadows: _shadow),
+      );
+    }
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Text(
+          'Món này là gì nhỉ?',
+          textAlign: TextAlign.center,
+          style: WonderType.body.copyWith(
+            color: Colors.white.withValues(alpha: 0.95),
+            shadows: _shadow,
           ),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              busy ? 'Đang xem nào…' : 'Chĩa vào đồ vật & chạm để khám phá',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14.5,
-                fontWeight: FontWeight.w700,
+        ),
+        const SizedBox(height: 2),
+        Text.rich(
+          const TextSpan(
+            children: <InlineSpan>[
+              TextSpan(text: 'Chạm để '),
+              TextSpan(
+                text: 'mở hành trình!',
+                style: TextStyle(fontWeight: FontWeight.w900),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+          textAlign: TextAlign.center,
+          style: WonderType.body.copyWith(color: Colors.white, shadows: _shadow),
+        ),
+      ],
     );
   }
 }
 
-/// Thẻ khám phá bật lên từ đáy với hiệu ứng nảy nhẹ.
-class _DiscoveryOverlay extends StatelessWidget {
-  final ObjectContent content;
-  final bool confident;
-  final VoidCallback onSeeJourney;
-  final VoidCallback onRetake;
-
-  const _DiscoveryOverlay({
-    required this.content,
-    required this.confident,
-    required this.onSeeJourney,
-    required this.onRetake,
-  });
+/// 4 góc ngắm canh giữa kiểu CapWords — vẽ bằng CustomPaint cho nét gọn.
+class _FramingCorners extends StatelessWidget {
+  const _FramingCorners();
 
   @override
   Widget build(BuildContext context) {
-    final isLive = content.source == 'live';
-    return _OverlayShell(
-      child: GlassSurface(
-        radius: WonderTokens.radiusXl,
-        padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
-        tintOpacity: 0.42,
-        shadows: WonderShadows.card,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                ObjectAvatar(
-                  objectId: content.id,
-                  emoji: content.emoji,
-                  diameter: 66,
-                  emojiSize: 34,
-                  glowOpacity: 0.45,
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          PhosphorIcon(
-                            confident
-                                ? PhosphorIconsFill.sealCheck
-                                : PhosphorIconsBold.question,
-                            size: 16,
-                            color: Colors.white.withValues(alpha: 0.9),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            confident ? 'Tớ thấy rồi!' : 'Hình như là…',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.88),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        confident ? content.name : '${content.name}?',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w900,
-                          height: 1.1,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: <Widget>[
-                if (content.materialBadge.isNotEmpty)
-                  WonderChip(
-                    label: content.materialBadge,
-                    icon: PhosphorIconsBold.flask,
-                  ),
-                WonderChip(
-                  label: '${content.stages.length} chặng',
-                  icon: PhosphorIconsBold.compass,
-                ),
-                if (isLive)
-                  WonderChip(
-                    label: 'Khám phá vui (AI)',
-                    icon: PhosphorIconsFill.sparkle,
-                    color: WonderColors.sunny,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Cùng xem nó được tạo ra như thế nào nhé!',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.92),
-                fontSize: 15,
-                height: 1.3,
-              ),
-            ),
-            const SizedBox(height: 18),
-            WonderButton(
-              label: confident ? 'Xem hành trình' : 'Đúng rồi, xem nào',
-              trailingIcon: PhosphorIconsBold.arrowRight,
-              onTap: onSeeJourney,
-            ),
-            const SizedBox(height: 4),
-            Center(
-              child: WonderTextButton(
-                label: 'Quét lại',
-                color: Colors.white.withValues(alpha: 0.9),
-                onTap: onRetake,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final side = math.min(
+          constraints.maxWidth * 0.74,
+          constraints.maxHeight * 0.46,
+        );
+        return Center(
+          child: SizedBox(
+            width: side,
+            height: side,
+            child: CustomPaint(painter: _CornersPainter()),
+          ),
+        );
+      },
     );
   }
+}
+
+class _CornersPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final len = math.min(size.width, size.height) * 0.18;
+    final line = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 4.5
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..style = PaintingStyle.stroke;
+    final shadow = Paint()
+      ..color = Colors.black.withValues(alpha: 0.22)
+      ..strokeWidth = 5.5
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..style = PaintingStyle.stroke
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+
+    void corner(Offset o, Offset h, Offset v) {
+      final path = Path()
+        ..moveTo(o.dx + h.dx * len, o.dy + h.dy * len)
+        ..lineTo(o.dx, o.dy)
+        ..lineTo(o.dx + v.dx * len, o.dy + v.dy * len);
+      canvas.drawPath(path, shadow);
+      canvas.drawPath(path, line);
+    }
+
+    final w = size.width;
+    final h = size.height;
+    corner(Offset.zero, const Offset(1, 0), const Offset(0, 1));
+    corner(Offset(w, 0), const Offset(-1, 0), const Offset(0, 1));
+    corner(Offset(0, h), const Offset(1, 0), const Offset(0, -1));
+    corner(Offset(w, h), const Offset(-1, 0), const Offset(0, -1));
+  }
+
+  @override
+  bool shouldRepaint(covariant _CornersPainter oldDelegate) => false;
+}
+
+/// Ngày thân thiện cho trẻ, ví dụ "7 tháng 7".
+String _friendlyDate() {
+  final d = DateTime.now();
+  return '${d.day} tháng ${d.month}';
 }
 
 class _MessageOverlay extends StatelessWidget {
@@ -739,7 +854,7 @@ class _MessageOverlay extends StatelessWidget {
             ),
             const SizedBox(height: 18),
             WonderButton(
-              label: 'Quét lại',
+              label: 'Soi lại',
               icon: PhosphorIconsBold.arrowClockwise,
               onTap: onRetake,
             ),
@@ -750,14 +865,16 @@ class _MessageOverlay extends StatelessWidget {
   }
 }
 
-/// Khung phủ tối + canh đáy + nảy lên cho các thẻ overlay.
+/// Khung phủ tối + canh đáy + nảy lên cho các thẻ overlay. Không Positioned
+/// để sống được trong AnimatedSwitcher (fade vào/ra do switcher đảm nhiệm,
+/// ở đây chỉ giữ cú nảy scale lúc vào).
 class _OverlayShell extends StatelessWidget {
   final Widget child;
   const _OverlayShell({required this.child});
 
   @override
   Widget build(BuildContext context) {
-    return Positioned.fill(
+    return SizedBox.expand(
           child: ColoredBox(
             color: Colors.black.withValues(alpha: 0.45),
             child: SafeArea(
@@ -775,7 +892,6 @@ class _OverlayShell extends StatelessWidget {
           ),
         )
         .animate()
-        .fadeIn(duration: WonderTokens.durBase)
         .scaleXY(
           begin: 0.92,
           end: 1,
@@ -785,57 +901,34 @@ class _OverlayShell extends StatelessWidget {
   }
 }
 
-class _GeneratingOverlay extends StatelessWidget {
-  const _GeneratingOverlay();
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: ColoredBox(
-          color: Colors.black.withValues(alpha: 0.5),
-          child: const Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                ScanRingButton(busy: true, size: 104),
-                SizedBox(height: 22),
-                Text(
-                  'Đang tìm hiểu món này…',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// Trạng thái khởi tạo/lỗi camera — vẫn giữ tông kính sang, không phải spinner trơ.
 class _StatusCard extends StatelessWidget {
   final IconData icon;
+  final String? kicker;
   final String title;
   final String body;
   final bool spinner;
+  final Color accent;
   final String? actionLabel;
   final IconData? actionIcon;
   final VoidCallback? onAction;
+  final String? secondaryActionLabel;
+  final IconData? secondaryActionIcon;
+  final VoidCallback? onSecondaryAction;
 
   const _StatusCard({
     required this.icon,
+    this.kicker,
     required this.title,
     required this.body,
     this.spinner = false,
+    this.accent = WonderColors.cyan,
     this.actionLabel,
     this.actionIcon,
     this.onAction,
+    this.secondaryActionLabel,
+    this.secondaryActionIcon,
+    this.onSecondaryAction,
   });
 
   @override
@@ -848,51 +941,185 @@ class _StatusCard extends StatelessWidget {
           colors: <Color>[Color(0xFF102036), WonderColors.ink],
         ),
       ),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              PhosphorIcon(icon, size: 64, color: Colors.white),
-              const SizedBox(height: 16),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
+      child: Stack(
+        children: <Widget>[
+          Positioned(
+            top: -130,
+            right: -80,
+            child: _StatusGlow(color: WonderColors.sky.withValues(alpha: 0.62)),
+          ),
+          Positioned(
+            bottom: -150,
+            left: -90,
+            child: _StatusGlow(
+              color: WonderColors.grape.withValues(alpha: 0.58),
+            ),
+          ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(26),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 430),
+                child: GlassSurface(
+                  tone: GlassTone.dark,
+                  radius: WonderTokens.radiusXl,
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+                  blur: 0,
+                  tintOpacity: 0.42,
+                  shadows: WonderShadows.glow(accent, opacity: 0.20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Center(
+                        child: _StatusOrb(
+                          icon: icon,
+                          accent: accent,
+                          spinner: spinner,
+                        ),
+                      ),
+                      if (kicker != null) ...<Widget>[
+                        const SizedBox(height: 18),
+                        Center(
+                          child: WonderChip(
+                            label: kicker!,
+                            icon: PhosphorIconsFill.sparkle,
+                            color: accent,
+                          ),
+                        ),
+                      ] else
+                        const SizedBox(height: 18),
+                      Text(
+                        title,
+                        textAlign: TextAlign.center,
+                        style: WonderType.title.copyWith(color: Colors.white),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        body,
+                        textAlign: TextAlign.center,
+                        style: WonderType.body.copyWith(
+                          color: Colors.white.withValues(alpha: 0.84),
+                          height: 1.36,
+                        ),
+                      ),
+                      if (actionLabel != null && onAction != null) ...<Widget>[
+                        const SizedBox(height: 24),
+                        Center(
+                          child: WonderButton(
+                            label: actionLabel!,
+                            icon: actionIcon,
+                            expand: false,
+                            onTap: onAction,
+                          ),
+                        ),
+                      ],
+                      if (secondaryActionLabel != null &&
+                          onSecondaryAction != null) ...<Widget>[
+                        const SizedBox(height: 12),
+                        Center(
+                          child: WonderButton(
+                            label: secondaryActionLabel!,
+                            icon: secondaryActionIcon,
+                            expand: false,
+                            gradient: const LinearGradient(
+                              colors: <Color>[
+                                WonderColors.grape,
+                                WonderColors.indigo,
+                              ],
+                            ),
+                            onTap: onSecondaryAction,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                body,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.82),
-                  fontSize: 15,
-                  height: 1.3,
-                ),
-              ),
-              if (spinner) ...<Widget>[
-                const SizedBox(height: 24),
-                const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(WonderColors.cyan),
-                ),
-              ],
-              if (actionLabel != null && onAction != null) ...<Widget>[
-                const SizedBox(height: 24),
-                WonderButton(
-                  label: actionLabel!,
-                  icon: actionIcon,
-                  expand: false,
-                  onTap: onAction,
-                ),
-              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusGlow extends StatelessWidget {
+  final Color color;
+
+  const _StatusGlow({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: 280,
+        height: 280,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: <Color>[
+              color.withValues(alpha: 0.42),
+              color.withValues(alpha: 0.12),
+              Colors.transparent,
             ],
+            stops: const <double>[0, 0.46, 1],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _StatusOrb extends StatelessWidget {
+  final IconData icon;
+  final Color accent;
+  final bool spinner;
+
+  const _StatusOrb({
+    required this.icon,
+    required this.accent,
+    required this.spinner,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 118,
+      height: 118,
+      child: Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: SweepGradient(colors: WonderGradients.ring),
+              boxShadow: WonderShadows.glow(accent, opacity: 0.32),
+            ),
+          ),
+          Container(
+            width: 86,
+            height: 86,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: WonderColors.inkSoft.withValues(alpha: 0.94),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.38)),
+            ),
+            child: Center(
+              child: PhosphorIcon(icon, size: 42, color: Colors.white),
+            ),
+          ),
+          if (spinner)
+            const Positioned.fill(
+              child: Padding(
+                padding: EdgeInsets.all(7),
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(WonderColors.cyan),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

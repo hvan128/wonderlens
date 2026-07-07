@@ -74,10 +74,14 @@ enum SubjectCutout {
       else {
         return nil
       }
+      // croppedToInstancesExtent: FALSE → foreground giữ NGUYÊN khung ảnh gốc
+      // (nền trong suốt) thay vì cắt sát bbox chủ thể. Bắt buộc để mask khớp toạ
+      // độ với ảnh JPEG khi hiệu ứng tan biến phủ mask lên toàn khung; bên Dart
+      // `tightCropTransparentPng` vẫn tự cắt sát khi cần sticker bộ sưu tập.
       let maskedBuffer = try observation.generateMaskedImage(
         ofInstances: observation.allInstances,
         from: handler,
-        croppedToInstancesExtent: true)
+        croppedToInstancesExtent: false)
       return pngData(from: maskedBuffer).map { FlutterStandardTypedData(bytes: $0) }
     } catch {
       NSLog("WonderLens segmentation error: \(error.localizedDescription)")

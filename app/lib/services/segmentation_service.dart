@@ -3,8 +3,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import 'image_cutout.dart';
-
 /// Tách chủ thể khỏi nền ngay trên máy (offline, không gọi mạng) qua một
 /// MethodChannel chung `wonderlens/segmentation`, cài đặt native theo nền tảng:
 /// - iOS 17+: Apple Vision (`ios/Runner/AppDelegate.swift`).
@@ -17,13 +15,15 @@ class SegmentationService {
   static const MethodChannel _channel =
       MethodChannel('wonderlens/segmentation');
 
-  /// Nhận đường dẫn ảnh chụp → trả PNG cutout (nền trong suốt, cắt sát chủ thể,
-  /// khung vuông) hoặc null nếu không tách được.
-  Future<Uint8List?> cutout(String imagePath) async {
+  /// Foreground **toàn khung** (nền trong suốt, đúng kích thước ảnh gốc). Gọi
+  /// viên tự cắt sát (`tightCropTransparentPng`) khi cần sticker bộ sưu tập, và
+  /// dùng nguyên khung cho hiệu ứng tan biến (mask phải khớp toạ độ ảnh gốc).
+  /// Null nếu không tách được (iOS < 17 / không có chủ thể / lỗi / nền khác).
+  Future<Uint8List?> foreground(String imagePath) async {
     if (!Platform.isIOS && !Platform.isAndroid) return null;
     final Uint8List? raw = await _rawForeground(imagePath);
     if (raw == null || raw.isEmpty) return null;
-    return tightCropTransparentPng(raw);
+    return raw;
   }
 
   /// Ảnh foreground "thô" (nền trong suốt, kích thước nguyên khung) từ native.
