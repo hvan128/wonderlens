@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -6,8 +7,9 @@ import 'motion.dart';
 import 'pressable.dart';
 import 'wonder_haptics.dart';
 
-/// Độ "mở" khẩu độ lúc nghỉ (0 = sập kín, 1 = mở toang). ~0.55 cho lỗ mở vừa.
-const double _kIdleOpen = 0.55;
+/// Độ "mở" khẩu độ lúc nghỉ (0 = sập kín hẳn, 1 = mở toang). 0.61 cho lỗ mở
+/// vừa — giữ đúng dáng cũ sau khi sàn lỗ mở hạ về ~0 để sập kín được cả tâm.
+const double _kIdleOpen = 0.61;
 
 double _lerp(double a, double b, double t) => a + (b - a) * t;
 
@@ -61,9 +63,13 @@ class _WonderLogoState extends State<WonderLogo>
 }
 
 /// Nút chụp là logo khẩu độ — dùng ở trang chủ (mở camera) lẫn shutter màn
-/// camera. [animateOnTap] = true: chạm chạy **hiệu ứng chụp** (cánh mở tách ra
-/// → xoay vài vòng → sập vào + chớp sáng) rồi gọi [onCapture]; = false: gọi
-/// [onCapture] ngay (shutter camera). Reduce Motion cũng bỏ hiệu ứng.
+/// camera. [animateOnTap] = true: chạm chạy **hiệu ứng chụp** (mở khẩu →
+/// xoay vài vòng → sập vào + chớp sáng) rồi gọi [onCapture];
+/// ngoài ra lúc nghỉ cứ vài giây tự chạy một nhịp "gợi ý chụp" — cú chụp thu
+/// nhỏ (tách cánh → xoay một vòng → sập trập kín tận tâm → hé mở lại) để trẻ
+/// hình dung đây là nút vào màn chụp ảnh.
+/// = false: gọi [onCapture] ngay, không hiệu ứng nào (shutter camera).
+/// Reduce Motion bỏ cả hiệu ứng chụp lẫn nhịp gợi ý.
 class ApertureCaptureButton extends StatefulWidget {
   final double size;
   final VoidCallback? onCapture;
@@ -111,15 +117,65 @@ class _ApertureCaptureButtonState extends State<ApertureCaptureButton>
     vsync: this,
     duration: const Duration(milliseconds: 1300),
   );
+  // Nhịp "gợi ý chụp" lúc nghỉ (một lần, hẹn giờ lặp lại). 3s thong thả:
+  // riêng cú sập trập phải NHANH như click máy ảnh thật, còn mở ra thì từ tốn
+  // — nhịp không đều mới giống thật.
+  late final AnimationController _hint = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 3000),
+  );
+  Timer? _hintTimer;
   bool _capturing = false;
+  // Góc xoay tại lúc chạm — để hiệu ứng chụp nối tiếp mượt từ xoay nghỉ/gợi ý
+  // thay vì giật về 0.
+  double _rotStart = 0;
 
   static const double _turns = 2.5; // số vòng xoay khi chụp
+  static const Duration _hintEvery = Duration(seconds: 6);
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleHint();
+  }
 
   @override
   void dispose() {
+    _hintTimer?.cancel();
     _idle.dispose();
     _cap.dispose();
+    _hint.dispose();
     super.dispose();
+  }
+
+  void _scheduleHint() {
+    if (!widget.animateOnTap) return; // shutter camera: không gợi ý
+    _hintTimer?.cancel();
+    _hintTimer = Timer(_hintEvery, _playHint);
+  }
+
+  Future<void> _playHint() async {
+    if (!mounted) return;
+    final skip = _capturing ||
+        widget.busy ||
+        widget.onCapture == null ||
+        reduceMotionOf(context);
+    if (!skip) {
+      // Đứng hình xoay nghỉ: trong nhịp gợi ý, góc xoay do một mình
+      // _hintRotation quản — không thế thì lúc trập ngậm kín vẫn bị trôi góc.
+      _idle.stop();
+      try {
+        await _hint.forward(from: 0).orCancel;
+      } on TickerCanceled {
+        // Bị chạm giữa chừng — _startCapture tiếp quản góc xoay.
+      }
+      if (!mounted) return;
+      _hint.reset();
+      // build() sẽ nối lại xoay nghỉ theo điều kiện chung (trừ khi đang chụp
+      // — _startCapture tự setState khi xong).
+      if (!_capturing) setState(() {});
+    }
+    _scheduleHint();
   }
 
   Future<void> _startCapture() async {
@@ -131,6 +187,10 @@ class _ApertureCaptureButtonState extends State<ApertureCaptureButton>
       return;
     }
     setState(() => _capturing = true);
+    _hintTimer?.cancel();
+    _rotStart = _idle.value * 2 * math.pi + _hintRotation(_hint.value);
+    if (_hint.isAnimating) _hint.stop();
+    _hint.reset();
     _idle.stop();
     WonderHaptics.primary();
     try {
@@ -142,8 +202,11 @@ class _ApertureCaptureButtonState extends State<ApertureCaptureButton>
     if (!mounted) return;
     _cap.reset();
     setState(() => _capturing = false);
+    _scheduleHint();
   }
 
+  // Chuỗi chụp giữ dáng gốc, liền mạch không khoảng dừng — cú trập "thật"
+  // (tách cánh, đứng hình khi kín) dành cho nhịp gợi ý lúc nghỉ.
   // openness theo timeline: mở nhanh → giữ → sập.
   double _openness(double t) {
     const open = 0.28, hold = 0.62;
@@ -157,10 +220,67 @@ class _ApertureCaptureButtonState extends State<ApertureCaptureButton>
   double _rotation(double t) =>
       _turns * 2 * math.pi * Curves.easeInOutCubic.transform(t);
 
+  // Mốc pha nhịp gợi ý — một cú chụp thu nhỏ: tách mở [0→_hOpen] → xoay giữ
+  // [→_hClose] → sập kín tận tâm [→_hSealed] → giữ kín [→_hReopen] → hé mở về
+  // dáng nghỉ [→1]. Chính cú "đóng trập" này dạy người dùng đây là nút chụp.
+  // Tỷ lệ trên nền 3s: mở 540ms, ngắm 720ms, SẬP 300ms (cú click), ngậm
+  // 540ms, nhả 900ms.
+  static const double _hOpen = 0.18,
+      _hClose = 0.42,
+      _hSealed = 0.52,
+      _hReopen = 0.70;
+
+  double _hintOpenness(double t) {
+    if (t < _hOpen) {
+      return _lerp(_kIdleOpen, 1, Curves.easeOutCubic.transform(t / _hOpen));
+    }
+    if (t < _hClose) return 1;
+    if (t < _hSealed) {
+      return _lerp(
+        1,
+        0,
+        Curves.easeInCubic.transform((t - _hClose) / (_hSealed - _hClose)),
+      );
+    }
+    if (t < _hReopen) return 0;
+    return _lerp(
+      0,
+      _kIdleOpen,
+      Curves.easeOutCubic.transform((t - _hReopen) / (1 - _hReopen)),
+    );
+  }
+
+  // Tách cánh của nhịp gợi ý: dịu hơn lúc chụp thật (~50%), khít lại đúng lúc
+  // trập đóng.
+  double _hintSeparation(double t) {
+    if (t < _hOpen) return 0.5 * Curves.easeOutCubic.transform(t / _hOpen);
+    if (t < _hClose) return 0.5;
+    if (t < _hSealed) {
+      return 0.5 *
+          (1 -
+              Curves.easeInCubic.transform(
+                (t - _hClose) / (_hSealed - _hClose),
+              ));
+    }
+    return 0;
+  }
+
+  // Gợi ý xoay đúng MỘT vòng phụ (2π), dồn hết vào pha ngắm và PHANH ĐỨNG
+  // trước cú sập — màn trập thật không xoay khi đóng. Tròn vòng 2π nên nối
+  // lại xoay nghỉ không bị giật.
+  double _hintRotation(double t) {
+    if (t >= _hClose) return 2 * math.pi;
+    return 2 * math.pi * Curves.easeInOutCubic.transform(t / _hClose);
+  }
+
   double _scale(double t) {
     const snap = 0.62;
     if (t < snap) return 1 + 0.06 * Curves.easeOut.transform(t / snap);
-    return _lerp(1.06, 0.9, Curves.easeInCubic.transform((t - snap) / (1 - snap)));
+    return _lerp(
+      1.06,
+      0.9,
+      Curves.easeInCubic.transform((t - snap) / (1 - snap)),
+    );
   }
 
   double _flash(double t) {
@@ -182,8 +302,10 @@ class _ApertureCaptureButtonState extends State<ApertureCaptureButton>
       _idle.duration = dur;
       if (_idle.isAnimating) _idle.repeat();
     }
+    // Không nối lại xoay nghỉ khi nhịp gợi ý đang chạy — nó tự quản góc xoay
+    // (kể cả khoảng đứng hình lúc trập ngậm kín).
     if (spinning) {
-      if (!_idle.isAnimating) _idle.repeat();
+      if (!_idle.isAnimating && !_hint.isAnimating) _idle.repeat();
     } else if (_idle.isAnimating) {
       _idle.stop();
     }
@@ -198,14 +320,21 @@ class _ApertureCaptureButtonState extends State<ApertureCaptureButton>
         child: SizedBox.square(
           dimension: size,
           child: AnimatedBuilder(
-            animation: Listenable.merge(<Listenable>[_idle, _cap]),
+            animation: Listenable.merge(<Listenable>[_idle, _cap, _hint]),
             builder: (context, _) {
               final t = _cap.value;
-              final openness = _capturing ? _openness(t) : _kIdleOpen;
+              // Nhịp gợi ý (h=0 khi không chạy): cú chụp thu nhỏ — tách cánh,
+              // xoay thêm một vòng, sập trập kín rồi hé mở lại.
+              final h = _capturing ? 0.0 : _hint.value;
+              final openness = _capturing ? _openness(t) : _hintOpenness(h);
+              // Tách cánh chỉ dùng cho nhịp gợi ý — chuỗi chụp giữ dáng gốc.
+              final separation = _capturing ? 0.0 : _hintSeparation(h);
               final rotation = _capturing
-                  ? _rotation(t)
-                  : (spinning ? _idle.value * 2 * math.pi : 0.0);
-              final scale = _capturing ? _scale(t) : 1.0;
+                  ? _rotStart + _rotation(t)
+                  : (spinning ? _idle.value * 2 * math.pi : 0.0) +
+                      _hintRotation(h);
+              final scale =
+                  _capturing ? _scale(t) : 1 + 0.08 * _hintSeparation(h);
               final flash = _capturing ? _flash(t) : 0.0;
 
               return Stack(
@@ -224,6 +353,7 @@ class _ApertureCaptureButtonState extends State<ApertureCaptureButton>
                         painter: AperturePainter(
                           openness: openness,
                           rotation: rotation,
+                          separation: separation,
                         ),
                       ),
                     ),
@@ -251,13 +381,20 @@ class _ApertureCaptureButtonState extends State<ApertureCaptureButton>
 
 /// Vẽ khẩu độ camera: [_n] cánh cong chồng nhau tạo lỗ mở đa giác ở giữa.
 /// [openness] 0→1 điều khiển bán kính lỗ mở (0 = sập kín, 1 = mở toang);
-/// [rotation] (radian) xoay cả khẩu độ. Mỗi cánh nằm GIỮA hai mép xoắn giống
-/// hệt (lệch đúng một bước góc) nên các cánh bằng nhau, không đè nhau.
+/// [rotation] (radian) xoay cả khẩu độ; [separation] 0→1 trượt từng cánh ra
+/// ngoài theo phương bán kính riêng của nó — các cánh tách rời, hở khe giữa
+/// chúng (0 = liền khít). Mỗi cánh nằm GIỮA hai mép xoắn giống hệt (lệch đúng
+/// một bước góc) nên các cánh bằng nhau, không đè nhau.
 class AperturePainter extends CustomPainter {
   final double openness;
   final double rotation;
+  final double separation;
 
-  const AperturePainter({this.openness = _kIdleOpen, this.rotation = 0});
+  const AperturePainter({
+    this.openness = _kIdleOpen,
+    this.rotation = 0,
+    this.separation = 0,
+  });
 
   static const int _n = 6;
 
@@ -275,7 +412,9 @@ class AperturePainter extends CustomPainter {
     final double side = math.min(size.width, size.height);
     final Offset c = Offset(size.width / 2, size.height / 2);
     final double ro = side * 0.47;
-    final double ri = _lerp(side * 0.045, side * 0.32, openness.clamp(0, 1));
+    // Sàn ~0 (epsilon để arcTo không suy biến): openness 0 = cánh chụm kín
+    // tận tâm như màn trập thật, không chừa lỗ.
+    final double ri = _lerp(side * 0.002, side * 0.32, openness.clamp(0, 1));
     final double ctrlR = ri + (ro - ri) * 0.42; // luôn nằm giữa ri..ro
     final Rect outer = Rect.fromCircle(center: c, radius: ro);
     final Rect inner = Rect.fromCircle(center: c, radius: ri);
@@ -283,6 +422,8 @@ class AperturePainter extends CustomPainter {
     const double step = 2 * math.pi / _n;
     const double swirl = step * 0.9;
     final double base = -math.pi / 2 + rotation;
+    // Cự ly tách: tối đa ~10% cạnh — đủ hở khe rõ mà cánh không văng quá xa.
+    final double sep = separation.clamp(0.0, 1.0) * side * 0.10;
 
     Offset polar(double a, double r) =>
         c + Offset(math.cos(a) * r, math.sin(a) * r);
@@ -311,8 +452,14 @@ class AperturePainter extends CustomPainter {
         )
         ..close();
 
+      // Tâm góc thực của cánh (đã xét độ xoắn) — hướng trượt khi tách.
+      final double mid = t0 + step / 2 - swirl / 2;
+      final Path drawn = sep > 0
+          ? path.shift(Offset(math.cos(mid), math.sin(mid)) * sep)
+          : path;
+
       canvas.drawPath(
-        path,
+        drawn,
         Paint()
           ..isAntiAlias = true
           ..style = PaintingStyle.fill
@@ -320,7 +467,7 @@ class AperturePainter extends CustomPainter {
       );
     }
 
-    // Tâm sáng dịu (thu nhỏ theo lỗ mở → khi sập gần như biến mất).
+    // Tâm sáng dịu (thu nhỏ theo lỗ mở → khi sập kín biến mất hẳn).
     canvas.drawCircle(
       c,
       ri * 0.78,
@@ -332,7 +479,9 @@ class AperturePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant AperturePainter old) =>
-      old.openness != openness || old.rotation != rotation;
+      old.openness != openness ||
+      old.rotation != rotation ||
+      old.separation != separation;
 }
 
 /// Vành chấm bi mờ bao ngoài — gợi "ống ngắm" quanh nút chụp.
