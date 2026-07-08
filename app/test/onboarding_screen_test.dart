@@ -1,4 +1,6 @@
-// Onboarding "chụp thử": ngắm → chạm nút khẩu độ → thẻ khen → vào app thật.
+// Onboarding "chụp thử" đi ĐÚNG luồng thật: ngắm → chụp → CaptureDissolve
+// (tan biến + "đang dựng") → tên vật + nút → ✓ mở TimelineScreen thật → thoát
+// hành trình = xong onboarding. Giọng kể tiêm fake như timeline_test.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -6,14 +8,36 @@ import 'package:hive/hive.dart';
 
 import 'package:wonderlens/data/app_settings.dart';
 import 'package:wonderlens/screens/onboarding_screen.dart';
+import 'package:wonderlens/screens/timeline_screen.dart';
+import 'package:wonderlens/services/narration_service.dart';
 import 'package:wonderlens/ui/ui.dart';
 
-GoRouter _router() => GoRouter(
+/// Giọng kể giả: "đọc xong" tức thì để timeline auto-advance tất định.
+class _FakeNarration implements NarrationService {
+  final List<String> spoken = <String>[];
+
+  @override
+  Future<void> speak(String text) {
+    spoken.add(text);
+    return Future<void>.value();
+  }
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  void dispose() {}
+}
+
+GoRouter _router(NarrationService narration) => GoRouter(
   initialLocation: '/onboarding',
   routes: <RouteBase>[
     GoRoute(
       path: '/onboarding',
-      builder: (context, state) => const OnboardingScreen(),
+      // buildBeat zero: nhịp "đang dựng" chạy trong runAsync (event loop
+      // thật) nên phải kết thúc ngay trong cửa sổ đó, không đợi fake pump.
+      builder: (context, state) =>
+          OnboardingScreen(narration: narration, buildBeat: Duration.zero),
     ),
     GoRoute(
       path: '/home',
@@ -23,39 +47,40 @@ GoRouter _router() => GoRouter(
   ],
 );
 
-Future<void> _pumpOnboarding(WidgetTester tester) async {
-  await tester.pumpWidget(MaterialApp.router(routerConfig: _router()));
+/// disableAnimations như timeline_test: _StoryScrim bỏ flutter_animate delay
+/// (Timer không huỷ được) → teardown không treo; CaptureDissolve rút intro.
+Widget _host(NarrationService narration) => MaterialApp.router(
+  routerConfig: _router(narration),
+  builder: (context, child) => MediaQuery(
+    data: MediaQuery.of(context).copyWith(disableAnimations: true),
+    child: child!,
+  ),
+);
+
+Future<void> _pumpOnboarding(WidgetTester tester, NarrationService n) async {
+  await tester.pumpWidget(_host(n));
   await tester.pump();
   expect(find.text('Đố bé biết chiếc cốc này từ đâu tới?'), findsOneWidget);
 }
 
-/// Chạm nút khẩu độ và pump qua hiệu ứng chụp (1300ms) + thẻ khen vào.
-Future<void> _captureAndReveal(WidgetTester tester) async {
-  await tester.tap(find.byType(ApertureCaptureButton), warnIfMissed: false);
+/// Chạm nút khẩu độ (chụp tức thì như camera) và pump tới khi có kết quả.
+/// Tap phải nằm TRONG runAsync: chuỗi _capture (rootBundle + decode ảnh) là
+/// I/O engine thật, kẹt vĩnh viễn dưới fake zone của testWidgets.
+Future<void> _captureToResult(WidgetTester tester) async {
+  await tester.runAsync(() async {
+    await tester.tap(find.byType(ApertureCaptureButton), warnIfMissed: false);
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+  });
   await tester.pump();
-  await tester.pump(const Duration(milliseconds: 1400));
-  await tester.pump(const Duration(milliseconds: 500));
-  expect(_praiseOpacity(tester), 1);
-}
+  expect(find.byType(CaptureDissolve), findsOneWidget);
 
-/// Thẻ khen luôn nằm trong cây (IgnorePointer + AnimatedOpacity) nên
-/// find.text không phân biệt được trạng thái — đọc opacity đích của lớp phủ.
-double _praiseOpacity(WidgetTester tester) {
-  final fade = tester.widget<AnimatedOpacity>(
-    find
-        .ancestor(
-          of: find.text('Giỏi quá, bé chụp được rồi!'),
-          matching: find.byType(AnimatedOpacity),
-        )
-        .first,
-  );
-  return fade.opacity;
+  // Panel kết quả trượt vào (buildBeat zero → title có ngay từ frame đầu).
+  await tester.pump(const Duration(milliseconds: 700));
+  // Tên vật kiểu sticker chữ = 2 lớp Text (stroke + fill).
+  expect(find.text('Cốc giấy'), findsNWidgets(2));
 }
 
 void main() {
-  // Box in-memory để khoá hợp đồng persist cờ onboarding. KHÔNG dùng box Hive
-  // file thật: put chạy trong zone FakeAsync của testWidgets → I/O đĩa không
-  // bao giờ hoàn thành → test treo tới timeout.
   late _MemBox box;
   setUp(() {
     box = _MemBox();
@@ -66,39 +91,39 @@ void main() {
     AppSettings.debugSetBox(null);
   });
 
-  testWidgets('Chụp thử → thẻ khen, "Bắt đầu khám phá" về home + persist cờ', (
+  testWidgets('Chụp thử → tan biến → tên vật, ✓ mở hành trình thật', (
     WidgetTester tester,
   ) async {
-    await _pumpOnboarding(tester);
-    expect(_praiseOpacity(tester), 0);
-    await _captureAndReveal(tester);
+    final n = _FakeNarration();
+    await _pumpOnboarding(tester, n);
+    await _captureToResult(tester);
 
-    await tester.tap(find.text('Bắt đầu khám phá'));
+    // ✓ (Mở hành trình) → TimelineScreen thật nhúng same-screen như camera.
+    await tester.tap(find.byIcon(Icons.check_rounded));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 800));
-    expect(find.text('HOME_STUB'), findsOneWidget);
-    // Hợp đồng "chỉ hiện đúng một lần": cờ phải được ghi bền vào Hive.
-    expect(box.get('onboarding_seen'), isTrue);
-    expect(AppSettings.onboardingSeen, isTrue);
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byType(TimelineScreen), findsOneWidget);
+    // Chưa xem xong hành trình → CHƯA đánh dấu đã xem onboarding.
+    expect(box.get('onboarding_seen'), isNot(isTrue));
 
-    // Gỡ cây widget để huỷ animation/timer còn chạy (twinkle, hint…).
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('"Chụp thử lại" quay về nhịp ngắm (thẻ khen ẩn + chặn tap)', (
+  testWidgets('Nút soi lại trên kết quả → quay về nhịp ngắm', (
     WidgetTester tester,
   ) async {
-    await _pumpOnboarding(tester);
-    await _captureAndReveal(tester);
+    final n = _FakeNarration();
+    await _pumpOnboarding(tester, n);
+    await _captureToResult(tester);
 
-    await tester.tap(find.text('Chụp thử lại'));
+    await tester.tap(find.byIcon(Icons.refresh_rounded));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 800));
-    expect(_praiseOpacity(tester), 0);
+    await tester.pump(const Duration(milliseconds: 600));
+    // Overlay tan biến đã rời cây → lại thấy nhịp ngắm, chụp lại được.
+    expect(find.byType(CaptureDissolve), findsNothing);
     expect(find.text('Đố bé biết chiếc cốc này từ đâu tới?'), findsOneWidget);
 
-    // Chụp lại được lần nữa sau khi replay.
-    await _captureAndReveal(tester);
+    await _captureToResult(tester);
 
     await tester.pumpWidget(const SizedBox());
   });
@@ -106,19 +131,22 @@ void main() {
   testWidgets('"Bỏ qua" đi thẳng về trang chủ + persist cờ', (
     WidgetTester tester,
   ) async {
-    await _pumpOnboarding(tester);
+    final n = _FakeNarration();
+    await _pumpOnboarding(tester, n);
 
     await tester.tap(find.text('Bỏ qua'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 800));
     expect(find.text('HOME_STUB'), findsOneWidget);
+    // Hợp đồng "chỉ hiện đúng một lần": cờ phải được ghi bền vào box.
     expect(box.get('onboarding_seen'), isTrue);
 
     await tester.pumpWidget(const SizedBox());
   });
 }
 
-/// Box Hive giả in-memory — chỉ get/put mà AppSettings dùng.
+/// Box Hive giả in-memory — chỉ get/put mà AppSettings dùng (Hive file thật
+/// treo dưới FakeAsync của testWidgets).
 class _MemBox extends Fake implements Box {
   final Map<dynamic, dynamic> _data = <dynamic, dynamic>{};
 

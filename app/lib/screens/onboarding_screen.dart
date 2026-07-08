@@ -1,93 +1,153 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/app_settings.dart';
+import '../data/content_repository.dart';
+import '../models/object_content.dart';
+import '../services/narration_service.dart';
 import '../ui/ui.dart';
+import 'timeline_screen.dart';
 
-/// Onboarding "chụp thử" kiểu CapWords: mô phỏng đúng màn camera thật — ảnh
-/// cốc giấy trên bàn hiện như viewfinder, 4 góc ngắm + câu đố mời chạm nút
-/// khẩu độ. Bé bấm chụp → nền tối dần + bụi lấp lánh, riêng chiếc cốc (cutout
-/// cùng khung hình) vẫn sắc nét — rồi thẻ khen dẫn vào hành trình thật.
-/// Toàn bộ diễn ra dưới 10 giây, có "Bỏ qua", chỉ hiện đúng một lần.
+/// Onboarding "chụp thử" kiểu CapWords — đi ĐÚNG luồng chụp thật của app,
+/// chỉ thay camera bằng ảnh cốc giấy bundled:
+///   ngắm (khung 4 góc + câu đố) → chạm nút khẩu độ (chụp tức thì như camera)
+///   → [CaptureDissolve] thật: nền tan biến bằng shader, nhịp "đang dựng
+///   chuyện" → tên vật + 3 nút tròn → ✓ mở [TimelineScreen] thật với hành
+///   trình cốc giấy offline → thoát hành trình = xong onboarding, về home.
+/// Có "Bỏ qua", chỉ hiện đúng một lần (cờ trong AppSettings).
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({super.key});
+  /// Giọng kể tiêm từ ngoài (test) — null thì tự tạo khi cần, như flow thật.
+  final NarrationService? narration;
+
+  /// Nhịp "AI đang dựng chuyện" — flow thật giữ hiệu ứng tối thiểu 1500ms
+  /// (minShow ở camera) dù AI trả nhanh; nội dung ở đây bundled có ngay nên
+  /// giữ nhịp tương đương cho cảm giác y hệt. Test truyền Duration.zero.
+  final Duration buildBeat;
+
+  const OnboardingScreen({
+    super.key,
+    this.narration,
+    this.buildBeat = const Duration(milliseconds: 1700),
+  });
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen>
-    with TickerProviderStateMixin {
-  bool _captured = false;
+class _OnboardingScreenState extends State<OnboardingScreen> {
+  static const String _heroId = 'paper_cup';
+  static const String _sceneAsset = 'assets/images/onboarding_scene.jpg';
+  static const String _cutoutAsset = 'assets/images/onboarding_cutout.png';
 
-  // 0 → 1: nền chìm xuống + cutout nổi lên (spring, có overshoot nhẹ).
-  late final AnimationController _reveal = AnimationController.unbounded(
-    vsync: this,
-  );
-  // Vòng twinkle cho bụi lấp lánh + nhịp bồng bềnh của cutout.
-  late final AnimationController _twinkle = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 2600),
-  );
+  bool _busy = false;
+  // Ảnh cho hiệu ứng tan biến (CaptureDissolve sở hữu & tự giải phóng).
+  ui.Image? _dissolveFrame;
+  ui.Image? _dissolveMask;
+  // null = đang dựng chuyện; có giá trị = hiện tên + nút như flow thật.
+  String? _dissolveTitle;
+  ObjectContent? _content;
+  bool _journeyStarted = false;
+  NarrationService? _narration;
+
+  final ContentRepository _repo = ContentRepository();
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Nạp sẵn cả hai ảnh để khoảnh khắc "chụp" không bị khựng giải mã.
-    precacheImage(
-      const AssetImage('assets/images/onboarding_scene.jpg'),
-      context,
-    );
-    precacheImage(
-      const AssetImage('assets/images/onboarding_cutout.png'),
-      context,
-    );
+    // Nạp sẵn ảnh cảnh để viewfinder giả hiện tức thì.
+    precacheImage(const AssetImage(_sceneAsset), context);
   }
 
   @override
   void dispose() {
-    _reveal.dispose();
-    _twinkle.dispose();
+    _narration?.dispose();
     super.dispose();
   }
 
-  void _onCaptured() {
-    if (_captured) return;
-    setState(() => _captured = true);
-    if (reduceMotionOf(context)) {
-      _reveal.value = 1;
-      return;
-    }
-    // Spring xong phải đặt value về đúng đích (ADR-009) — không thì controller
-    // dừng trong khoảng tolerance và gate `t == 0` bên dưới không bao giờ đúng.
-    _reveal
-        .animateWith(
-          WonderSpring.bouncy.simulation(
-            from: _reveal.value,
-            to: 1,
-            tolerance: WonderSpring.unitTolerance,
-          ),
-        )
-        .whenComplete(() => _reveal.value = 1);
+  /// Giải mã asset → `ui.Image` (mirror `_decodeImage` của camera_screen).
+  Future<ui.Image> _decodeAsset(String key) async {
+    final ByteData data = await rootBundle.load(key);
+    final ui.Codec codec = await ui.instantiateImageCodec(
+      data.buffer.asUint8List(),
+    );
+    final ui.FrameInfo frame = await codec.getNextFrame();
+    codec.dispose();
+    return frame.image;
   }
 
-  void _replay() {
-    setState(() => _captured = false);
-    if (reduceMotionOf(context)) {
-      _reveal.value = 0;
+  /// Mirror `_capture` của camera_screen: chụp tức thì → vào hiệu ứng tan
+  /// biến ngay → "AI dựng chuyện" (ở đây: nội dung hero bundled + nhịp chờ).
+  Future<void> _capture() async {
+    if (_busy || _dissolveFrame != null) return;
+    setState(() => _busy = true);
+    try {
+      final ui.Image frame = await _decodeAsset(_sceneAsset);
+      final ui.Image mask;
+      try {
+        mask = await _decodeAsset(_cutoutAsset);
+      } catch (_) {
+        // Chưa bàn giao quyền sở hữu cho CaptureDissolve → tự dọn frame.
+        frame.dispose();
+        rethrow;
+      }
+      if (!mounted) {
+        frame.dispose();
+        mask.dispose();
+        return;
+      }
+      setState(() {
+        _dissolveFrame = frame;
+        _dissolveMask = mask;
+        _dissolveTitle = null;
+      });
+
+      final ObjectContent? content = await _repo.load(_heroId);
+      await Future<void>.delayed(widget.buildBeat);
+      // Bé có thể đã bấm Huỷ trong lúc "đang dựng" → đừng bung kết quả.
+      if (!mounted || _dissolveFrame == null) return;
+      WonderHaptics.success();
+      setState(() {
+        _content = content;
+        _dissolveTitle = content?.name ?? 'Cốc giấy';
+      });
+    } catch (e) {
+      debugPrint('Onboarding capture error: $e');
+      if (mounted) _dismissOverlay();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _dismissOverlay() {
+    _narration?.stop();
+    setState(() {
+      _dissolveFrame = null;
+      _dissolveMask = null;
+      _dissolveTitle = null;
+      _content = null;
+    });
+  }
+
+  void _speak(String name) {
+    WonderHaptics.selection();
+    // Khởi tạo lười — chỉ chạm loa mới đụng plugin TTS/audio.
+    (widget.narration ?? (_narration ??= NarrationService())).speak(name);
+  }
+
+  /// Nút ✓ — mở hành trình thật ngay trong overlay (same-screen như camera).
+  void _openJourney() {
+    if (_content == null) {
+      // Nội dung hero lỗi (hiếm): đừng kẹt bé lại — coi như xong onboarding.
+      _finish();
       return;
     }
-    _reveal
-        .animateWith(
-          WonderSpring.smooth.simulation(
-            from: _reveal.value,
-            to: 0,
-            tolerance: WonderSpring.unitTolerance,
-          ),
-        )
-        .whenComplete(() => _reveal.value = 0);
+    WonderHaptics.primary();
+    _narration?.stop();
+    setState(() => _journeyStarted = true);
   }
 
   void _finish() {
@@ -97,30 +157,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   @override
   Widget build(BuildContext context) {
-    final reduce = reduceMotionOf(context);
-    // Twinkle chỉ chạy khi lớp khám phá đang hiện (trang trí → tôn trọng
-    // Reduce Motion).
-    final wantTwinkle = _captured && !reduce;
-    if (wantTwinkle && !_twinkle.isAnimating) {
-      _twinkle.repeat();
-    } else if (!wantTwinkle && _twinkle.isAnimating) {
-      _twinkle.stop();
-    }
-
-    // Thẻ khen: scale vào khi chụp xong, chạy ngược khi "Chụp thử lại"
-    // (target-driven — không phải one-shot lúc mount); Reduce Motion chỉ giữ
-    // fade mang nghĩa của AnimatedOpacity bên dưới.
-    Widget praise = _PraiseCard(onFinish: _finish, onReplay: _replay);
-    if (!reduce) {
-      praise = praise
-          .animate(target: _captured ? 1 : 0)
-          .scaleXY(
-            begin: 0.92,
-            end: 1,
-            duration: WonderTokens.durSlow,
-            curve: WonderTokens.curveEmphasized,
-          );
-    }
+    final overlayUp = _dissolveFrame != null;
+    final showChrome = !overlayUp;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -130,68 +168,19 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           // Cảnh mẫu — đóng vai preview camera. Thiếu asset thì nền tối, flow
           // vẫn chạy (không bao giờ crash vì media).
           Image.asset(
-            'assets/images/onboarding_scene.jpg',
+            _sceneAsset,
             fit: BoxFit.cover,
             errorBuilder: (_, _, _) =>
                 const ColoredBox(color: WonderColors.ink),
           ),
-          // Nền "tan" sau cú chụp: phủ nâu ấm tối dần + bụi lấp lánh, riêng
-          // cutout cốc (cùng khung hình → khớp pixel với cảnh) vẫn sắc nét.
-          // RepaintBoundary cô lập re-record của lớp này (twinkle chạy vô hạn
-          // khi thẻ khen mở) khỏi phần còn lại của trang — ADR-009 quy ước 5.
-          RepaintBoundary(
-            child: AnimatedBuilder(
-              animation: Listenable.merge(<Listenable>[_reveal, _twinkle]),
-              builder: (context, _) {
-                final t = _reveal.value.clamp(0.0, 1.0);
-                if (t == 0) return const SizedBox.shrink();
-                final phase = _twinkle.value;
-                final floatY = reduce
-                    ? 0.0
-                    : -4 * math.sin(2 * math.pi * phase);
-                return IgnorePointer(
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: <Widget>[
-                      ColoredBox(
-                        color: const Color(
-                          0xFF332416,
-                        ).withValues(alpha: 0.62 * t),
-                      ),
-                      CustomPaint(
-                        painter: _SparklesPainter(phase: phase, reveal: t),
-                      ),
-                      Opacity(
-                        opacity: t,
-                        child: Transform.translate(
-                          offset: Offset(0, floatY),
-                          child: Transform.scale(
-                            // _reveal là spring bouncy → vượt 1 một nhịp = cú
-                            // "nhún" của chiếc cốc lúc được tách ra.
-                            scale: 0.97 + 0.05 * _reveal.value,
-                            child: Image.asset(
-                              'assets/images/onboarding_cutout.png',
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) =>
-                                  const SizedBox.shrink(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
           const _Scrims(),
-          // Khung ngắm + câu đố — mờ đi sau cú chụp.
+          // Khung ngắm + câu đố — mờ đi khi overlay lên (như camera).
           Positioned.fill(
             child: IgnorePointer(
               child: AnimatedOpacity(
-                opacity: _captured ? 0 : 1,
+                opacity: showChrome ? 1 : 0,
                 duration: WonderTokens.durBase,
-                child: const _AimChrome(),
+                child: _AimChrome(busy: _busy),
               ),
             ),
           ),
@@ -200,62 +189,70 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             left: 0,
             right: 0,
             top: 0,
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 16, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Row(
+            child: IgnorePointer(
+              ignoring: !showChrome,
+              child: AnimatedOpacity(
+                opacity: showChrome ? 1 : 0,
+                duration: WonderTokens.durBase,
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 16, 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
-                        const WonderLogo(size: 22, spin: false),
-                        const SizedBox(width: 8),
-                        Text(
-                          'WonderLens',
-                          style: WonderType.title.copyWith(
-                            color: Colors.white,
-                            fontSize: 18,
-                            shadows: const <Shadow>[
-                              Shadow(color: Colors.black45, blurRadius: 8),
-                            ],
+                        Row(
+                          children: <Widget>[
+                            const WonderLogo(size: 22, spin: false),
+                            const SizedBox(width: 8),
+                            Text(
+                              'WonderLens',
+                              style: WonderType.title.copyWith(
+                                color: Colors.white,
+                                fontSize: 18,
+                                shadows: const <Shadow>[
+                                  Shadow(color: Colors.black45, blurRadius: 8),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        GlassSurface(
+                          tone: GlassTone.dark,
+                          radius: WonderTokens.pill,
+                          blur: 0,
+                          tintOpacity: 0.35,
+                          // vertical 12 → tổng cao ~46px, đạt touch target
+                          // ≥44px (DESIGN.md §4) cho ngón tay trẻ.
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          onTap: _finish,
+                          child: Text(
+                            'Bỏ qua',
+                            style: WonderType.textButton.copyWith(
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    GlassSurface(
-                      tone: GlassTone.dark,
-                      radius: WonderTokens.pill,
-                      blur: 0,
-                      tintOpacity: 0.35,
-                      // vertical 12 → tổng cao ~46px, đạt touch target ≥44px
-                      // (DESIGN.md §4) cho ngón tay trẻ.
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      onTap: _finish,
-                      child: Text(
-                        'Bỏ qua',
-                        style: WonderType.textButton.copyWith(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-          // Đáy lúc ngắm: đúng nút khẩu độ của app (hiệu ứng chụp có sẵn).
+          // Đáy lúc ngắm: đúng nút khẩu độ của màn camera (chụp tức thì,
+          // hiệu ứng tan biến lo phần sau — ADR-012).
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
             child: IgnorePointer(
-              ignoring: _captured,
+              ignoring: !showChrome,
               child: AnimatedOpacity(
-                opacity: _captured ? 0 : 1,
+                opacity: showChrome ? 1 : 0,
                 duration: WonderTokens.durBase,
                 child: SafeArea(
                   top: false,
@@ -264,8 +261,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     child: Center(
                       child: ApertureCaptureButton(
                         size: WonderTokens.scanSize,
+                        busy: _busy,
                         showGuide: false,
-                        onCapture: _onCaptured,
+                        animateOnTap: false,
+                        onCapture: _busy ? null : _capture,
                         semanticLabel: 'Chụp thử chiếc cốc',
                       ),
                     ),
@@ -274,22 +273,48 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               ),
             ),
           ),
-          // Thẻ khen sau cú chụp → dẫn vào app thật. Luôn nằm trong cây với
-          // IgnorePointer — KHÔNG dùng AnimatedSwitcher: child đang fade-out
-          // vẫn nhận tap, bé bấm lại nút chụp trong 280ms có thể trúng nút
-          // "Bắt đầu khám phá" và bị đẩy về home ngoài ý muốn.
-          IgnorePointer(
-            ignoring: !_captured,
-            child: AnimatedOpacity(
-              opacity: _captured ? 1 : 0,
-              duration: WonderTokens.durBase,
-              curve: WonderTokens.curveStandard,
-              child: praise,
-            ),
+          // Overlay tan biến / hành trình — same-screen như camera_screen.
+          AnimatedSwitcher(
+            duration: WonderTokens.durBase,
+            reverseDuration: WonderTokens.durBase,
+            switchInCurve: WonderTokens.curveStandard,
+            switchOutCurve: WonderTokens.curveStandard,
+            child: _buildOverlay(),
           ),
         ],
       ),
     );
+  }
+
+  /// Mirror `_buildOverlay` của camera_screen: tan biến → kết quả → hành
+  /// trình, tất cả crossfade trong một AnimatedSwitcher.
+  Widget _buildOverlay() {
+    if (_journeyStarted && _content != null) {
+      return TimelineScreen(
+        key: const ValueKey<String>('journey'),
+        content: _content,
+        narration: widget.narration,
+        // Xem xong (hoặc đóng) hành trình = onboarding trọn vẹn → về home.
+        onExit: _finish,
+      );
+    }
+    final frame = _dissolveFrame;
+    final mask = _dissolveMask;
+    if (frame != null && mask != null) {
+      final title = _dissolveTitle;
+      return CaptureDissolve(
+        key: const ValueKey<String>('dissolve'),
+        frame: frame,
+        mask: mask,
+        title: title,
+        // Tâm cốc trong ảnh — glow/halftone toả đúng quanh vật.
+        center: const Offset(0.5, _AimChrome.subjectCenterFrac),
+        onOpen: _openJourney,
+        onRetake: _dismissOverlay,
+        onSpeak: title != null ? () => _speak(title) : null,
+      );
+    }
+    return const SizedBox.shrink();
   }
 }
 
@@ -299,11 +324,12 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 /// chiếc cốc, còn câu đố nằm TRÊN khung trong hộp kính tối — vùng giữa ảnh
 /// sáng màu, chữ trắng trần không đủ tương phản.
 class _AimChrome extends StatelessWidget {
-  const _AimChrome();
+  final bool busy;
+  const _AimChrome({required this.busy});
 
   /// Tâm chủ thể theo trục dọc của ảnh scene (đo từ bbox alpha của cutout).
   /// Màn dọc cover chỉ crop chiều ngang nên tỉ lệ dọc giữ nguyên mọi phone.
-  static const double _subjectCenterFrac = 0.615;
+  static const double subjectCenterFrac = 0.615;
 
   @override
   Widget build(BuildContext context) {
@@ -313,7 +339,7 @@ class _AimChrome extends StatelessWidget {
         final h = constraints.maxHeight;
         final side = math.min(w * 0.74, h * 0.46);
         // Chừa 120px hai đầu cho hàng thương hiệu (trên) và nút chụp (dưới).
-        final frameTop = (h * _subjectCenterFrac - side / 2)
+        final frameTop = (h * subjectCenterFrac - side / 2)
             .clamp(120.0, math.max(120.0, h - side - 120.0))
             .toDouble();
         return Stack(
@@ -343,19 +369,25 @@ class _AimChrome extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       Text(
-                        'Đố bé biết chiếc cốc này từ đâu tới?',
+                        busy
+                            ? 'Đang soi manh mối…'
+                            : 'Đố bé biết chiếc cốc này từ đâu tới?',
                         textAlign: TextAlign.center,
                         style: WonderType.body.copyWith(
                           color: Colors.white,
                           fontSize: 16,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Chạm nút tròn bên dưới để chụp thử nhé!',
-                        textAlign: TextAlign.center,
-                        style: WonderType.heading.copyWith(color: Colors.white),
-                      ),
+                      if (!busy) ...<Widget>[
+                        const SizedBox(height: 2),
+                        Text(
+                          'Chạm nút tròn bên dưới để chụp thử nhé!',
+                          textAlign: TextAlign.center,
+                          style: WonderType.heading.copyWith(
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -364,74 +396,6 @@ class _AimChrome extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-}
-
-class _PraiseCard extends StatelessWidget {
-  final VoidCallback onFinish;
-  final VoidCallback onReplay;
-
-  const _PraiseCard({required this.onFinish, required this.onReplay});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: SafeArea(
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 460),
-              child: GlassSurface(
-                tone: GlassTone.dark,
-                radius: WonderTokens.radiusLg,
-                padding: const EdgeInsets.fromLTRB(24, 22, 24, 18),
-                tintOpacity: 0.42,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    const Center(
-                      child: WonderChip(
-                        label: 'Cốc giấy',
-                        icon: PhosphorIconsFill.sparkle,
-                        color: WonderColors.mint,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Giỏi quá, bé chụp được rồi!',
-                      textAlign: TextAlign.center,
-                      style: WonderType.title.copyWith(color: Colors.white),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Cứ chụp một món đồ như vậy, WonderLens sẽ kể '
-                      'chuyện nó ra đời cho bé nghe.',
-                      textAlign: TextAlign.center,
-                      style: WonderType.body.copyWith(
-                        color: Colors.white.withValues(alpha: 0.9),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    WonderButton(label: 'Bắt đầu khám phá', onTap: onFinish),
-                    const SizedBox(height: 4),
-                    Center(
-                      child: WonderTextButton(
-                        label: 'Chụp thử lại',
-                        color: Colors.white,
-                        onTap: onReplay,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -524,68 +488,4 @@ class _CornersPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CornersPainter oldDelegate) => false;
-}
-
-/// Bụi lấp lánh quanh vật sau cú chụp — chấm nhỏ trắng/vàng nhấp nháy theo
-/// [phase], mờ dần theo [reveal]. Vị trí cố định (seed) để không nhảy lung tung.
-class _SparklesPainter extends CustomPainter {
-  final double phase;
-  final double reveal;
-
-  _SparklesPainter({required this.phase, required this.reveal});
-
-  static final List<_Sparkle> _sparks = _seed();
-
-  static List<_Sparkle> _seed() {
-    final rng = math.Random(7);
-    return List<_Sparkle>.generate(46, (i) {
-      return _Sparkle(
-        x: rng.nextDouble(),
-        // Dồn về dải giữa màn (quanh vật) — đỉnh/đáy đã có scrim + chữ.
-        y: 0.18 + rng.nextDouble() * 0.6,
-        r: 1.2 + rng.nextDouble() * 1.6,
-        offset: rng.nextDouble(),
-        warm: rng.nextBool(),
-      );
-    });
-  }
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (reveal <= 0) return;
-    final paint = Paint()..isAntiAlias = true;
-    for (final s in _sparks) {
-      final tw = 0.5 + 0.5 * math.sin(2 * math.pi * (phase + s.offset));
-      final alpha = (0.55 * reveal * tw).clamp(0.0, 1.0);
-      if (alpha < 0.02) continue;
-      paint.color = (s.warm ? WonderColors.sunny : Colors.white).withValues(
-        alpha: alpha,
-      );
-      canvas.drawCircle(
-        Offset(s.x * size.width, s.y * size.height),
-        s.r,
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _SparklesPainter old) =>
-      old.phase != phase || old.reveal != reveal;
-}
-
-class _Sparkle {
-  final double x;
-  final double y;
-  final double r;
-  final double offset;
-  final bool warm;
-
-  const _Sparkle({
-    required this.x,
-    required this.y,
-    required this.r,
-    required this.offset,
-    required this.warm,
-  });
 }
