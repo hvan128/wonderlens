@@ -195,6 +195,27 @@ platform :ios do
     UI.success("App Review contact + notes ✓")
   end
 
+  desc "Gửi version 1.0 cho Apple duyệt (đẩy sang Waiting for Review)"
+  lane :submit_review do
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      filepath: File.expand_path(ENV["ASC_KEY_FILEPATH"])
+    )
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.wonderlens.wonderlens")
+    v = app.get_edit_app_store_version
+    UI.user_error!("không có version edit") unless v
+    UI.important("trạng thái trước: #{v.app_store_state}")
+    # API cũ (appStoreVersionSubmissions) đã bị Apple ngưng → dùng luồng
+    # Review Submission mới: tạo submission → thêm version làm item → submit.
+    sub = app.get_ready_review_submission(platform: Spaceship::ConnectAPI::Platform::IOS) ||
+      app.create_review_submission(platform: Spaceship::ConnectAPI::Platform::IOS)
+    sub.add_app_store_version_to_review_items(app_store_version_id: v.id)
+    sub.submit_for_review
+    UI.success("Đã gửi duyệt ✓ — version giờ ở Waiting for Review")
+  end
+
   desc "Upload IPA to TestFlight"
   lane :beta do
     upload_to_testflight(

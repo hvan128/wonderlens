@@ -33,6 +33,10 @@ echo "Building release IPA"
 echo "  PROXY_BASE_URL = ${PROXY_BASE_URL}"
 echo "  APP_TOKEN loaded from .env.local"
 
+# Xoá IPA/archive cũ: nếu không, bước fallback (dựa vào "đã có IPA chưa") sẽ
+# tưởng build cũ là mới và bỏ qua rebuild → ship nhầm version cũ.
+rm -rf build/ios/ipa build/ios/archive
+
 # flutter build ipa tạo archive + ghi dart-defines vào Generated.xcconfig; bước
 # export của nó cần account Xcode nên có thể fail (exit vẫn 0). Nếu thiếu IPA,
 # lane build_ipa (gym + ASC API key) export lại từ đúng archive/defines đó.
