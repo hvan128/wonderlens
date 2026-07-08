@@ -1,0 +1,260 @@
+default_platform(:ios)
+
+# IPA produced by `flutter build ipa --release` (run scripts/build-release.sh first).
+# Globbed so it works regardless of the product/scheme name Flutter assigns.
+def ipa_path
+  # Anchor to the Flutter project root (ios/fastlane -> ios -> root) so the glob
+  # works regardless of fastlane's current working directory.
+  glob = File.expand_path("../../build/ios/ipa/*.ipa", __dir__)
+  path = Dir.glob(glob).max_by { |f| File.mtime(f) }
+  UI.user_error!("No IPA found in build/ios/ipa/ — run scripts/build-release.sh first") unless path
+  path
+end
+
+def asc_api_key
+  # Prefer base64 key content (works on any machine / CI without the .p8 on disk);
+  # fall back to a local .p8 file path for same-machine runs.
+  if ENV["ASC_KEY_CONTENT"] && !ENV["ASC_KEY_CONTENT"].empty?
+    app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_content: ENV["ASC_KEY_CONTENT"],
+      is_key_content_base64: true,
+      in_house: false
+    )
+  else
+    app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_filepath: ENV["ASC_KEY_FILEPATH"],
+      in_house: false
+    )
+  end
+end
+
+platform :ios do
+  desc "Register bundle id + create the ASC app record via official API (run once)"
+  # produce cần đăng nhập Apple ID (web session) nên không dùng được với API
+  # key — gọi thẳng Spaceship::ConnectAPI thay thế.
+  lane :create_app do
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      filepath: File.expand_path(ENV["ASC_KEY_FILEPATH"])
+    )
+    Spaceship::ConnectAPI.token = token
+
+    id = "com.wonderlens.wonderlens"
+    if Spaceship::ConnectAPI::BundleId.all.any? { |b| b.identifier == id }
+      UI.message("Bundle ID đã đăng ký sẵn")
+    else
+      Spaceship::ConnectAPI::BundleId.create(name: "WonderLens", identifier: id, platform: "IOS")
+      UI.success("Đã đăng ký Bundle ID ✓")
+    end
+
+    app = Spaceship::ConnectAPI::App.find(id)
+    if app
+      UI.message("App record đã tồn tại: #{app.name}")
+    else
+      Spaceship::ConnectAPI::App.create(
+        name: "WonderLens",
+        version_string: "1.0.0",
+        sku: id,
+        primary_locale: "vi",
+        bundle_id: id,
+        platforms: ["IOS"]
+      )
+      UI.success("Đã tạo app record WonderLens trên App Store Connect ✓")
+    end
+  end
+
+  desc "Build signed App Store IPA (ASC API key, no Xcode account)"
+  lane :build_ipa do
+    key = asc_api_key
+    # API key của team không có quyền cloud signing → không dựa vào
+    # -allowProvisioningUpdates ở bước export. Thay vào đó sigh tạo/tải profile
+    # App Store qua API chính thức rồi export theo manual mapping.
+    get_provisioning_profile(
+      api_key: key,
+      app_identifier: "com.wonderlens.wonderlens",
+      readonly: false
+    )
+    auth = "-allowProvisioningUpdates " \
+      "-authenticationKeyPath #{ENV['ASC_KEY_FILEPATH']} " \
+      "-authenticationKeyID #{ENV['ASC_KEY_ID']} " \
+      "-authenticationKeyIssuerID #{ENV['ASC_ISSUER_ID']}"
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+      xcargs: auth,
+      export_options: {
+        signingStyle: "manual",
+        provisioningProfiles: {
+          "com.wonderlens.wonderlens" =>
+            lane_context[SharedValues::SIGH_NAME]
+        }
+      },
+      output_directory: File.expand_path("../../build/ios/ipa", __dir__),
+      output_name: "wonderlens.ipa",
+      clean: false
+    )
+  end
+
+  desc "In trạng thái version/localization trên ASC (chẩn đoán deliver 'No data')"
+  lane :diag do
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      filepath: File.expand_path(ENV["ASC_KEY_FILEPATH"])
+    )
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.wonderlens.wonderlens")
+    UI.user_error!("app not found") unless app
+    vs = app.get_app_store_versions
+    UI.important("versions: #{vs.map { |v| "#{v.version_string} (#{v.app_store_state})" }.join(', ')}")
+    info = app.fetch_edit_app_info || app.fetch_live_app_info
+    UI.important("edit app_info id: #{info&.id || 'NONE'}")
+    if info
+      locs = info.get_app_info_localizations.map(&:locale)
+      UI.important("app_info locales: #{locs.join(', ')}")
+    end
+    vs.each do |v|
+      vlocs = v.get_app_store_version_localizations.map(&:locale)
+      UI.important("v#{v.version_string} locales: #{vlocs.join(', ')}")
+    end
+  end
+
+  desc "Set text metadata qua Spaceship trực tiếp (né bug deliver 'No data' với app mới)"
+  lane :set_metadata do
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      filepath: File.expand_path(ENV["ASC_KEY_FILEPATH"])
+    )
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.wonderlens.wonderlens")
+    meta = File.expand_path("metadata", __dir__)
+    read = ->(p) { File.read(File.join(meta, p)).strip }
+
+    v = app.get_edit_app_store_version
+    vloc = v.get_app_store_version_localizations.find { |l| l.locale == "vi" }
+    vloc.update(attributes: {
+      description: read.call("vi/description.txt"),
+      keywords: read.call("vi/keywords.txt"),
+      supportUrl: read.call("vi/support_url.txt")
+    })
+    UI.success("version vi: description/keywords/supportUrl ✓")
+
+    v.update(attributes: { copyright: read.call("copyright.txt") })
+    UI.success("copyright ✓")
+
+    info = app.fetch_edit_app_info
+    iloc = info.get_app_info_localizations.find { |l| l.locale == "vi" }
+    iloc.update(attributes: {
+      subtitle: File.read(File.expand_path("metadata-held/subtitle.txt", __dir__)).strip
+    })
+    UI.success("subtitle ✓")
+
+    info.update_categories(category_id_map: {
+      primary_category_id: "EDUCATION",
+      secondary_category_id: "ENTERTAINMENT"
+    })
+    UI.success("categories ✓")
+  end
+
+  desc "Set App Review contact + notes qua Spaceship (deliver bug với app mới)"
+  lane :set_review do
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      filepath: File.expand_path(ENV["ASC_KEY_FILEPATH"])
+    )
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.wonderlens.wonderlens")
+    v = app.get_edit_app_store_version
+    notes = File.read(
+      File.expand_path("metadata-held/review_notes.txt", __dir__),
+    ).strip
+    attrs = {
+      contactFirstName: "Hải Văn",
+      contactLastName: "Ngô",
+      contactPhone: ENV["ASC_REVIEW_PHONE"],
+      contactEmail: "van.nh120802@gmail.com",
+      notes: notes
+    }
+    # fetch ném "No data" khi detail chưa tồn tại (bug spaceship) → thử create
+    # trước, đã có thì rơi vào update.
+    begin
+      v.create_app_store_review_detail(attributes: attrs)
+    rescue => e
+      raise unless e.message.include?("already exists") ||
+        e.message.include?("entity") || e.message.include?("409")
+      v.fetch_app_store_review_detail.update(attributes: attrs)
+    end
+    UI.success("App Review contact + notes ✓")
+  end
+
+  desc "Upload IPA to TestFlight"
+  lane :beta do
+    upload_to_testflight(
+      api_key: asc_api_key,
+      ipa: ipa_path,
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Validate ASC API key (key id + issuer) against the app"
+  lane :check_key do
+    n = latest_testflight_build_number(
+      api_key: asc_api_key,
+      app_identifier: "com.wonderlens.wonderlens",
+      initial_build_number: 0
+    )
+    UI.success("ASC key OK ✓ — latest TestFlight build number: #{n}")
+  end
+
+  desc "Upload binary + metadata to App Store. Submits for review only when SUBMIT_FOR_REVIEW=true"
+  lane :release do
+    upload_to_app_store(
+      api_key: asc_api_key,
+      ipa: ipa_path,
+      skip_screenshots: true, # screenshots managed via lane :screenshots
+      force: true,
+      run_precheck_before_submit: false,
+      precheck_include_in_app_purchases: false,
+      submit_for_review: ENV["SUBMIT_FOR_REVIEW"] == "true",
+      automatic_release: false,
+      submission_information: {
+        add_id_info_uses_idfa: false,
+        export_compliance_uses_encryption: false
+      }
+    )
+  end
+
+  desc "Upload App Store metadata (text only, no screenshots, no submit)"
+  lane :metadata do
+    upload_to_app_store(
+      api_key: asc_api_key,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      force: true,
+      run_precheck_before_submit: false,
+      precheck_include_in_app_purchases: false,
+      submit_for_review: false
+    )
+  end
+
+  desc "Upload screenshots only (locale vi) — staged in fastlane/screenshots/vi"
+  lane :screenshots do
+    upload_to_app_store(
+      api_key: asc_api_key,
+      skip_binary_upload: true,
+      skip_metadata: true,
+      overwrite_screenshots: true,
+      run_precheck_before_submit: false,
+      submit_for_review: false,
+      force: true
+    )
+  end
+end

@@ -6,12 +6,14 @@
 	<string>WonderLens cần máy ảnh để bé chụp đồ vật và khám phá hành trình tạo ra nó.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>WonderLens cần quyền này để lưu thẻ khám phá vào Ảnh khi bé chọn chia sẻ.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Wonderlens</string>
+	<string>WonderLens</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -70,5 +72,10 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- CHẨN ĐOÁN TẠM: tắt Impeller để cô lập "nháy đen" khi mở morph.
+	     Hết nháy → thủ phạm là Impeller (sẽ tìm workaround giữ Impeller);
+	     vẫn nháy → loại trừ, GỠ key này. -->
+	<key>FLTEnableImpeller</key>
+	<false/>
 </dict>
 </plist>

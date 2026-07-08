@@ -1,0 +1,15 @@
+Mỗi đồ vật quanh nhà đều giấu một hành trình kỳ diệu. Chiếc cốc giấy từng là cái cây. Chiếc thìa inox từng là quặng sắt nằm sâu trong lòng đất.
+
+WonderLens biến câu hỏi "cái này làm từ gì hả mẹ?" thành một chuyến phiêu lưu: bố mẹ cùng bé đưa ống kính lên, chụp một đồ vật, và xem hành trình tạo ra nó hiện lên như một cuốn truyện tranh — từ nguyên liệu thô, qua bàn tay người thợ, đến món đồ trên tay bé.
+
+TÍNH NĂNG
+• Soi mọi đồ vật: chụp là nhận diện, kể chuyện hành trình bằng hình minh hoạ sinh động
+• Giọng kể tiếng Việt ấm áp, bé nghe như nghe kể chuyện
+• Nhật ký khám phá theo ngày — nhìn lại "hôm nay bé đã tò mò những gì"
+• Bộ sưu tập thẻ khám phá để dán, khoe và chia sẻ
+• Không quảng cáo, không tài khoản, không thu thập dữ liệu — dữ liệu của bé nằm ngay trên máy
+
+DÀNH CHO GIA ĐÌNH
+WonderLens sinh ra để bố mẹ và bé dùng CÙNG NHAU — mỗi lần soi là một dịp trò chuyện về thế giới. Ảnh chụp chỉ dùng tức thời để nhận diện đồ vật, không lưu trên máy chủ.
+
+Quyền riêng tư: https://wonderlens-proxy.vercel.app/privacy
