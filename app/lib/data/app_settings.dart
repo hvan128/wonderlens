@@ -12,12 +12,17 @@ class AppSettings {
   static const _kLive = 'use_live_api';
   static const _kUrl = 'proxy_base_url';
   static const _kToken = 'app_token';
+  static const _kOnboardingSeen = 'onboarding_seen';
 
   /// Giá trị nhúng lúc build (qua `--dart-define`).
-  static const envBaseUrl =
-      String.fromEnvironment('PROXY_BASE_URL', defaultValue: '');
-  static const envToken =
-      String.fromEnvironment('APP_TOKEN', defaultValue: 'dev-wonderlens');
+  static const envBaseUrl = String.fromEnvironment(
+    'PROXY_BASE_URL',
+    defaultValue: '',
+  );
+  static const envToken = String.fromEnvironment(
+    'APP_TOKEN',
+    defaultValue: 'dev-wonderlens',
+  );
 
   /// Proxy công khai (URL không phải bí mật — an toàn để nhúng). Làm fallback
   /// khi build mock-only nhưng người dùng bật API thật từ Dev panel.
@@ -74,6 +79,30 @@ class AppSettings {
     } else {
       _box?.put(_kUrl, v);
     }
+  }
+
+  /// Test-only: ghi đè trạng thái đã xem onboarding mà không cần Hive box.
+  @visibleForTesting
+  static bool? debugOnboardingSeenOverride;
+
+  /// Test-only: gắn box Hive mở sẵn (pattern giống CollectionRepository) để
+  /// test khoá được hợp đồng persist (vd cờ onboarding_seen).
+  @visibleForTesting
+  static void debugSetBox(Box? box) {
+    _box = box;
+  }
+
+  /// Bé đã đi qua (hoặc bỏ qua) màn onboarding chưa — quyết định splash sẽ
+  /// dẫn vào '/onboarding' hay thẳng '/home'.
+  static bool get onboardingSeen {
+    final override = debugOnboardingSeenOverride;
+    if (override != null) return override;
+    return (_box?.get(_kOnboardingSeen) as bool?) ?? false;
+  }
+
+  /// Đánh dấu đã xem onboarding (bền qua Hive — chỉ hiện đúng một lần).
+  static void markOnboardingSeen() {
+    _box?.put(_kOnboardingSeen, true);
   }
 
   /// Lưu override token (chuỗi rỗng = xoá override, quay về giá trị build).

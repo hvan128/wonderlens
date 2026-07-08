@@ -95,6 +95,9 @@ Sau khám phá hero object → confetti + badge unlock → lưu vào bộ sưu t
 - [ ] Hero objects vào lưới chính + huy hiệu/level; vật AI-live lưu vào khu
       "Khám phá thêm (AI)" riêng (ảnh cutout thật + nhãn AI), KHÔNG tính level/huy hiệu
 - [ ] Dedup: cùng object khám phá nhiều lần → chỉ 1 entry
+- [ ] Nhấn giữ vật phẩm → mở hành động lưu ảnh thẻ sticker vào thư viện ảnh
+      của máy (nền giấy cũ, vật + tên có viền trắng) hoặc xoá khỏi Rương; xoá
+      đồng thời gỡ ảnh sticker local đã lưu
 
 ---
 
@@ -131,7 +134,7 @@ Guardrail hiện là prompt-only. Phải red-team output thật trước khi cho
 - [ ] Transition animation mượt: camera → timeline
 - [ ] Stage appearance animation (fade/slide in)
 - [ ] Haptics: chụp ảnh, badge unlock
-- [ ] Onboarding < 10s (mascot guide lần đầu mở app)
+- [x] Onboarding < 10s (splash + màn "chụp thử" mô phỏng viewfinder lần đầu mở app, có Bỏ qua)
 - [ ] "Chụp lại" / "Chọn lại" UI khi confidence thấp
 - [ ] Demo 90s script chạy không lỗi offline
 
