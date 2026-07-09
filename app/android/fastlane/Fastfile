@@ -22,6 +22,18 @@ platform :android do
     )
   end
 
+  desc "Upload AAB to the Closed testing (alpha) track — bắt buộc cho quyền Production tài khoản cá nhân"
+  lane :closed do
+    upload_to_play_store(
+      track: "alpha",
+      aab: aab_path,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: true
+    )
+  end
+
   desc "Upload AAB to Production as a DRAFT (review/rollout stays manual in the Console)"
   lane :production do
     upload_to_play_store(
