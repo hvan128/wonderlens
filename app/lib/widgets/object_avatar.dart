@@ -28,6 +28,15 @@ class ObjectAvatar extends StatelessWidget {
   /// kiểu miếng dán theo đúng hình vật. Không có ảnh thật → rớt về emoji badge.
   final bool sticker;
 
+  /// Bề dày viền trắng die-cut theo tỉ lệ [diameter] (chỉ khi [sticker]). Mặc
+  /// định 0.06; hạ xuống cho viền mảnh hơn (vd bày trên card giấy).
+  final double stickerBorderFactor;
+
+  /// Bóng đổ mềm (blur) sau sticker. TẮT khi render trong Hero overlay lúc bay:
+  /// ImageFiltered trong overlay có thể nháy đen 1 frame (glitch Impeller) và
+  /// blur lại mỗi frame rất tốn.
+  final bool stickerShadow;
+
   const ObjectAvatar({
     super.key,
     required this.objectId,
@@ -37,6 +46,8 @@ class ObjectAvatar extends StatelessWidget {
     this.glowOpacity = 0.42,
     this.hero = false,
     this.sticker = false,
+    this.stickerBorderFactor = 0.06,
+    this.stickerShadow = true,
   });
 
   @override
@@ -72,8 +83,10 @@ class ObjectAvatar extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.9),
               width: 2,
             ),
-            boxShadow: WonderShadows.glow(WonderColors.teal,
-                opacity: glowOpacity),
+            boxShadow: WonderShadows.glow(
+              WonderColors.teal,
+              opacity: glowOpacity,
+            ),
           ),
           child: ClipOval(
             child: Image.file(
@@ -96,7 +109,7 @@ class ObjectAvatar extends StatelessWidget {
   /// thuộc ImageFilter.dilate) rồi đặt ảnh thật lên trên. Ảnh render nhỏ hơn
   /// khung [diameter] đúng bằng bề dày viền để đường viền không bị cắt mép.
   Widget _stickerCutout(File file) {
-    final border = (diameter * 0.06).clamp(3.0, 7.0);
+    final border = (diameter * stickerBorderFactor).clamp(2.0, 7.0);
     final inner = diameter - border * 2;
 
     Widget photo() => Image.file(
@@ -141,11 +154,14 @@ class ObjectAvatar extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: <Widget>[
-            shadow,
+            if (stickerShadow) shadow,
             for (var i = 0; i < 8; i++)
               Transform.translate(
                 offset:
-                    Offset(math.cos(i * math.pi / 4), math.sin(i * math.pi / 4)) *
+                    Offset(
+                      math.cos(i * math.pi / 4),
+                      math.sin(i * math.pi / 4),
+                    ) *
                     border,
                 child: silhouette(Colors.white),
               ),

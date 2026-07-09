@@ -21,7 +21,6 @@ import '../services/narration_service.dart';
 import '../services/recognition_service.dart';
 import '../services/segmentation_service.dart';
 import '../ui/ui.dart';
-import '../widgets/dev_panel.dart';
 import 'timeline_screen.dart';
 
 /// Màn khám phá tối giản kiểu CapWords: preview camera tràn màn hình + 4 góc
@@ -373,25 +372,11 @@ class _CameraScreenState extends State<CameraScreen>
               child: AnimatedOpacity(
                 opacity: showChrome ? 1 : 0,
                 duration: WonderTokens.durBase,
-                child: const _FramingCorners(),
+                child: _FramingCorners(busy: _busy),
               ),
             ),
           ),
-          // Thanh trên: ngày + nút về phòng khám phá.
-          SafeArea(
-            child: IgnorePointer(
-              ignoring: !showChrome,
-              child: AnimatedOpacity(
-                opacity: showChrome ? 1 : 0,
-                duration: WonderTokens.durBase,
-                child: _TopBar(
-                  onHome: () => context.go('/home'),
-                  onSecret: () => showDevPanel(context),
-                ),
-              ),
-            ),
-          ),
-          // Đáy: gợi ý + nút quét cầu vồng + nút rương.
+          // Đáy: X (đóng) · aperture (chụp) · thư viện.
           Positioned(
             left: 0,
             right: 0,
@@ -404,6 +389,8 @@ class _CameraScreenState extends State<CameraScreen>
                 child: _BottomBar(
                   busy: _busy,
                   onScan: _busy ? null : _capture,
+                  onExit: () =>
+                      context.canPop() ? context.pop() : context.go('/home'),
                   onCollection: () => context.push('/collection'),
                 ),
               ),
@@ -411,11 +398,34 @@ class _CameraScreenState extends State<CameraScreen>
           ),
           AnimatedSwitcher(
             duration: WonderTokens.durBase,
-            reverseDuration: WonderTokens.durFast,
+            // Ra dịu hơn (không "bụp" mất nút reveal) để khớp thẻ history trượt lên.
+            reverseDuration: WonderTokens.durBase,
             switchInCurve: WonderTokens.curveStandard,
             switchOutCurve: WonderTokens.curveStandard,
             child: _buildOverlay(),
           ),
+          // Nút thoát LUÔN hiện khi camera chưa sẵn sàng (đang xin quyền / lỗi /
+          // bị từ chối quyền) để không kẹt bé ở màn đen hay thẻ "Mở Cài đặt" —
+          // lúc camera chạy thì đã có nút X ở thanh đáy.
+          if (!cameraReady && !overlayUp)
+            Positioned(
+              top: 0,
+              left: 0,
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 0, 0),
+                  child: GlassIconButton(
+                    icon: PhosphorIconsBold.x,
+                    size: 48,
+                    blur: 0,
+                    semanticLabel: 'Đóng máy ảnh',
+                    onTap: () => context.canPop()
+                        ? context.pop()
+                        : context.go('/home'),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -557,62 +567,17 @@ class _Scrims extends StatelessWidget {
   }
 }
 
-/// Thanh trên tối giản: ngày (nhấn giữ = mở Dev panel) + nút về phòng khám phá.
-class _TopBar extends StatelessWidget {
-  final VoidCallback onHome;
-  final VoidCallback onSecret;
-
-  const _TopBar({required this.onHome, required this.onSecret});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(22, 12, 14, 0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onLongPress: onSecret,
-              child: Text(
-                _friendlyDate(),
-                style: WonderType.display.copyWith(
-                  color: Colors.white,
-                  fontSize: 25,
-                  shadows: const <Shadow>[
-                    Shadow(
-                      color: Colors.black38,
-                      blurRadius: 12,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          GlassIconButton(
-            icon: PhosphorIconsBold.houseSimple,
-            size: 44,
-            blur: 0,
-            semanticLabel: 'Về phòng khám phá',
-            onTap: onHome,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Đáy: dòng gợi ý + nút quét cầu vồng canh giữa, nút rương nổi bên phải.
+/// Đáy kiểu #11: X (đóng) bên trái · aperture (chụp) giữa · thư viện bên phải.
 class _BottomBar extends StatelessWidget {
   final bool busy;
   final VoidCallback? onScan;
+  final VoidCallback onExit;
   final VoidCallback onCollection;
 
   const _BottomBar({
     required this.busy,
     required this.onScan,
+    required this.onExit,
     required this.onCollection,
   });
 
@@ -621,42 +586,32 @@ class _BottomBar extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 22),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        padding: const EdgeInsets.fromLTRB(30, 0, 30, 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            _HintText(busy: busy),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: WonderTokens.scanSize + 6,
-              child: Stack(
-                alignment: Alignment.center,
-                children: <Widget>[
-                  Center(
-                    child: ApertureCaptureButton(
-                      size: WonderTokens.scanSize,
-                      busy: busy,
-                      showGuide: false,
-                      animateOnTap: false,
-                      onCapture: onScan,
-                      semanticLabel: 'Chụp để soi đồ vật',
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 4),
-                      child: GlassIconButton(
-                        icon: PhosphorIconsFill.image,
-                        size: 52,
-                        blur: 0,
-                        semanticLabel: 'Rương khám phá',
-                        onTap: onCollection,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            GlassIconButton(
+              icon: PhosphorIconsBold.x,
+              size: 54,
+              blur: 0,
+              semanticLabel: 'Đóng máy ảnh',
+              onTap: onExit,
+            ),
+            ApertureCaptureButton(
+              size: WonderTokens.scanSize,
+              busy: busy,
+              showGuide: false,
+              animateOnTap: false,
+              onCapture: onScan,
+              semanticLabel: 'Chụp để soi đồ vật',
+            ),
+            GlassIconButton(
+              icon: PhosphorIconsFill.image,
+              size: 54,
+              blur: 0,
+              semanticLabel: 'Rương khám phá',
+              onTap: onCollection,
             ),
           ],
         ),
@@ -665,56 +620,10 @@ class _BottomBar extends StatelessWidget {
   }
 }
 
-class _HintText extends StatelessWidget {
-  final bool busy;
-  const _HintText({required this.busy});
-
-  static const List<Shadow> _shadow = <Shadow>[
-    Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 1)),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    if (busy) {
-      return Text(
-        'Đang soi manh mối…',
-        textAlign: TextAlign.center,
-        style: WonderType.body.copyWith(color: Colors.white, shadows: _shadow),
-      );
-    }
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Text(
-          'Món này là gì nhỉ?',
-          textAlign: TextAlign.center,
-          style: WonderType.body.copyWith(
-            color: Colors.white.withValues(alpha: 0.95),
-            shadows: _shadow,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text.rich(
-          const TextSpan(
-            children: <InlineSpan>[
-              TextSpan(text: 'Chạm để '),
-              TextSpan(
-                text: 'mở hành trình!',
-                style: TextStyle(fontWeight: FontWeight.w900),
-              ),
-            ],
-          ),
-          textAlign: TextAlign.center,
-          style: WonderType.body.copyWith(color: Colors.white, shadows: _shadow),
-        ),
-      ],
-    );
-  }
-}
-
-/// 4 góc ngắm canh giữa kiểu CapWords — vẽ bằng CustomPaint cho nét gọn.
+/// 4 góc ngắm kiểu CapWords + dòng hướng dẫn ngay dưới khung — như #11.
 class _FramingCorners extends StatelessWidget {
-  const _FramingCorners();
+  final bool busy;
+  const _FramingCorners({required this.busy});
 
   @override
   Widget build(BuildContext context) {
@@ -725,10 +634,27 @@ class _FramingCorners extends StatelessWidget {
           constraints.maxHeight * 0.46,
         );
         return Center(
-          child: SizedBox(
-            width: side,
-            height: side,
-            child: CustomPaint(painter: _CornersPainter()),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              SizedBox(
+                width: side,
+                height: side,
+                child: CustomPaint(painter: _CornersPainter()),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                busy ? 'Đang soi manh mối…' : 'Đặt đồ vật vào giữa khung nhé',
+                textAlign: TextAlign.center,
+                style: WonderType.body.copyWith(
+                  color: Colors.white,
+                  fontSize: 16,
+                  shadows: const <Shadow>[
+                    Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 1)),
+                  ],
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -739,25 +665,34 @@ class _FramingCorners extends StatelessWidget {
 class _CornersPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final len = math.min(size.width, size.height) * 0.18;
+    final m = math.min(size.width, size.height);
+    final len = m * 0.26; // cánh dài, thanh thoát
+    final r = m * 0.1; // bán kính bo tròn khuỷu góc
     final line = Paint()
       ..color = Colors.white
-      ..strokeWidth = 4.5
+      ..strokeWidth = 2.5 // nét mảnh như #11
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.stroke;
     final shadow = Paint()
-      ..color = Colors.black.withValues(alpha: 0.22)
-      ..strokeWidth = 5.5
+      ..color = Colors.black.withValues(alpha: 0.18)
+      ..strokeWidth = 3.5
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.stroke
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.5);
 
+    // Cánh ngang → cung tròn bán kính r ở khuỷu → cánh dọc (góc bo mềm như #11).
     void corner(Offset o, Offset h, Offset v) {
+      final cross = h.dx * v.dy - h.dy * v.dx;
       final path = Path()
         ..moveTo(o.dx + h.dx * len, o.dy + h.dy * len)
-        ..lineTo(o.dx, o.dy)
+        ..lineTo(o.dx + h.dx * r, o.dy + h.dy * r)
+        ..arcToPoint(
+          Offset(o.dx + v.dx * r, o.dy + v.dy * r),
+          radius: Radius.circular(r),
+          clockwise: cross < 0,
+        )
         ..lineTo(o.dx + v.dx * len, o.dy + v.dy * len);
       canvas.drawPath(path, shadow);
       canvas.drawPath(path, line);
@@ -773,12 +708,6 @@ class _CornersPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CornersPainter oldDelegate) => false;
-}
-
-/// Ngày thân thiện cho trẻ, ví dụ "7 tháng 7".
-String _friendlyDate() {
-  final d = DateTime.now();
-  return '${d.day} tháng ${d.month}';
 }
 
 class _MessageOverlay extends StatelessWidget {

@@ -14,7 +14,19 @@ import '../services/journey_warmup.dart';
 import '../services/narration_service.dart';
 import '../ui/ui.dart';
 import '../widgets/object_avatar.dart';
+import '../widgets/object_sticker_grid.dart';
 import '../widgets/share_sheet.dart';
+
+/// Nhịp chuyển động CHUNG của màn hành trình — dùng cho fly ảnh (center↔node),
+/// đổi chặng, và morph header (cutout+tên trôi lên) → tất cả ăn khớp MỘT nhịp.
+/// Mượt kiểu iOS: ease vào–ra đối xứng, KHÔNG overshoot (không nảy).
+const Duration _kJourneyDur = WonderTokens.durSlow;
+const Curve _kJourneyCurve = Curves.easeInOutCubic;
+
+/// Cỡ ô node & bo góc thẻ ảnh trên thanh chặng — dùng CHUNG cho [_StageNode] và
+/// đích bay ([_flyGhost]) để ghost đáp KHỚP đúng thẻ (liền mạch, không lệch góc).
+const double _kNodeCell = 36.0;
+const double _kNodeCorner = 11.0;
 
 /// Hành trình trong **MỘT màn cuộn dọc**: vật (cutout) + tên ở đầu; chặng hiện
 /// tại ở **center**; **vuốt lên/xuống** đổi chặng (vẫn **tự đẩy theo audio**).
@@ -34,12 +46,7 @@ class TimelineScreen extends StatefulWidget {
   /// này thay cho điều hướng router (đóng overlay, quay lại chụp).
   final VoidCallback? onExit;
 
-  const TimelineScreen({
-    super.key,
-    this.content,
-    this.narration,
-    this.onExit,
-  });
+  const TimelineScreen({super.key, this.content, this.narration, this.onExit});
 
   @override
   State<TimelineScreen> createState() => _TimelineScreenState();
@@ -72,13 +79,53 @@ class _TimelineScreenState extends State<TimelineScreen>
   // Đo vị trí để BAY ảnh chặng vào đúng node trên thanh chặng.
   final GlobalKey _carouselAreaKey = GlobalKey();
   List<GlobalKey> _nodeKeys = const <GlobalKey>[];
+  // Node đang có ghost bay LÊN (park, lúc TIẾN) → render TRỐNG tới khi ghost đáp
+  // (tránh ảnh nhảy vào node trước khi ghost tới nơi).
+  final Set<int> _parking = <int>{};
+  // Khi vào lại một chặng đã ghé: ảnh của nó phóng to từ node xuống center; ẩn
+  // _StageCenter của chặng này tới khi ghost đáp (giống lúc tiến, đảo chiều).
+  int? _growingStage;
+
+  /// park-ghost đáp → node [stage] hết "đang bay" → hiện ảnh.
+  void _parkLanded(int stage) {
+    if (mounted && _parking.contains(stage)) {
+      setState(() => _parking.remove(stage));
+    }
+  }
+
+  /// grow-ghost đáp → center của [stage] hiện ra (kết thúc phóng to).
+  void _revealCenter(int stage) {
+    if (mounted && _growingStage == stage) {
+      setState(() => _growingStage = null);
+    }
+  }
+
+  // Đã "vào" màn chưa — frame đầu giữ header ở mốc reveal (TO) để khớp crossfade
+  // từ màn tách-nền, rồi tự tiến tới cover (0.5): vật+tên thu nhỏ + trôi lên khi
+  // bắt đầu kể history. Sau đó vào chặng → 1.
+  bool _entered = false;
+
+  /// Mốc morph header: chưa vào = reveal (0); cover/history = 0.5; chặng = 1.
+  double get _headerProgress {
+    if (_inStages) return 1.0;
+    // Mở lại qua route (Rương/nhật ký, KHÔNG nhúng camera): vào thẳng cover — bỏ
+    // mốc reveal (vốn để crossfade từ màn tách-nền) → cutout đứng yên cho Hero
+    // morph từ Rương đáp đúng chỗ. Nhúng camera (onExit != null): giữ reveal.
+    if (widget.onExit == null) return 0.5;
+    return _entered ? 0.5 : 0.0;
+  }
 
   bool _completed = false;
   DiscoveryResult? _result;
 
   static const Duration _minDwell = Duration(milliseconds: 2200);
   static const Duration _maxDwell = Duration(seconds: 45);
-  static const double _headerCompact = 96; // chỗ chừa cho header thu gọn
+  static const double _headerCompact =
+      104; // chỗ chừa cho header thu gọn (to hơn)
+  // Bay ảnh center↔node & đổi chặng: cùng nhịp với _HeaderMorph (xem _kJourney*).
+  static const Duration _flyDur = _kJourneyDur;
+  static const Curve _flyCurve = _kJourneyCurve;
+  static const Duration _stageSwitch = _kJourneyDur;
 
   @override
   void initState() {
@@ -88,13 +135,16 @@ class _TimelineScreenState extends State<TimelineScreen>
     final c = widget.content;
     if (c != null) {
       _steps = _buildSteps(c);
-      _nodeKeys =
-          List<GlobalKey>.generate(c.stages.length, (_) => GlobalKey());
+      _nodeKeys = List<GlobalKey>.generate(c.stages.length, (_) => GlobalKey());
       if (c.source == 'live' && JourneyImageService.available) {
         _loadStageImages(c);
       }
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _advanceTo(0);
+        if (!mounted) return;
+        // Frame đầu header ở mốc reveal (TO); giờ tiến tới cover → vật+tên thu
+        // nhỏ + trôi lên rồi mới kể history (khớp crossfade từ màn tách-nền).
+        setState(() => _entered = true);
+        _advanceTo(0);
       });
     }
   }
@@ -151,11 +201,28 @@ class _TimelineScreenState extends State<TimelineScreen>
     final myEpoch = ++_epoch;
     await _narration.stop();
     if (!mounted || myEpoch != _epoch) return;
-    // Đi TỚI từ một chặng → bay ảnh chặng vừa rời vào node của NÓ trên thanh (nó
-    // trở thành node đã-qua). Highlight đi CÙNG center (không lag).
-    if (i > _index && _steps[_index].kind == _Kind.stage) {
-      _flyToNode(_steps[_index].stageIndex);
-    }
+    final fromStage = _steps[_index].kind == _Kind.stage
+        ? _steps[_index].stageIndex
+        : null;
+    final toStep = _steps[i];
+    final toStage = toStep.kind == _Kind.stage ? toStep.stageIndex : null;
+    // TIẾN (rời chặng đi tới) → ảnh center chặng vừa rời thu nhỏ bay LÊN node của
+    // NÓ (node đó thành "đã qua", phía sau); render TRỐNG tới khi ghost đáp.
+    final parkFrom = (fromStage != null && i > _index) ? fromStage : null;
+    // LÙI về một chặng phía sau → ảnh của nó từ node PHÓNG TO xuống center (đảo
+    // chiều). Chặng vừa rời giờ nằm PHÍA TRƯỚC chặng đích → node của nó thành
+    // "chưa tới" (sao), KHÔNG cất ảnh vào node (chỉ node phía sau mới có ảnh).
+    final growTo =
+        (fromStage != null &&
+            toStage != null &&
+            i < _index &&
+            !_parking.contains(toStage))
+        ? toStage
+        : null;
+    if (parkFrom != null) _parking.add(parkFrom);
+    _growingStage = growTo;
+    if (parkFrom != null) _flyGhost(parkFrom, toCenter: false);
+    if (growTo != null) _flyGhost(growTo, toCenter: true);
     setState(() {
       _reverse = i < _index;
       _index = i;
@@ -202,59 +269,73 @@ class _TimelineScreenState extends State<TimelineScreen>
     timer.cancel();
   }
 
-  /// Bay một BẢN SAO ảnh chặng đang xem THU NHỎ vào đúng node của chặng đó trên
-  /// thanh chặng (qua Overlay) — ảnh "chui vào" thanh hành trình đúng vị trí.
-  void _flyToNode(int stageIndex) {
+  /// Bay một BẢN SAO ảnh chặng giữa **center** và **node của nó** trên thanh
+  /// chặng (qua Overlay), khớp đúng vị trí + cỡ hai đầu nên đổi chỗ liền mạch:
+  /// - [toCenter] = false (PARK, lúc rời chặng): center → node, đáp xong node
+  ///   mới hiện ảnh ([_deliver]).
+  /// - [toCenter] = true  (GROW, lúc lùi về chặng): node → center, đáp xong mới
+  ///   hiện _StageCenter ([_revealCenter]) → ảnh "phóng to ra center".
+  void _flyGhost(int stageIndex, {required bool toCenter}) {
+    void settle() =>
+        toCenter ? _revealCenter(stageIndex) : _parkLanded(stageIndex);
     final c = widget.content;
-    if (c == null) return;
+    if (c == null) return settle();
     final img = _imageForStage(c, stageIndex);
-    if (img == null) return;
+    if (img == null) return settle();
     final areaCtx = _carouselAreaKey.currentContext;
     final nodeCtx = (stageIndex >= 0 && stageIndex < _nodeKeys.length)
         ? _nodeKeys[stageIndex].currentContext
         : null;
-    if (areaCtx == null || nodeCtx == null) return;
+    if (areaCtx == null || nodeCtx == null) return settle();
     final areaBox = areaCtx.findRenderObject() as RenderBox?;
     final nodeBox = nodeCtx.findRenderObject() as RenderBox?;
-    if (areaBox == null || nodeBox == null || !areaBox.hasSize) return;
+    if (areaBox == null || nodeBox == null || !areaBox.hasSize) return settle();
     final areaPos = areaBox.localToGlobal(Offset.zero);
     final aw = areaBox.size.width;
     final ah = areaBox.size.height;
     final side = aw < ah * 0.56 ? aw : ah * 0.56; // ảnh vuông ~phần trên vùng
-    final start = Rect.fromCenter(
+    final centerRect = Rect.fromCenter(
       center: Offset(areaPos.dx + aw / 2, areaPos.dy + side / 2 + 8),
       width: side,
       height: side,
     );
     final nodePos = nodeBox.localToGlobal(Offset.zero);
-    final end = Rect.fromLTWH(
-        nodePos.dx, nodePos.dy, nodeBox.size.width, nodeBox.size.height);
+    final nodeRect = Rect.fromLTWH(
+      nodePos.dx,
+      nodePos.dy,
+      nodeBox.size.width,
+      nodeBox.size.height,
+    );
+    final start = toCenter ? nodeRect : centerRect;
+    final end = toCenter ? centerRect : nodeRect;
+    // Bo góc: đầu node = bo thẻ ([_kNodeCorner]); đầu center = bo ảnh lớn (26).
+    final startR = toCenter ? _kNodeCorner : 26.0;
+    final endR = toCenter ? 26.0 : _kNodeCorner;
     final overlay = Overlay.of(context);
-    final ctrl =
-        AnimationController(vsync: this, duration: WonderTokens.durSlow);
+    final ctrl = AnimationController(vsync: this, duration: _flyDur);
     late OverlayEntry entry;
     entry = OverlayEntry(
       builder: (_) => AnimatedBuilder(
         animation: ctrl,
         builder: (_, _) {
-          final t = WonderTokens.curveEmphasized.transform(ctrl.value);
+          final t = _flyCurve.transform(ctrl.value);
           final rect = Rect.lerp(start, end, t)!;
-          final radius = lerpDouble(26, rect.width / 2, t)!;
-          final fade = 1.0 - ((ctrl.value - 0.72).clamp(0.0, 0.28) / 0.28);
+          final radius = lerpDouble(startR, endR, t)!;
+          // Ghost giữ NGUYÊN độ đục tới khi đáp: rect hai đầu == đúng rect
+          // node/center nên lúc bên kia hiện ảnh là đổi chỗ liền mạch, không chớp.
           return Positioned.fromRect(
             rect: rect,
-            child: Opacity(
-              opacity: fade,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(radius),
-                  boxShadow: WonderShadows.card,
-                  border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.9), width: 3),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(radius),
+                boxShadow: WonderShadows.card,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  width: 3,
                 ),
-                clipBehavior: Clip.antiAlias,
-                child: Image(image: img, fit: BoxFit.cover),
               ),
+              clipBehavior: Clip.antiAlias,
+              child: Image(image: img, fit: BoxFit.cover),
             ),
           );
         },
@@ -264,6 +345,7 @@ class _TimelineScreenState extends State<TimelineScreen>
     ctrl.forward().whenComplete(() {
       entry.remove();
       ctrl.dispose();
+      settle(); // đáp → bên nhận (node hoặc center) mới hiện ảnh
     });
   }
 
@@ -388,7 +470,11 @@ class _TimelineScreenState extends State<TimelineScreen>
                     ignoring: !_inStages,
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(
-                          16, _headerCompact + 4, 16, 12),
+                        16,
+                        _headerCompact + 4,
+                        16,
+                        12,
+                      ),
                       child: Column(
                         children: <Widget>[
                           // Thanh hành trình chặng: node đã-qua (ảnh nhỏ) · hiện
@@ -397,8 +483,10 @@ class _TimelineScreenState extends State<TimelineScreen>
                           _StageTrack(
                             count: _stageCount,
                             current: _currentStage,
+                            parking: _parking,
                             imageFor: (i) => _imageForStage(c, i),
-                            onTapStage: (i) => _advanceTo(i + 1), // +1: bỏ cover
+                            onTapStage: (i) =>
+                                _advanceTo(i + 1), // +1: bỏ cover
                             nodeKeys: _nodeKeys,
                           ),
                           const SizedBox(height: 10),
@@ -406,25 +494,46 @@ class _TimelineScreenState extends State<TimelineScreen>
                             child: KeyedSubtree(
                               key: _carouselAreaKey,
                               child: PageTransitionSwitcher(
-                              duration: WonderTokens.durBase,
-                              transitionBuilder: (child, primary, secondary) =>
-                                  _stageTransition(
-                                      child, primary, secondary, reduce),
-                              child: KeyedSubtree(
-                                key: ValueKey<int>(_index),
-                                child: _inStages
-                                    ? _StageCenter(
-                                        stage: c.stages[_step.stageIndex],
-                                        image: _imageForStage(
-                                            c, _step.stageIndex),
-                                        imageLoading: _imagesLoading &&
-                                            c.source == 'live',
-                                        reduce: reduce,
-                                      )
-                                    : const SizedBox.shrink(),
+                                duration: _stageSwitch,
+                                transitionBuilder:
+                                    (child, primary, secondary) =>
+                                        _stageTransition(
+                                          child,
+                                          primary,
+                                          secondary,
+                                          reduce,
+                                        ),
+                                child: KeyedSubtree(
+                                  key: ValueKey<int>(_index),
+                                  child: _inStages
+                                      // Lùi về chặng đã ghé: ẩn center tới khi ảnh
+                                      // phóng to từ node đáp xuống (grow-ghost) →
+                                      // hết chồng ảnh, đổi chỗ liền mạch.
+                                      ? AnimatedOpacity(
+                                          opacity:
+                                              _growingStage == _step.stageIndex
+                                              ? 0.0
+                                              : 1.0,
+                                          duration:
+                                              _growingStage == _step.stageIndex
+                                              ? Duration.zero
+                                              : WonderTokens.durFast,
+                                          child: _StageCenter(
+                                            stage: c.stages[_step.stageIndex],
+                                            image: _imageForStage(
+                                              c,
+                                              _step.stageIndex,
+                                            ),
+                                            imageLoading:
+                                                _imagesLoading &&
+                                                c.source == 'live',
+                                            reduce: reduce,
+                                          ),
+                                        )
+                                      : const SizedBox.shrink(),
+                                ),
                               ),
                             ),
-                          ),
                           ),
                         ],
                       ),
@@ -435,21 +544,48 @@ class _TimelineScreenState extends State<TimelineScreen>
             ),
           ),
 
-          // B. Cover: thẻ "đang kể" + lịch sử + gợi ý vuốt lên. LUÔN có trong cây
-          // (fade bằng opacity, KHÔNG dùng `if`) để không xê dịch index của Stack
-          // → header giữ được Element → AnimatedScale/Align animate mượt.
-          Positioned(
-            left: 20,
-            right: 20,
-            bottom: 20,
+          // B. Cover: thẻ "đang kể" + lịch sử (CĂN GIỮA vùng dưới header, hết
+          // khoảng trống) + gợi ý vuốt lên ghim đáy. LUÔN có trong cây (fade bằng
+          // opacity, KHÔNG dùng `if`) để không xê dịch index của Stack → header
+          // giữ được Element → morph animate mượt.
+          Positioned.fill(
             child: SafeArea(
-              top: false,
+              // LUÔN bỏ qua pointer: thẻ cover chỉ để HIỂN THỊ (không nút bấm) →
+              // cử chỉ vuốt dọc xuyên xuống handler ở lớp A (đổi chặng), không bị
+              // scroll của thẻ nuốt mất.
               child: IgnorePointer(
-                ignoring: !_isCover,
                 child: AnimatedOpacity(
                   duration: WonderTokens.durBase,
                   opacity: _isCover ? 1 : 0,
-                  child: _CoverStory(content: c, reduce: reduce),
+                  child: LayoutBuilder(
+                    builder: (context, cons) => Padding(
+                      // top chừa cho cutout+tên ở mốc cover (hero to, ở trên);
+                      // thẻ BÁM NGAY DƯỚI tên (không căn giữa) → hết trống ở giữa.
+                      padding: EdgeInsets.fromLTRB(
+                        20,
+                        cons.maxHeight * 0.35,
+                        20,
+                        14,
+                      ),
+                      child: Column(
+                        children: <Widget>[
+                          // "Modal" history TRƯỢT LÊN lúc vào (gated _entered) →
+                          // lúc nút reveal mờ đi thì thẻ history hiện ra có chuyển
+                          // tiếp rõ, không "bụp" ra.
+                          AnimatedSlide(
+                            offset: _entered
+                                ? Offset.zero
+                                : const Offset(0, 0.22),
+                            duration: _kJourneyDur,
+                            curve: _kJourneyCurve,
+                            child: _CoverStory(content: c, reduce: reduce),
+                          ),
+                          const Spacer(),
+                          _SwipeHint(reduce: reduce),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -461,7 +597,7 @@ class _TimelineScreenState extends State<TimelineScreen>
           Positioned.fill(
             child: SafeArea(
               child: IgnorePointer(
-                child: _HeaderMorph(content: c, stages: _inStages),
+                child: _HeaderMorph(content: c, progress: _headerProgress),
               ),
             ),
           ),
@@ -487,6 +623,7 @@ class _TimelineScreenState extends State<TimelineScreen>
                         icon: PhosphorIconsFill.speakerSimpleHigh,
                         tone: GlassTone.light,
                         size: 44,
+                        native: true,
                         onTap: _replay,
                         semanticLabel: 'Nghe lại',
                       ),
@@ -539,11 +676,11 @@ class _TimelineScreenState extends State<TimelineScreen>
       );
     }
     final dir = _reverse ? -1.0 : 1.0;
-    final inCurve =
-        CurvedAnimation(parent: primary, curve: WonderTokens.curveEmphasized);
-    final inSlide =
-        Tween<Offset>(begin: Offset(0, 0.18 * dir), end: Offset.zero)
-            .animate(inCurve);
+    final inCurve = CurvedAnimation(parent: primary, curve: _kJourneyCurve);
+    final inSlide = Tween<Offset>(
+      begin: Offset(0, 0.18 * dir),
+      end: Offset.zero,
+    ).animate(inCurve);
     final inScale = Tween<double>(begin: 0.9, end: 1.0).animate(inCurve);
     // Chặng RỜI: mờ NHANH (bản sao ảnh bay vào node trên thanh lo phần thu-nhỏ-
     // đi-lên → không để chặng rời tự trôi lung tung).
@@ -567,24 +704,24 @@ class _TimelineScreenState extends State<TimelineScreen>
   }
 
   Widget _confettiLayer() => Align(
-        alignment: Alignment.topCenter,
-        child: ConfettiWidget(
-          confettiController: _confetti,
-          blastDirectionality: BlastDirectionality.explosive,
-          shouldLoop: false,
-          numberOfParticles: 20,
-          maxBlastForce: 12,
-          minBlastForce: 6,
-          emissionFrequency: 0.05,
-          colors: const <Color>[
-            WonderColors.teal,
-            WonderColors.sky,
-            WonderColors.grape,
-            WonderColors.sunny,
-            WonderColors.mint,
-          ],
-        ),
-      );
+    alignment: Alignment.topCenter,
+    child: ConfettiWidget(
+      confettiController: _confetti,
+      blastDirectionality: BlastDirectionality.explosive,
+      shouldLoop: false,
+      numberOfParticles: 20,
+      maxBlastForce: 12,
+      minBlastForce: 6,
+      emissionFrequency: 0.05,
+      colors: const <Color>[
+        WonderColors.teal,
+        WonderColors.sky,
+        WonderColors.grape,
+        WonderColors.sunny,
+        WonderColors.mint,
+      ],
+    ),
+  );
 }
 
 /// ---------------------------------------------------------------------------
@@ -595,37 +732,57 @@ class _TimelineScreenState extends State<TimelineScreen>
 /// giữ viền trắng tên.
 class _HeaderMorph extends StatelessWidget {
   final ObjectContent content;
-  final bool stages;
-  const _HeaderMorph({required this.content, required this.stages});
+
+  /// 0 = reveal (TO, giữa) · 0.5 = cover/history (VỪA, cao hơn, tên vẫn DƯỚI) ·
+  /// 1 = chặng (GỌN ở header, tên NGANG bên phải). Nội suy liên tục theo mốc này
+  /// → lúc vào history vật+tên thu nhỏ & trôi lên (0→0.5), vào chặng gọn tiếp
+  /// (0.5→1).
+  final double progress;
+  const _HeaderMorph({required this.content, required this.progress});
 
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
-      tween: Tween<double>(end: stages ? 1.0 : 0.0),
-      duration: WonderTokens.durSlow,
-      curve: WonderTokens.curveEmphasized,
-      builder: (context, t, _) =>
-          LayoutBuilder(builder: (context, cons) => _build(cons, t)),
+      tween: Tween<double>(end: progress),
+      duration: _kJourneyDur,
+      curve: _kJourneyCurve,
+      builder: (context, p, _) =>
+          LayoutBuilder(builder: (context, cons) => _build(cons, p)),
     );
   }
 
-  Widget _build(BoxConstraints cons, double t) {
+  Widget _build(BoxConstraints cons, double p) {
     final w = cons.maxWidth;
     final h = cons.maxHeight;
-    final dCover = (h * 0.30).clamp(160.0, 300.0);
-    const dStage = 46.0;
-    final d = lerpDouble(dCover, dStage, t)!;
-    // Tâm cutout: cover = giữa & hơi trên; chặng = đầu, BÊN PHẢI nút back (66px).
-    final cx = lerpDouble(w / 2, 66 + dStage / 2, t)!;
-    final cy = lerpDouble(h * 0.06 + dCover / 2, 6 + dStage / 2, t)!;
-    // Tên: cover = full-width canh giữa DƯỚI cutout; chặng = NGANG bên phải cutout.
-    final nameFont = lerpDouble(26.0, 17.0, t)!;
-    final nameLeft = lerpDouble(16.0, 66 + dStage + 10, t)!;
-    final nameRight = lerpDouble(16.0, 56.0, t)!;
+    // HAI PHA: reveal→cover (p 0→0.5) chỉ THU NHỎ NHẸ + TRÔI LÊN, GIỮ CANH GIỮA;
+    // cover→chặng (p 0.5→1) mới co gọn + dời sang header trái + tên lật ngang.
+    final rise = (p * 2).clamp(0.0, 1.0); // pha 1
+    final flip = ((p - 0.5) * 2).clamp(0.0, 1.0); // pha 2
+    final dReveal = (h * 0.32).clamp(200.0, 320.0);
+    final dCover = (h * 0.24).clamp(180.0, 260.0);
+    const dStage = 56.0;
+    final d = p <= 0.5
+        ? lerpDouble(dReveal, dCover, rise)!
+        : lerpDouble(dCover, dStage, flip)!;
+    // X: reveal & cover CÙNG canh giữa (cx=w/2 vì flip=0); chỉ dời trái ở pha 2.
+    final cx = lerpDouble(w / 2, 64 + dStage / 2, flip)!;
+    // Y: reveal (giữa-trên) → cover (trên) → chặng (đỉnh header).
+    final cyReveal = h * 0.06 + dReveal / 2;
+    final cyCover = 18 + dCover / 2;
+    final cy = p <= 0.5
+        ? lerpDouble(cyReveal, cyCover, rise)!
+        : lerpDouble(cyCover, 6 + dStage / 2, flip)!;
+    // Tên: reveal & cover đều CANH GIỮA, DƯỚI cutout, chữ to; chỉ pha 2 mới lật
+    // sang NGANG bên phải + co nhỏ.
+    final nameFont = p <= 0.5
+        ? lerpDouble(35.0, 32.0, rise)!
+        : lerpDouble(32.0, 21.0, flip)!;
+    final nameLeft = lerpDouble(16.0, 64 + dStage + 12, flip)!;
+    final nameRight = lerpDouble(16.0, 56.0, flip)!;
     final nameTop = lerpDouble(
-      h * 0.06 + dCover + 6,
+      cy + d / 2 + 10, // ngay DƯỚI cutout, bám theo cutout
       6 + (dStage - nameFont * 1.25) / 2,
-      t,
+      flip,
     )!;
     return Stack(
       clipBehavior: Clip.none,
@@ -635,13 +792,19 @@ class _HeaderMorph extends StatelessWidget {
           top: cy - d / 2,
           width: d,
           height: d,
-          child: ObjectAvatar(
-            objectId: content.id,
-            emoji: content.emoji,
-            diameter: d,
-            emojiSize: d * 0.42,
-            glowOpacity: 0.5,
-            sticker: true,
+          // Hero đích của morph từ Rương: sticker vật bay từ Rương vào đây (cover).
+          // Mở từ nơi khác (nhật ký/camera) không có nguồn trùng tag → chỉ hiện
+          // bình thường, không bay.
+          child: Hero(
+            tag: collectionObjectHeroTag(content.id),
+            child: ObjectAvatar(
+              objectId: content.id,
+              emoji: content.emoji,
+              diameter: d,
+              emojiSize: d * 0.42,
+              glowOpacity: 0.5,
+              sticker: true,
+            ),
           ),
         ),
         Positioned(
@@ -651,7 +814,7 @@ class _HeaderMorph extends StatelessWidget {
           child: _OutlinedName(
             content.name,
             fontSize: nameFont,
-            align: t < 0.5 ? TextAlign.center : TextAlign.left,
+            align: flip < 0.5 ? TextAlign.center : TextAlign.left,
           ),
         ),
       ],
@@ -664,16 +827,31 @@ class _OutlinedName extends StatelessWidget {
   final String text;
   final double fontSize;
   final TextAlign align;
-  const _OutlinedName(this.text, {required this.fontSize, this.align = TextAlign.center});
+  const _OutlinedName(
+    this.text, {
+    required this.fontSize,
+    this.align = TextAlign.center,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // 1 Text + 8 shadow trắng lệch quanh → viền trắng die-cut (chỉ 1 widget nên
-    // find.text ở test vẫn khớp 1).
-    final w = (fontSize * 0.11).clamp(2.0, 6.0);
+    // 1 Text + nhiều shadow trắng lệch quanh → viền trắng die-cut DÀY (chỉ 1
+    // widget nên find.text ở test vẫn khớp 1). 12 hướng đều (30°) + blur nhẹ →
+    // viền liền mạch, không hở góc kể cả khi chữ to.
+    final w = (fontSize * 0.16).clamp(3.5, 9.0);
     const offsets = <Offset>[
-      Offset(-1, -1), Offset(0, -1), Offset(1, -1), Offset(-1, 0),
-      Offset(1, 0), Offset(-1, 1), Offset(0, 1), Offset(1, 1),
+      Offset(1, 0),
+      Offset(0.866, 0.5),
+      Offset(0.5, 0.866),
+      Offset(0, 1),
+      Offset(-0.5, 0.866),
+      Offset(-0.866, 0.5),
+      Offset(-1, 0),
+      Offset(-0.866, -0.5),
+      Offset(-0.5, -0.866),
+      Offset(0, -1),
+      Offset(0.5, -0.866),
+      Offset(0.866, -0.5),
     ];
     return Text(
       text,
@@ -685,7 +863,7 @@ class _OutlinedName extends StatelessWidget {
         fontSize: fontSize,
         shadows: <Shadow>[
           for (final o in offsets)
-            Shadow(color: Colors.white, offset: o * w, blurRadius: 1.5),
+            Shadow(color: Colors.white, offset: o * w, blurRadius: w * 0.5),
         ],
       ),
     );
@@ -698,12 +876,14 @@ class _OutlinedName extends StatelessWidget {
 class _StageTrack extends StatelessWidget {
   final int count;
   final int current;
+  final Set<int> parking; // node đang có ghost bay lên → render TRỐNG
   final ImageProvider? Function(int stageIndex) imageFor;
   final void Function(int stageIndex) onTapStage;
   final List<GlobalKey> nodeKeys;
   const _StageTrack({
     required this.count,
     required this.current,
+    required this.parking,
     required this.imageFor,
     required this.onTapStage,
     required this.nodeKeys,
@@ -712,38 +892,57 @@ class _StageTrack extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (count <= 0) return const SizedBox(height: 4);
+    // Bọc trong PILL Liquid Glass (native iOS 26 khi có) → thanh chặng đọc như
+    // một "thành phần tiến độ" bằng kính thật, nổi trên nền chấm bi. Row hug nội
+    // dung, canh giữa.
     return SizedBox(
-      height: 48,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          for (var i = 0; i < count; i++) ...<Widget>[
-            if (i > 0)
-              AnimatedContainer(
-                duration: WonderTokens.durBase,
-                width: 14,
-                height: 3,
-                margin: const EdgeInsets.symmetric(horizontal: 2),
-                decoration: BoxDecoration(
-                  color: i <= current
-                      ? WonderColors.teal
-                      : WonderColors.textStrong.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(2),
+      height: 58,
+      child: Center(
+        child: GlassSurface(
+          tone: GlassTone.light,
+          native: true,
+          radius: 24,
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              for (var i = 0; i < count; i++) ...<Widget>[
+                if (i > 0)
+                  AnimatedContainer(
+                    duration: WonderTokens.durBase,
+                    curve: _kJourneyCurve,
+                    width: 16,
+                    height: 3,
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    decoration: BoxDecoration(
+                      color: i <= current
+                          ? WonderColors.teal
+                          : WonderColors.textStrong.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                KeyedSubtree(
+                  key: i < nodeKeys.length ? nodeKeys[i] : null,
+                  child: _StageNode(
+                    image: imageFor(i),
+                    number: i + 1,
+                    state: i < current
+                        ? _NodeState.passed
+                        : (i == current
+                              ? _NodeState.current
+                              : _NodeState.future),
+                    // Chỉ node PHÍA SAU chặng đang xem (đã qua) mới có ảnh, và
+                    // không đang park. Đang xem = trống; phía trước = chấm rỗng.
+                    filled: i < current && !parking.contains(i),
+                    onTap: (i < current && !parking.contains(i))
+                        ? () => onTapStage(i)
+                        : null,
+                  ),
                 ),
-              ),
-            KeyedSubtree(
-              key: i < nodeKeys.length ? nodeKeys[i] : null,
-              child: _StageNode(
-                image: imageFor(i),
-                number: i + 1,
-                state: i < current
-                    ? _NodeState.passed
-                    : (i == current ? _NodeState.current : _NodeState.future),
-                onTap: i < current ? () => onTapStage(i) : null,
-              ),
-            ),
-          ],
-        ],
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -755,11 +954,13 @@ class _StageNode extends StatelessWidget {
   final ImageProvider? image;
   final int number;
   final _NodeState state;
+  final bool filled; // ảnh đã bay lên node này chưa
   final VoidCallback? onTap;
   const _StageNode({
     required this.image,
     required this.number,
     required this.state,
+    required this.filled,
     required this.onTap,
   });
 
@@ -767,45 +968,67 @@ class _StageNode extends StatelessWidget {
   Widget build(BuildContext context) {
     final current = state == _NodeState.current;
     final future = state == _NodeState.future;
-    // Cỡ CỐ ĐỊNH → vị trí node KHÔNG xê dịch khi đổi chặng → ảnh bay đúng node.
+    // Chỉ hiện ảnh khi ảnh ĐÃ BAY LÊN node này. Node đang xem/chưa tới = TRỐNG →
+    // ảnh center "chui vào" thẻ đúng lúc lướt qua chặng đó.
+    final showImage = filled && image != null;
+    // Chặng chưa tới, chưa có ảnh → CHẤM RỖNG tinh tế (thẻ trong suốt).
+    final dot = future && !showImage;
+    // Ô CỐ ĐỊNH [_kNodeCell] → vị trí node ổn định khi đổi chặng (ảnh bay đúng ô).
     // Node hiện tại chỉ PHÓNG TO bằng Transform.scale (không ảnh hưởng layout).
-    const size = 34.0;
     Widget node = AnimatedContainer(
       duration: WonderTokens.durBase,
-      curve: WonderTokens.curveEmphasized,
-      width: size,
-      height: size,
+      curve: _kJourneyCurve,
+      width: _kNodeCell,
+      height: _kNodeCell,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: future
-            ? WonderColors.textStrong.withValues(alpha: 0.12)
-            : Colors.white,
-        border: Border.all(
-          color:
-              current ? WonderColors.teal : Colors.white.withValues(alpha: 0.85),
-          width: current ? 3 : 2,
-        ),
-        boxShadow: future ? null : WonderShadows.card,
+        borderRadius: BorderRadius.circular(_kNodeCorner),
+        color: dot ? Colors.transparent : Colors.white,
+        border: dot
+            ? null
+            : Border.all(
+                color: current
+                    ? WonderColors.teal
+                    : Colors.white.withValues(alpha: 0.9),
+                width: current ? 2.5 : 2,
+              ),
+        boxShadow: dot
+            ? null
+            : (current
+                  ? WonderShadows.glow(WonderColors.teal, opacity: 0.5)
+                  : WonderShadows.card),
       ),
       clipBehavior: Clip.antiAlias,
-      child: future
-          ? const SizedBox.shrink()
-          : (image != null
-              ? Image(image: image!, fit: BoxFit.cover, gaplessPlayback: true)
-              : Center(
-                  child: Text(
-                    '$number',
-                    style: const TextStyle(
-                      color: WonderColors.textSoft,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 13,
+      child: showImage
+          ? Image(image: image!, fit: BoxFit.cover, gaplessPlayback: true)
+          : Center(
+              child: dot
+                  ? Container(
+                      width: 9,
+                      height: 9,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: WonderColors.teal.withValues(alpha: 0.16),
+                        border: Border.all(
+                          color: WonderColors.teal.withValues(alpha: 0.34),
+                          width: 1.5,
+                        ),
+                      ),
+                    )
+                  : Text(
+                      '$number',
+                      style: TextStyle(
+                        color: current
+                            ? WonderColors.teal
+                            : WonderColors.textSoft,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                      ),
                     ),
-                  ),
-                )),
+            ),
     );
     if (current) {
-      // Nổi bật node hiện tại nhưng KHÔNG đổi kích thước layout (vị trí ổn định).
-      node = Transform.scale(scale: 1.22, child: node);
+      // Nổi bật node hiện tại nhưng KHÔNG đổi layout (vị trí ổn định cho ảnh bay).
+      node = Transform.scale(scale: 1.12, child: node);
     }
     if (onTap == null) return node;
     return Pressable(onTap: onTap, semanticLabel: 'Chặng $number', child: node);
@@ -888,41 +1111,36 @@ class _CoverStory extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final history = (content.history ?? '').trim();
-    final maxH = MediaQuery.of(context).size.height * 0.20;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        GlassSurface(
-          tone: GlassTone.light,
-          radius: WonderTokens.radiusLg,
-          padding: const EdgeInsets.all(WonderTokens.space16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              _NarratingChip(reduce: reduce),
-              if (history.isNotEmpty) ...<Widget>[
-                const SizedBox(height: 10),
-                ConstrainedBox(
-                  constraints: BoxConstraints(maxHeight: maxH),
-                  child: SingleChildScrollView(
-                    child: Text(
-                      history,
-                      style: const TextStyle(
-                        color: WonderColors.textStrong,
-                        fontSize: 15,
-                        height: 1.45,
-                      ),
-                    ),
+    final maxH = MediaQuery.of(context).size.height * 0.34;
+    // CHỈ là thẻ history (hint tách ra ngoài, ghim đáy). Bọc kính sáng, canh giữa
+    // vùng dưới header → hết khoảng trống lớn.
+    return GlassSurface(
+      tone: GlassTone.light,
+      radius: WonderTokens.radiusXl,
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          _NarratingChip(reduce: reduce),
+          if (history.isNotEmpty) ...<Widget>[
+            const SizedBox(height: 12),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: maxH),
+              child: SingleChildScrollView(
+                child: Text(
+                  history,
+                  style: const TextStyle(
+                    color: WonderColors.textStrong,
+                    fontSize: 16,
+                    height: 1.5,
                   ),
                 ),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-        _SwipeHint(reduce: reduce),
-      ],
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -975,7 +1193,12 @@ class _SoundBars extends StatelessWidget {
       if (reduce) return b;
       return b
           .animate(onPlay: (c) => c.repeat(reverse: true), delay: (i * 140).ms)
-          .scaleY(begin: 0.4, end: 1, duration: 480.ms, curve: Curves.easeInOut);
+          .scaleY(
+            begin: 0.4,
+            end: 1,
+            duration: 480.ms,
+            curve: Curves.easeInOut,
+          );
     }
 
     return Row(
@@ -1011,7 +1234,10 @@ class _ImageCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(28),
           color: WonderColors.inkSoft,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 4),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.9),
+            width: 4,
+          ),
           boxShadow: <BoxShadow>[
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.42),
@@ -1050,7 +1276,10 @@ class _ImageCard extends StatelessWidget {
       if (!loading || reduce) return box;
       return box
           .animate(onPlay: (c) => c.repeat())
-          .shimmer(duration: 1400.ms, color: Colors.white.withValues(alpha: 0.16));
+          .shimmer(
+            duration: 1400.ms,
+            color: Colors.white.withValues(alpha: 0.16),
+          );
     }
     return Image(
       image: image!,
@@ -1209,16 +1438,15 @@ class _OutroView extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 14),
-                    WonderButton(
+                    GlassButton(
                       label: 'Soi vật khác',
                       icon: PhosphorIconsBold.magnifyingGlass,
                       onTap: onScanMore,
                     ),
                     const SizedBox(height: 10),
-                    WonderButton(
+                    GlassButton(
                       label: 'Khoe khám phá',
                       icon: PhosphorIconsBold.shareNetwork,
-                      gradient: WonderGradients.secondary,
                       onTap: onShare,
                     ),
                     const SizedBox(height: 4),
@@ -1236,7 +1464,9 @@ class _OutroView extends StatelessWidget {
         ),
       ),
     );
-    return reduce ? view : view.animate().fadeIn(duration: WonderTokens.durBase);
+    return reduce
+        ? view
+        : view.animate().fadeIn(duration: WonderTokens.durBase);
   }
 }
 

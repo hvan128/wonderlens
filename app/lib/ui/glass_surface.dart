@@ -1,8 +1,10 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 
 import '../theme/wonder_tokens.dart';
+import 'liquid_glass.dart';
 import 'phosphor_compat.dart';
 import 'pressable.dart';
 
@@ -30,6 +32,11 @@ class GlassSurface extends StatelessWidget {
   final VoidCallback? onTap;
   final String? semanticLabel;
 
+  /// `native: true` → nền **Liquid Glass native iOS 26** thay recipe blur Flutter
+  /// (opt-in, mặc định tắt để KHÔNG phá look các nơi đang dùng). Chỉ nên bật cho
+  /// bề mặt NỔI trên nội dung, ít, tĩnh (không dùng đè camera preview).
+  final bool native;
+
   const GlassSurface({
     super.key,
     required this.child,
@@ -42,6 +49,7 @@ class GlassSurface extends StatelessWidget {
     this.shadows,
     this.onTap,
     this.semanticLabel,
+    this.native = false,
   });
 
   bool get _dark => tone == GlassTone.dark;
@@ -49,6 +57,24 @@ class GlassSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final br = BorderRadius.circular(radius);
+
+    if (native && defaultTargetPlatform == TargetPlatform.iOS) {
+      Widget panel = LiquidGlass(
+        radius: radius,
+        child: Padding(padding: padding, child: child),
+      );
+      panel = DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: br,
+          boxShadow: shadows ?? WonderShadows.soft,
+        ),
+        child: panel,
+      );
+      if (onTap != null) {
+        panel = Pressable(onTap: onTap, semanticLabel: semanticLabel, child: panel);
+      }
+      return panel;
+    }
     final baseTint = tint ?? (_dark ? WonderColors.ink : Colors.white);
     // Tone sáng trong hơn (0.40 thay 0.46) để MÀU nền lọt qua → ra chất kính
     // thật thay vì panel trắng đặc; vẫn đủ đục cho chữ đậm đọc rõ.
@@ -186,6 +212,11 @@ class GlassIconButton extends StatelessWidget {
   /// (ngân sách ≤3 bề mặt blur của DESIGN.md); tint được nâng đậm bù lại.
   final double? blur;
 
+  /// `native: true` → nền **Liquid Glass native iOS 26** ([LiquidGlass]) thay
+  /// cho GlassSurface. Chỉ dùng cho nút NỔI trên nền nội dung (KHÔNG dùng trên
+  /// camera preview — platform view đè platform view dễ lỗi).
+  final bool native;
+
   const GlassIconButton({
     super.key,
     required this.icon,
@@ -195,6 +226,7 @@ class GlassIconButton extends StatelessWidget {
     this.tone = GlassTone.dark,
     this.semanticLabel,
     this.blur,
+    this.native = false,
   });
 
   @override
@@ -204,6 +236,30 @@ class GlassIconButton extends StatelessWidget {
     final iconColor = active
         ? const Color(0xFF7A4E00)
         : (dark ? Colors.white : WonderColors.textStrong);
+
+    if (native && defaultTargetPlatform == TargetPlatform.iOS) {
+      return Pressable(
+        onTap: onTap,
+        semanticLabel: semanticLabel,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: WonderShadows.soft,
+          ),
+          child: LiquidGlass(
+            radius: size / 2,
+            child: SizedBox(
+              width: size,
+              height: size,
+              child: Center(
+                child: PhosphorIcon(icon, size: size * 0.42, color: iconColor),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return GlassSurface(
       tone: tone,
       radius: size / 2,

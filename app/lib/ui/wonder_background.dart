@@ -9,7 +9,15 @@ import '../theme/wonder_tokens.dart';
 class WonderBackground extends StatelessWidget {
   final Widget child;
 
-  const WonderBackground({super.key, required this.child});
+  /// false → **không** tô nền base (trong suốt), chỉ vẽ lưới chấm — để lớp phía
+  /// dưới hiện ra khi nền được lo bởi thứ khác (vd Hero morph nền thẻ → màn full).
+  final bool paintBase;
+
+  const WonderBackground({
+    super.key,
+    required this.child,
+    this.paintBase = true,
+  });
 
   /// Nền phẳng sáng dịu (không gradient) để lưới chấm + kính nổi rõ.
   static const Color base = Color(0xFFEFF3F7);
@@ -17,7 +25,7 @@ class WonderBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: const BoxDecoration(color: base),
+      decoration: BoxDecoration(color: paintBase ? base : Colors.transparent),
       child: Stack(
         children: <Widget>[
           const Positioned.fill(

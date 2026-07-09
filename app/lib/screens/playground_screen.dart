@@ -53,7 +53,7 @@ class _PlaygroundScreenState extends State<PlaygroundScreen> {
             style: WonderType.body.copyWith(color: WonderColors.textStrong),
           ),
           const SizedBox(height: WonderTokens.space16),
-          WonderButton(
+          GlassButton(
             label: 'Đóng sheet',
             onTap: () => Navigator.pop(sheetContext),
           ),
@@ -81,7 +81,7 @@ class _PlaygroundScreenState extends State<PlaygroundScreen> {
               right: WonderTokens.space24,
               bottom: WonderTokens.space24 +
                   MediaQuery.of(context).padding.bottom,
-              child: WonderButton(
+              child: GlassButton(
                 label: 'Mở Glass Sheet',
                 icon: PhosphorIconsFill.sparkle,
                 onTap: _openSheet,

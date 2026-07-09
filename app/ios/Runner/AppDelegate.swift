@@ -1,6 +1,7 @@
 import AVFoundation
 import CoreImage
 import Flutter
+import Photos
 import UIKit
 import Vision
 
@@ -37,6 +38,26 @@ import Vision
         SubjectCutout.run(path: path, result: result)
       }
     }
+    if let photoRegistrar = engineBridge.pluginRegistry.registrar(forPlugin: "WonderLensPhotoLibrary") {
+      let channel = FlutterMethodChannel(
+        name: "wonderlens/photo_library",
+        binaryMessenger: photoRegistrar.messenger())
+      channel.setMethodCallHandler { call, result in
+        guard call.method == "saveImage" else {
+          result(FlutterMethodNotImplemented)
+          return
+        }
+        guard
+          let args = call.arguments as? [String: Any],
+          let path = args["path"] as? String
+        else {
+          result(false)
+          return
+        }
+        let name = (args["name"] as? String) ?? "wonderlens_sticker.png"
+        PhotoLibrarySaver.saveImage(path: path, fileName: name, result: result)
+      }
+    }
     // Liquid Glass native (iOS 26+) cho thanh tab — glass thật của hệ điều hành.
     if let glassRegistrar = engineBridge.pluginRegistry.registrar(
       forPlugin: "WonderLensLiquidGlass")
@@ -51,6 +72,67 @@ import Vision
       tabRegistrar.register(
         NativeTabBarFactory(messenger: tabRegistrar.messenger()),
         withId: "wonder_native_tabbar")
+    }
+  }
+}
+
+enum PhotoLibrarySaver {
+  static func saveImage(path: String, fileName: String, result: @escaping FlutterResult) {
+    guard FileManager.default.fileExists(atPath: path) else {
+      result(false)
+      return
+    }
+
+    let status = PHPhotoLibrary.authorizationStatus(for: .addOnly)
+    switch status {
+    case .authorized, .limited:
+      performSave(path: path, fileName: fileName, result: result)
+    case .notDetermined:
+      PHPhotoLibrary.requestAuthorization(for: .addOnly) { newStatus in
+        if newStatus == .authorized || newStatus == .limited {
+          performSave(path: path, fileName: fileName, result: result)
+        } else {
+          DispatchQueue.main.async {
+            result(FlutterError(
+              code: "permission_denied",
+              message: "Photo library add permission denied",
+              details: nil))
+          }
+        }
+      }
+    case .denied, .restricted:
+      result(FlutterError(
+        code: "permission_denied",
+        message: "Photo library add permission denied",
+        details: nil))
+    @unknown default:
+      result(false)
+    }
+  }
+
+  private static func performSave(path: String, fileName: String, result: @escaping FlutterResult) {
+    DispatchQueue.global(qos: .userInitiated).async {
+      guard let data = try? Data(contentsOf: URL(fileURLWithPath: path)) else {
+        DispatchQueue.main.async { result(false) }
+        return
+      }
+      PHPhotoLibrary.shared().performChanges({
+        let request = PHAssetCreationRequest.forAsset()
+        let options = PHAssetResourceCreationOptions()
+        options.originalFilename = fileName
+        request.addResource(with: .photo, data: data, options: options)
+      }) { success, error in
+        DispatchQueue.main.async {
+          if let error = error {
+            result(FlutterError(
+              code: "save_failed",
+              message: error.localizedDescription,
+              details: nil))
+          } else {
+            result(success)
+          }
+        }
+      }
     }
   }
 }

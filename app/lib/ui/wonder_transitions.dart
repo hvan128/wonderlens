@@ -13,11 +13,17 @@ CustomTransitionPage<T> wonderPage<T>({
   required Widget child,
   SharedAxisTransitionType type = SharedAxisTransitionType.horizontal,
   bool fade = false,
+  Duration? duration,
+  // opaque=false: giữ màn dưới SỐNG sau khi push xong. Cần cho màn đè lên
+  // MainShell (tab bar là UITabBar NATIVE — platform view): gỡ/gắn platform
+  // view khi màn dưới bị tháo gây NHÁY ĐEN một frame.
+  bool opaque = true,
 }) {
   return CustomTransitionPage<T>(
     key: key,
-    transitionDuration: WonderTokens.durBase,
-    reverseTransitionDuration: WonderTokens.durBase,
+    transitionDuration: duration ?? WonderTokens.durBase,
+    reverseTransitionDuration: duration ?? WonderTokens.durBase,
+    opaque: opaque,
     child: child,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       // fade = true (vd vào hành trình): chỉ cross-fade để nối liền mạch với màn

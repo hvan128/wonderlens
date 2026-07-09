@@ -12,6 +12,7 @@ import 'wonder_haptics.dart';
 class Pressable extends StatefulWidget {
   final Widget child;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
   final double pressedScale;
   final bool haptic;
   final String? semanticLabel;
@@ -20,6 +21,7 @@ class Pressable extends StatefulWidget {
     super.key,
     required this.child,
     this.onTap,
+    this.onLongPress,
     this.pressedScale = 0.94,
     this.haptic = true,
     this.semanticLabel,
@@ -34,13 +36,17 @@ class _PressableState extends State<Pressable>
   /// Tolerance theo đơn vị scale: hành trình nhấn chỉ ~0.06 nên phải mịn hơn
   /// nhiều so với tolerance mặc định của [WonderSpring.simulation] (0.1, hiệu
   /// chỉnh cho pixel) — dùng 0.1 ở đây spring sẽ bị coi là xong ngay lập tức.
-  static const Tolerance _scaleTolerance =
-      Tolerance(distance: 0.001, velocity: 0.01);
+  static const Tolerance _scaleTolerance = Tolerance(
+    distance: 0.001,
+    velocity: 0.01,
+  );
 
   /// Giá trị controller chính là hệ số scale; unbounded để cho phép vượt nhẹ
   /// qua 1.0 khi nảy (spring underdamped).
-  late final AnimationController _controller =
-      AnimationController.unbounded(value: 1.0, vsync: this);
+  late final AnimationController _controller = AnimationController.unbounded(
+    value: 1.0,
+    vsync: this,
+  );
 
   @override
   void dispose() {
@@ -51,20 +57,23 @@ class _PressableState extends State<Pressable>
   /// Chạy spring từ trạng thái hiện tại về [target], bàn giao velocity đang
   /// có của controller để đổi hướng giữa chừng vẫn liền mạch.
   void _springTo(double target) {
-    if (widget.onTap == null) return;
-    _controller.animateWith(SpringSimulation(
-      WonderSpring.snappy.description,
-      _controller.value,
-      target,
-      _controller.velocity,
-      tolerance: _scaleTolerance,
-    ));
+    if (widget.onTap == null && widget.onLongPress == null) return;
+    _controller.animateWith(
+      SpringSimulation(
+        WonderSpring.snappy.description,
+        _controller.value,
+        target,
+        _controller.velocity,
+        tolerance: _scaleTolerance,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final enabled = widget.onTap != null || widget.onLongPress != null;
     return Semantics(
-      button: widget.onTap != null,
+      button: enabled,
       label: widget.semanticLabel,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -78,10 +87,14 @@ class _PressableState extends State<Pressable>
             widget.onTap!();
           }
         },
-        child: ScaleTransition(
-          scale: _controller,
-          child: widget.child,
-        ),
+        onLongPress: widget.onLongPress == null
+            ? null
+            : () {
+                _springTo(1.0);
+                if (widget.haptic) WonderHaptics.primary();
+                widget.onLongPress!();
+              },
+        child: ScaleTransition(scale: _controller, child: widget.child),
       ),
     );
   }

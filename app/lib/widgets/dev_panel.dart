@@ -144,13 +144,13 @@ class _DevPanelState extends State<_DevPanel> {
                   ),
                 ),
                 const SizedBox(height: 18),
-                WonderButton(
+                GlassButton(
                   label: 'Lưu & đóng',
                   icon: Symbols.check,
                   onTap: _saveAndClose,
                 ),
                 const SizedBox(height: 12),
-                WonderButton(
+                GlassButton(
                   label: 'Playground UI v2',
                   icon: PhosphorIconsFill.sparkle,
                   onTap: () {

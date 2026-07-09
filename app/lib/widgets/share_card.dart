@@ -4,6 +4,7 @@ import '../ui/phosphor_compat.dart';
 import '../data/capture_store.dart';
 import '../models/object_content.dart';
 import '../theme/wonder_tokens.dart';
+import '../ui/wonder_logo.dart';
 
 /// Khung thẻ chia sẻ chung: nền tối sang trọng + vệt spotlight + thương hiệu
 /// WonderLens ở đỉnh + tagline ở chân. Bề rộng cố định → chụp PNG luôn gọn, nét.
@@ -163,6 +164,8 @@ class ShareCard extends StatelessWidget {
 }
 
 /// Thẻ chia sẻ thành tích bộ sưu tập: cấp độ + tiến độ + huy hiệu + đồ vật.
+/// TÔNG GIẤY ẤM (khung [_KraftCardShell]) — cùng thế giới với cụm thẻ giấy thô
+/// của màn Hồ sơ, điểm nhấn mật ong thay teal; chữ mực tối trên nền giấy.
 class CollectionShareCard extends StatelessWidget {
   final String levelTitle;
   final int discoveredCount;
@@ -186,8 +189,9 @@ class CollectionShareCard extends StatelessWidget {
     final complete = totalCount > 0 && discoveredCount >= totalCount;
     final lockedCount = (totalCount - discoveredCount).clamp(0, totalCount);
     final value = totalCount == 0 ? 0.0 : discoveredCount / totalCount;
+    final inkFaint = WonderColors.textStrong.withValues(alpha: 0.10);
 
-    return _WonderCardShell(
+    return _KraftCardShell(
       children: <Widget>[
         Center(
           child: Container(
@@ -195,8 +199,8 @@ class CollectionShareCard extends StatelessWidget {
             height: 96,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: WonderGradients.badge,
-              boxShadow: WonderShadows.glow(WonderColors.teal, opacity: 0.5),
+              gradient: WonderGradients.honey,
+              boxShadow: WonderShadows.glow(WonderColors.sunny, opacity: 0.5),
             ),
             child: PhosphorIcon(
               complete ? PhosphorIconsFill.trophy : PhosphorIconsFill.flask,
@@ -211,7 +215,7 @@ class CollectionShareCard extends StatelessWidget {
             levelTitle,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Colors.white,
+              color: WonderColors.textStrong,
               fontSize: 24,
               fontWeight: FontWeight.w900,
               height: 1.1,
@@ -222,22 +226,23 @@ class CollectionShareCard extends StatelessWidget {
         Center(
           child: Text(
             'Đã mở khóa $discoveredCount/$totalCount đồ vật',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.85),
+            style: const TextStyle(
+              color: WonderColors.textSoft,
               fontSize: 15,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
         const SizedBox(height: 12),
         _ProgressBar(value: value),
         const SizedBox(height: 20),
-        const _Divider(),
+        _Divider(color: inkFaint),
         const SizedBox(height: 16),
         if (earnedMaterials.isNotEmpty) ...<Widget>[
           const _Label(
             icon: PhosphorIconsFill.medal,
             text: 'HUY HIỆU CHẤT LIỆU',
+            color: WonderColors.sunnyDeep,
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -248,31 +253,224 @@ class CollectionShareCard extends StatelessWidget {
                 _Pill(
                   icon: PhosphorIconsFill.medal,
                   text: m,
-                  color: WonderColors.sunny,
+                  color: WonderColors.sunnyDeep,
+                  textColor: WonderColors.textStrong,
                 ),
             ],
           ),
           const SizedBox(height: 18),
         ],
-        const _Label(icon: PhosphorIconsBold.grid, text: 'ĐỒ VẬT ĐÃ MỞ KHÓA'),
+        const _Label(
+          icon: PhosphorIconsBold.grid,
+          text: 'ĐỒ VẬT ĐÃ MỞ KHÓA',
+          color: WonderColors.sunnyDeep,
+        ),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: <Widget>[
-            for (final e in discoveredEmojis)
-              _MiniTile(child: Text(e, style: const TextStyle(fontSize: 26))),
+            for (var i = 0; i < discoveredEmojis.length; i++)
+              _KraftMiniTile(
+                index: i,
+                child: Text(
+                  discoveredEmojis[i],
+                  style: const TextStyle(fontSize: 26),
+                ),
+              ),
             for (var i = 0; i < lockedCount; i++)
-              _MiniTile(
+              _KraftMiniTile(
+                index: discoveredEmojis.length + i,
+                locked: true,
                 child: PhosphorIcon(
                   PhosphorIconsBold.lockSimple,
                   size: 22,
-                  color: Colors.white.withValues(alpha: 0.4),
+                  color: WonderColors.textSoft.withValues(alpha: 0.7),
                 ),
               ),
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Khung thẻ khoe tông GIẤY ẤM: kraft texture nhuộm be sáng (thiếu asset →
+/// màu đặc), chữ mực tối. Cũng render để chụp PNG nên chỉ dùng ảnh + màu đặc,
+/// không glass/backdrop.
+class _KraftCardShell extends StatelessWidget {
+  final List<Widget> children;
+  const _KraftCardShell({required this.children});
+
+  static const Color _paperTint = Color(0xFFF3E9D2);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: kShareCardWidth,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.28),
+            blurRadius: 30,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(32),
+        child: Stack(
+          children: <Widget>[
+            // Texture phủ 55% trên màu giấy đặc: thẻ khoe to + sáng hơn thẻ
+            // cụm Hồ sơ nhiều nên đốm kraft nguyên cường độ trông như vết bẩn.
+            Positioned.fill(
+              child: ColoredBox(
+                color: _paperTint,
+                child: Opacity(
+                  opacity: 0.55,
+                  child: Image.asset(
+                    'assets/images/kraft_paper.png',
+                    fit: BoxFit.cover,
+                    color: _paperTint,
+                    colorBlendMode: BlendMode.multiply,
+                    errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(22),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const _KraftBrand(),
+                  const SizedBox(height: 18),
+                  ...children,
+                  const SizedBox(height: 22),
+                  const _KraftTagline(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Thương hiệu trên nền giấy: logo khẩu độ pastel (tĩnh) + tên mực tối.
+class _KraftBrand extends StatelessWidget {
+  const _KraftBrand();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        const WonderLogo(size: 36, spin: false),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Text(
+                'WonderLens',
+                style: TextStyle(
+                  color: WonderColors.textStrong,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              Text(
+                'Khoa học vui cho bé tò mò',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: WonderColors.textSoft.withValues(alpha: 0.9),
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _KraftTagline extends StatelessWidget {
+  const _KraftTagline();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text(
+        'Soi đồ vật • Mở manh mối • Gom huy hiệu',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: WonderColors.textSoft,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+/// Ô vật trong lưới "đã sưu tầm" bản giấy ấm: thẻ giấy mini nhuộm màu theo
+/// bảng cụm thẻ Hồ sơ, nghiêng theo bộ góc chung [WonderTilt] → vọng lại kệ
+/// trưng bày. Khoá = ô mực mờ + ổ khoá (vẫn nghiêng cho đều nhịp).
+class _KraftMiniTile extends StatelessWidget {
+  final int index;
+  final bool locked;
+  final Widget child;
+
+  const _KraftMiniTile({
+    required this.index,
+    required this.child,
+    this.locked = false,
+  });
+
+  /// Màu giấy cụm thẻ Hồ sơ (tan · cam · mật · đỏ · be).
+  static const List<Color> _tints = <Color>[
+    Color(0xFFCFC3AE),
+    Color(0xFFD98A45),
+    Color(0xFFE0AE5B),
+    Color(0xFFD8503A),
+    Color(0xFFDCC9A8),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: WonderTilt.at(index),
+      child: Container(
+        width: 44,
+        height: 44,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: locked
+              ? WonderColors.textStrong.withValues(alpha: 0.06)
+              : _tints[index % _tints.length],
+          borderRadius: BorderRadius.circular(12),
+          border: locked
+              ? Border.all(
+                  color: WonderColors.textStrong.withValues(alpha: 0.12),
+                )
+              : null,
+          boxShadow: locked
+              ? null
+              : <BoxShadow>[
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+        ),
+        child: child,
+      ),
     );
   }
 }
@@ -395,18 +593,26 @@ class _Tagline extends StatelessWidget {
 class _Label extends StatelessWidget {
   final IconData icon;
   final String text;
-  const _Label({required this.icon, required this.text});
+
+  /// Màu chữ+icon: mint trên khung tối, sunnyDeep trên khung giấy ấm.
+  final Color color;
+
+  const _Label({
+    required this.icon,
+    required this.text,
+    this.color = WonderColors.mint,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        PhosphorIcon(icon, size: 16, color: WonderColors.mint),
+        PhosphorIcon(icon, size: 16, color: color),
         const SizedBox(width: 7),
         Text(
           text,
-          style: const TextStyle(
-            color: WonderColors.mint,
+          style: TextStyle(
+            color: color,
             fontSize: 12,
             fontWeight: FontWeight.w900,
             letterSpacing: 0.8,
@@ -418,11 +624,16 @@ class _Label extends StatelessWidget {
 }
 
 class _Divider extends StatelessWidget {
-  const _Divider();
+  /// Trắng mờ trên khung tối, mực mờ trên khung giấy ấm.
+  final Color? color;
+  const _Divider({this.color});
 
   @override
   Widget build(BuildContext context) {
-    return Container(height: 1, color: Colors.white.withValues(alpha: 0.12));
+    return Container(
+      height: 1,
+      color: color ?? Colors.white.withValues(alpha: 0.12),
+    );
   }
 }
 
@@ -432,17 +643,18 @@ class _ProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Tông giấy ấm (chỉ CollectionShareCard dùng): rãnh mực mờ + mật ong.
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Container(
         height: 12,
-        color: Colors.white.withValues(alpha: 0.14),
+        color: WonderColors.textStrong.withValues(alpha: 0.10),
         child: Align(
           alignment: Alignment.centerLeft,
           child: FractionallySizedBox(
             widthFactor: value.clamp(0.0, 1.0),
             child: Container(
-              decoration: const BoxDecoration(gradient: WonderGradients.cta),
+              decoration: const BoxDecoration(gradient: WonderGradients.honey),
             ),
           ),
         ),
@@ -455,7 +667,16 @@ class _Pill extends StatelessWidget {
   final IconData icon;
   final String text;
   final Color color;
-  const _Pill({required this.icon, required this.text, required this.color});
+
+  /// Màu chữ: trắng trên khung tối, mực tối trên khung giấy ấm.
+  final Color textColor;
+
+  const _Pill({
+    required this.icon,
+    required this.text,
+    required this.color,
+    this.textColor = Colors.white,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -473,35 +694,14 @@ class _Pill extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             text,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: textColor,
               fontSize: 13,
               fontWeight: FontWeight.w700,
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-/// Ô vuông nhỏ bo góc bọc emoji/icon đồ vật trong lưới "đã sưu tầm".
-class _MiniTile extends StatelessWidget {
-  final Widget child;
-  const _MiniTile({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 44,
-      height: 44,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-      ),
-      child: child,
     );
   }
 }

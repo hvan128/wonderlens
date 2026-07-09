@@ -62,11 +62,16 @@ abstract final class PhosphorIconsBold {
   static const IconData magnifyingGlass = IconsaxPlusLinear.search_normal_1;
   static const IconData question = IconsaxPlusLinear.message_question;
   static const IconData shareNetwork = IconsaxPlusLinear.share;
+  static const IconData saveAdd = IconsaxPlusLinear.save_add;
   static const IconData stop = IconsaxPlusLinear.stop;
+  static const IconData trash = IconsaxPlusLinear.trash;
   static const IconData history = IconsaxPlusLinear.clock;
   static const IconData grid = IconsaxPlusLinear.grid_2;
   static const IconData journey = IconsaxPlusLinear.routing_2;
   static const IconData user = IconsaxPlusLinear.user;
+  // X trần (đóng/huỷ) — Iconsax chỉ có close_circle/square (có viền), dùng
+  // Material Icons.close cho nét X gọn không viền.
+  static const IconData x = Icons.close;
 }
 
 /// Tầng ĐẶC (fill) — trạng thái, kết quả, điểm nhấn.

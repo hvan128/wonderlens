@@ -348,10 +348,9 @@ class JourneyVideoState extends State<JourneyVideo> {
         // Hero luôn cho thử lại (init lại asset); vật lạ cần proxy để tạo.
         if (_hasAsset || _canGenerate) ...<Widget>[
           const SizedBox(height: 12),
-          WonderButton(
+          GlassButton(
             label: 'Thử lại',
             icon: PhosphorIconsBold.arrowClockwise,
-            gradient: WonderGradients.secondary,
             onTap: _retry,
           ),
         ],

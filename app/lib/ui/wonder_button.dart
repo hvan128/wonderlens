@@ -3,6 +3,7 @@ import 'phosphor_compat.dart';
 
 import '../theme/wonder_tokens.dart';
 import 'glass_surface.dart';
+import 'liquid_glass.dart';
 import 'pressable.dart';
 
 /// Nút hành động chính — "kẹo kính bóng": nền gradient thương hiệu rực (giữ
@@ -20,6 +21,10 @@ class WonderButton extends StatelessWidget {
   final Gradient gradient;
   final double height;
 
+  /// Màu quầng sáng dưới nút — đổi cùng [gradient] khi nút mang tông khác
+  /// (vd. mật ong trên màn tông giấy ấm) để glow không lệch màu nền nút.
+  final Color glowColor;
+
   const WonderButton({
     super.key,
     required this.label,
@@ -29,6 +34,7 @@ class WonderButton extends StatelessWidget {
     this.expand = true,
     this.gradient = WonderGradients.cta,
     this.height = 56,
+    this.glowColor = WonderColors.teal,
   });
 
   @override
@@ -51,7 +57,7 @@ class WonderButton extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: gradient,
             borderRadius: br,
-            boxShadow: WonderShadows.glow(WonderColors.teal, opacity: 0.45),
+            boxShadow: WonderShadows.glow(glowColor, opacity: 0.45),
           ),
           // Lớp kính bóng: gloss trắng đậm ôm nửa trên (đỉnh sáng, giữa tắt),
           // rồi một vệt sáng mỏng vén lên ở đáy → mặt kính cong bắt sáng hai
@@ -110,6 +116,75 @@ class WonderButton extends StatelessWidget {
                 ],
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Nút nền **Liquid Glass native của iOS 26** (`UIGlassEffect` qua PlatformView,
+/// dùng chung [LiquidGlass]) — kính thật của hệ điều hành thay nền gradient đặc.
+/// Chữ + icon là widget Flutter phủ lên trên (glass native `isUserInteractionEnabled
+/// = false` nên [Pressable] nhận chạm). Vì kính TRONG SUỐT, [foreground] phải hợp
+/// nền phía sau: nền sáng → `textStrong`, nền tối → trắng. iOS cũ / Android rớt về
+/// frosted blur trong [LiquidGlass]. Không dùng đè camera preview (mỗi PlatformView
+/// là một surface native — nặng khi chồng lên camera; giữ [WonderButton] ở đó).
+class GlassButton extends StatelessWidget {
+  final String label;
+  final VoidCallback? onTap;
+  final IconData? icon;
+  final IconData? trailingIcon;
+  final bool expand;
+  final double height;
+  final Color foreground;
+
+  const GlassButton({
+    super.key,
+    required this.label,
+    this.onTap,
+    this.icon,
+    this.trailingIcon,
+    this.expand = true,
+    this.height = 56,
+    this.foreground = WonderColors.textStrong,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LiquidGlass(
+      radius: WonderTokens.radiusMd,
+      child: Pressable(
+        onTap: onTap,
+        semanticLabel: label,
+        // Container định cỡ (cao cố định + rộng theo expand) & canh giữa nội dung
+        // → Stack trong LiquidGlass lấy đúng kích thước này, kính native phủ full.
+        child: Container(
+          height: height,
+          width: expand ? double.infinity : null,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: WonderTokens.space24),
+          child: Row(
+            mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              if (icon != null) ...<Widget>[
+                PhosphorIcon(icon!, size: 20, color: foreground),
+                const SizedBox(width: WonderTokens.space8),
+              ],
+              Flexible(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: WonderType.button.copyWith(color: foreground),
+                ),
+              ),
+              if (trailingIcon != null) ...<Widget>[
+                const SizedBox(width: WonderTokens.space8),
+                PhosphorIcon(trailingIcon!, size: 20, color: foreground),
+              ],
+            ],
           ),
         ),
       ),

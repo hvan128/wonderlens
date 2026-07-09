@@ -128,14 +128,15 @@ class _SharePreviewState extends State<_SharePreview> {
               ),
             ),
             const SizedBox(height: 20),
-            // Nút của design system thay FilledButton/Icons Material trần —
-            // cùng chất liệu với mọi CTA khác trong app.
+            // CTA mật ong — cùng tông ấm với thẻ khoe/màn Hồ sơ, nổi rõ trên
+            // scrim tối (thay kính trong suốt cũ chìm vào nền).
             SizedBox(
               width: buttonWidth,
               child: WonderButton(
                 label: _sharing ? 'Đang chuẩn bị…' : 'Khoe ngay',
                 icon: _sharing ? null : PhosphorIconsBold.shareNetwork,
-                gradient: WonderGradients.secondary,
+                gradient: WonderGradients.honey,
+                glowColor: WonderColors.sunny,
                 onTap: _sharing ? null : _share,
               ),
             ),

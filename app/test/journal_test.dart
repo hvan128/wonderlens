@@ -9,18 +9,18 @@ import 'package:wonderlens/data/collection_repository.dart';
 import 'package:wonderlens/models/object_content.dart';
 
 ObjectContent _live(String id, String name) => ObjectContent(
-      id: id,
-      name: name,
-      emoji: '🥄',
-      materialBadge: 'Gỗ',
-      stages: const [
-        Stage(title: 'Từ cây gỗ', kidText: 'Người ta cưa gỗ thành khúc nhỏ.'),
-        Stage(title: 'Mài nhẵn', kidText: 'Chiếc thìa được mài thật nhẵn.'),
-      ],
-      source: 'live',
-      history: 'Thìa gỗ có từ rất lâu rồi.',
-      story: 'Ngày xưa, có một khúc gỗ nhỏ...',
-    );
+  id: id,
+  name: name,
+  emoji: '🥄',
+  materialBadge: 'Gỗ',
+  stages: const [
+    Stage(title: 'Từ cây gỗ', kidText: 'Người ta cưa gỗ thành khúc nhỏ.'),
+    Stage(title: 'Mài nhẵn', kidText: 'Chiếc thìa được mài thật nhẵn.'),
+  ],
+  source: 'live',
+  history: 'Thìa gỗ có từ rất lâu rồi.',
+  story: 'Ngày xưa, có một khúc gỗ nhỏ...',
+);
 
 void main() {
   late Directory tmp;
@@ -97,6 +97,39 @@ void main() {
     // Khám phá lại: không nhân đôi.
     expect(repo.record(hero).isNewObject, isFalse);
     expect(repo.discoveredIds(), ['paper_cup']);
+  });
+
+  test('containsObject và remove xoá hero khỏi discovered', () {
+    const hero = ObjectContent(
+      id: 'paper_cup',
+      name: 'Cốc giấy',
+      emoji: '🥤',
+      materialBadge: 'Giấy',
+      stages: [],
+    );
+
+    repo.record(hero);
+    expect(repo.containsObject('paper_cup'), isTrue);
+    expect(repo.remove('paper_cup'), isTrue);
+    expect(repo.containsObject('paper_cup'), isFalse);
+    expect(repo.discoveredIds(), isEmpty);
+    expect(repo.badges(), isEmpty);
+
+    expect(repo.remove('paper_cup'), isFalse);
+  });
+
+  test('remove xoá vật AI-live khỏi journal và giữ mục hỏng', () {
+    repo.record(_live('wooden_spoon', 'Thìa gỗ'));
+    box.put('journal', <String>[
+      '{không phải json',
+      ...(box.get('journal') as List).cast<String>(),
+    ]);
+
+    expect(repo.containsObject('wooden_spoon'), isTrue);
+    expect(repo.remove('wooden_spoon'), isTrue);
+    expect(repo.containsObject('wooden_spoon'), isFalse);
+    expect(repo.journalEntries(), isEmpty);
+    expect((box.get('journal') as List), hasLength(1));
   });
 
   test('mục nhật ký hỏng bị bỏ qua khi đọc, không crash, không bị xoá', () {

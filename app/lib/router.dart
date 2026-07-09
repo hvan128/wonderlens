@@ -66,7 +66,8 @@ final appRouter = GoRouter(
             color: group.color,
             onClose: () => context.pop(),
             onCapture: () {
-              CameraWarmup.instance.prewarm();
+              // Hâm nóng khi đã cấp quyền; chưa cấp thì màn camera xin (in-context).
+              CameraWarmup.instance.prewarmIfGranted();
               context.push('/camera');
             },
             onOpenEntry: (e) => context.push('/timeline', extra: e.toContent()),

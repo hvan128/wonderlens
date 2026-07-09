@@ -26,11 +26,14 @@ Future<T?> showGlassSheet<T>({
     barrierLabel: 'Đóng',
     barrierColor: Colors.black.withValues(alpha: 0.35),
     transitionDuration: WonderTokens.durFast,
-    pageBuilder: (context, _, _) => GlassSheet(
-      title: title,
-      tone: tone,
-      dismissible: dismissible,
-      child: Builder(builder: builder),
+    pageBuilder: (context, _, _) => Material(
+      type: MaterialType.transparency,
+      child: GlassSheet(
+        title: title,
+        tone: tone,
+        dismissible: dismissible,
+        child: Builder(builder: builder),
+      ),
     ),
     transitionBuilder: (context, anim, _, child) =>
         FadeTransition(opacity: anim, child: child),
@@ -159,7 +162,8 @@ class _GlassSheetState extends State<GlassSheet>
     _dragRaw = null;
     if (_closing) return;
     final v = d.velocity.pixelsPerSecond.dy / _bodyHeight; // fraction/giây
-    final shouldClose = widget.dismissible &&
+    final shouldClose =
+        widget.dismissible &&
         (v > _dismissVelocity ||
             (_fraction > _dismissFraction && v > -_dismissVelocity));
     if (shouldClose) {

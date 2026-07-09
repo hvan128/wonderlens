@@ -22,6 +22,16 @@ class CaptureStore {
   /// Tăng mỗi lần có ảnh mới được lưu → UI lắng nghe để cập nhật ngay.
   static final ValueNotifier<int> revision = ValueNotifier<int>(0);
 
+  /// Cho test: gán thẳng thư mục captures + danh sách id có ảnh (không cần
+  /// path_provider) — để widget test render sticker cutout THẬT từ PNG giả.
+  @visibleForTesting
+  static void debugSetStore(Directory? dir, Iterable<String> ids) {
+    _dir = dir;
+    _ids
+      ..clear()
+      ..addAll(ids);
+  }
+
   /// Gọi 1 lần lúc khởi động app.
   static Future<void> init() async {
     try {
@@ -67,6 +77,24 @@ class CaptureStore {
       revision.value++;
     } catch (e) {
       debugPrint('CaptureStore save error: $e');
+    }
+  }
+
+  /// Xoá ảnh cutout local của một vật khi bé xoá vật khỏi rương.
+  Future<void> delete(String objectId) async {
+    final dir = _dir;
+    if (dir == null) return;
+    final id = _safeId(objectId);
+    if (id.isEmpty) return;
+    try {
+      final file = File('${dir.path}/$id.png');
+      if (await file.exists()) {
+        await FileImage(file).evict();
+        await file.delete();
+      }
+      if (_ids.remove(id)) revision.value++;
+    } catch (e) {
+      debugPrint('CaptureStore delete error: $e');
     }
   }
 

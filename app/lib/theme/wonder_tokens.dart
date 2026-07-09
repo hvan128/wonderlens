@@ -69,6 +69,14 @@ abstract final class WonderGradients {
     colors: <Color>[WonderColors.grape, WonderColors.indigo],
   );
 
+  /// Điểm nhấn ẤM — mật ong, thuộc thế giới thẻ giấy thô (Hồ sơ, thẻ khoe
+  /// thành tích): CTA/huy hiệu trên các màn tông giấy dùng cái này thay teal.
+  static const LinearGradient honey = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: <Color>[WonderColors.sunny, WonderColors.sunnyDeep],
+  );
+
   /// Nền màn nội dung (sáng, dịu mắt cho trẻ đọc).
   static const LinearGradient canvas = LinearGradient(
     begin: Alignment.topCenter,
@@ -122,6 +130,28 @@ abstract final class WonderTokens {
   static const Curve curveStandard = Curves.easeOutCubic;
   static const Curve curveEmphasized = Curves.easeOutBack;
   static const Curve curveSpring = Curves.elasticOut;
+}
+
+/// Góc nghiêng thẻ/sticker dùng CHUNG toàn app — đo bằng máy (min-area box
+/// từng thẻ) trên ảnh mẫu cụm 5 thẻ (3 trên trái→phải, rồi 2 dưới):
+/// −10° / +9.5° / −4.9° / +10° / −10°. Điểm ăn tiền: các thẻ nghiêng ĐAN XEN
+/// chéo nhau (giữa nghiêng phải mạnh, thẻ phải lại nghiêng trái, dưới-trái
+/// nghiêng phải…) chứ KHÔNG theo quy tắc "trái nghiêng trái, phải nghiêng
+/// phải" — chính sự chéo này tạo cảm giác đặt tay tự nhiên. Mọi chỗ nghiêng
+/// thẻ (kệ Hồ sơ, lưới sticker, thumbnail thẻ ngày) lấy góc từ đây.
+abstract final class WonderTilt {
+  /// Bộ góc theo thứ tự slot ảnh mẫu (radian).
+  static const List<double> angles = <double>[
+    -0.175,
+    0.165,
+    -0.085,
+    0.175,
+    -0.175,
+  ];
+
+  /// Góc cho phần tử thứ [index] — xoay vòng qua bộ góc mẫu (tất định theo
+  /// index nên hai đầu Hero cùng index luôn khớp góc).
+  static double at(int index) => angles[index % angles.length];
 }
 
 /// Thang chữ dùng chung — KHÔNG set fontFamily để kế thừa font hệ thống mỗi

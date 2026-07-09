@@ -130,6 +130,10 @@ Hai key trong cùng box:
 }
 ```
 
+`discovered_at` là **giờ Việt Nam (UTC+7)**, ghi bằng `vnNow()` — độc lập múi
+giờ thiết bị nên ngày nhật ký luôn đúng ngày VN dù máy đặt sai múi giờ. Định
+dạng ISO **không có hậu tố 'Z'** (giờ tường, không quy đổi khi đọc lại).
+
 `content` là `ObjectContent` JSON đầy đủ (schema như response `/api/generate`)
 để mở lại timeline **offline, không gọi lại proxy**. Ảnh chặng đã cache theo
 `content.id` nên mở lại cũng không tốn phí sinh ảnh. Vật journal không mở

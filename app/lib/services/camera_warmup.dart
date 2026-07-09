@@ -24,9 +24,26 @@ class CameraWarmup {
 
   /// Bắt đầu (hoặc dùng lại) tiến trình nạp camera. Idempotent: đang nạp thì
   /// chờ chung một future; đã sẵn sàng thì trả về ngay.
+  ///
+  /// ⚠️ Có thể BẬT HỘP THOẠI XIN QUYỀN gốc của iOS (lần đầu chưa cấp). Vì thế
+  /// chỉ gọi trong màn camera — nơi dialog xuất hiện đúng ngữ cảnh (App Store
+  /// 5.1.1(iv)). Trang chủ/rương dùng [prewarmIfGranted] để KHÔNG bật dialog
+  /// lạc chỗ.
   Future<void> prewarm() {
     if (isReady) return Future<void>.value();
     return _pending ??= _init();
+  }
+
+  /// Nạp camera NGẦM — chỉ khi quyền đã được cấp; KHÔNG bao giờ bật hộp thoại
+  /// xin quyền. Dùng cho nút chụp ở trang chủ/rương để hâm nóng ống kính trong
+  /// lúc chuyển màn (người đã cấp quyền → tới màn camera là preview sẵn), còn
+  /// người CHƯA cấp thì im lặng no-op — việc xin quyền để màn camera lo, đúng
+  /// ngữ cảnh. [Permission.camera.status] chỉ đọc trạng thái, không hiện UI.
+  Future<void> prewarmIfGranted() async {
+    if (isReady) return;
+    if (await Permission.camera.isGranted) {
+      await prewarm();
+    }
   }
 
   Future<void> _init() async {

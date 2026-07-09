@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show debugPrint, visibleForTesting;
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../models/object_content.dart';
+import '../util/vn_time.dart';
 import 'hero_catalog.dart';
 
 /// Kết quả khi ghi nhận một lần khám phá.
@@ -81,6 +82,10 @@ class CollectionRepository {
   List<String> discoveredIds() =>
       ((_box?.get(_key) as List?)?.cast<String>()) ?? const [];
 
+  /// Vật đang nằm trong rương hay nhật ký khám phá.
+  bool containsObject(String id) =>
+      discoveredIds().contains(id) || journalEntries().any((e) => e.id == id);
+
   /// Các nhóm vật liệu (huy hiệu) đã mở.
   Set<String> badges() {
     final mats = <String>{};
@@ -113,6 +118,40 @@ class CollectionRepository {
     return DiscoveryResult(isNewObject: isNew, newBadge: newBadge);
   }
 
+  /// Xoá một vật khỏi rương/journal local. Ảnh cutout do [CaptureStore] quản lý
+  /// được xoá ở tầng UI để repository không phụ thuộc chéo Domain 1.
+  bool remove(String id) {
+    final box = _box;
+    if (box == null) return false;
+
+    var changed = false;
+    final discovered = discoveredIds();
+    if (discovered.contains(id)) {
+      box.put(_key, [
+        for (final x in discovered)
+          if (x != id) x,
+      ]);
+      changed = true;
+    }
+
+    final raw = _journalRaw(box);
+    final next = <String>[];
+    for (final s in raw) {
+      var remove = false;
+      try {
+        remove = JournalEntry.fromJsonString(s).id == id;
+      } catch (_) {
+        // Giữ lại mục hỏng như journalEntries(): đọc bỏ qua nhưng không tự xoá.
+      }
+      if (!remove) next.add(s);
+    }
+    if (next.length != raw.length) {
+      box.put(_journalKey, next);
+      changed = true;
+    }
+    return changed;
+  }
+
   DiscoveryResult _recordJournal(Box box, ObjectContent content) {
     final id = content.id.trim();
     if (id.isEmpty || id == 'unknown') {
@@ -127,7 +166,7 @@ class CollectionRepository {
       id: id,
       name: content.name,
       emoji: content.emoji,
-      discoveredAt: DateTime.now(),
+      discoveredAt: vnNow(),
       content: content.toJson(),
     );
     // Mới nhất đứng đầu; giữ nguyên các chuỗi cũ (kể cả mục parse hỏng).
