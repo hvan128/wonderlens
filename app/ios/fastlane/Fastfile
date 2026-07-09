@@ -278,4 +278,54 @@ platform :ios do
       force: true
     )
   end
+
+  desc "Nộp lại bản sửa: chờ build xử lý → hủy submission cũ → chọn build → gửi duyệt"
+  # Dùng sau khi upload binary qua lane :beta. RESUBMIT_BUILD = số build (mặc
+  # định build mới nhất đã xử lý). Xử lý luôn version đang REJECTED/
+  # UNRESOLVED_ISSUES: hủy submission cũ để giải phóng version rồi gửi qua luồng
+  # Review Submission mới (API cũ appStoreVersionSubmissions đã bị Apple ngưng).
+  lane :resubmit do
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV["ASC_KEY_ID"], issuer_id: ENV["ASC_ISSUER_ID"],
+      filepath: File.expand_path(ENV["ASC_KEY_FILEPATH"])
+    )
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.wonderlens.wonderlens")
+    want = ENV["RESUBMIT_BUILD"]
+
+    # 1) Tìm build đích, chờ Apple xử lý xong (processing_state = VALID).
+    build = nil
+    40.times do
+      builds = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 10)
+      build = want ? builds.find { |b| b.version == want } : builds.first
+      break if build && build.processing_state == "VALID"
+      UI.message("chờ build #{want || 'mới nhất'} xử lý (#{build&.processing_state || 'chưa thấy'})")
+      sleep(45)
+    end
+    UI.user_error!("build chưa xử lý xong") unless build && build.processing_state == "VALID"
+    UI.success("dùng build #{build.version} (#{build.id})")
+
+    # 2) Hủy mọi submission còn hoạt động để giải phóng version.
+    Spaceship::ConnectAPI.get_review_submissions(app_id: app.id).to_models.each do |s|
+      next if %w[COMPLETE CANCELING].include?(s.state)
+      UI.message("hủy submission #{s.id} (#{s.state})")
+      s.cancel_submission rescue UI.error("hủy #{s.id}: #{$!.message}")
+    end
+
+    # 3) Chọn build cho version + verify.
+    v = app.get_edit_app_store_version
+    v.select_build(build_id: build.id)
+    sleep(6)
+    v = app.get_edit_app_store_version
+    b = (v.build rescue nil)
+    UI.user_error!("build chưa đổi (đang #{b&.version || 'NONE'})") unless b&.version == build.version
+    UI.success("version dùng build #{b.version}")
+
+    # 4) Submission (sẵn có hoặc mới) + thêm version + gửi duyệt.
+    sub = app.get_ready_review_submission(platform: Spaceship::ConnectAPI::Platform::IOS) ||
+      app.create_review_submission(platform: Spaceship::ConnectAPI::Platform::IOS)
+    sub.add_app_store_version_to_review_items(app_store_version_id: v.id) rescue UI.important("thêm version: #{$!.message}")
+    sub.submit_for_review
+    UI.success("Đã gửi duyệt lại build #{build.version} ✓ (#{sub.id})")
+  end
 end
