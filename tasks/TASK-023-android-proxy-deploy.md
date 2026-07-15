@@ -1,7 +1,7 @@
 # TASK-023 — Android development proxy
 
 **Owner:** Hiệp
-**Status:** Ready for review — dev deployment live
+**Status:** Done — dev deployment live
 
 ## Goal
 
@@ -39,6 +39,8 @@ OpenAI hoạt động end-to-end mà không lộ OpenAI API key trong app hoặc
 - OpenAI thật: `/api/recognize` trả `ball_pen`, confidence `0.95`, source
   `openai`; `/api/generate` trả `Bút bi`, 4 chặng, source `live`.
 - Vercel error log và `5xx` log trong 30 phút: không có record.
+- PR [#7](https://github.com/hvan128/wonderlens/pull/7) được review
+  `APPROVED` và merge vào `main` tại commit `2c440f55`.
 - AAB: `96,752,059` bytes, SHA-256
   `38cf49cb49f3f2080724498d08860969eaa95e18524740d6fb67a72967345896`.
   Artifact có URL mới; không có `OPENAI_API_KEY`, `sk-*`, hoặc fallback token.
@@ -59,4 +61,4 @@ OpenAI hoạt động end-to-end mà không lộ OpenAI API key trong app hoặc
 - [x] Proxy production mới deploy thành công.
 - [x] Android artifact build thành công với proxy mới.
 - [x] Verification evidence được ghi lại.
-- [ ] PR review và merge vào `main`.
+- [x] PR review và merge vào `main`.

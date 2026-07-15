@@ -232,15 +232,15 @@ git commit -m "TASK-023: ghi nhận triển khai proxy Android"
 - Consumes: verified feature branch.
 - Produces: reviewed `main` containing Android production URL.
 
-- [ ] **Step 1: Push branch and create PR into `main`**
+- [x] **Step 1: Push branch and create PR into `main`**
 
 Expected: PR includes TASK-023 code, tests, task, and plan only; no secret files.
 
-- [ ] **Step 2: Review diff and checks**
+- [x] **Step 2: Review diff and checks**
 
 Expected: no secret patterns, no iOS URL change, all local gates green.
 
-- [ ] **Step 3: Merge PR after review**
+- [x] **Step 3: Merge PR after review**
 
 Expected: `origin/main` contains TASK-023 commits and production proxy remains
 healthy after merge.
