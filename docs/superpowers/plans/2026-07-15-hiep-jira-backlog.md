@@ -10,7 +10,9 @@ only changes safe and feasible with the repository's current architecture.
 **Architecture:** Documentation is split by decision domain and connected by a
 single traceability index. Existing specs, ADRs, app assets, privacy pages, and
 store reports remain sources of truth. No runtime dependency, PII collection,
-external account, or app behavior is added.
+external account, schema, or API is added. The only app behavior extension is
+an additive AI-assisted disclosure for live results; curated behavior stays
+unchanged.
 
 **Tech:** Markdown, Mermaid, existing Flutter/Vercel repository, shell-based
 path/link checks, Flutter test/analyze/build.
@@ -199,6 +201,38 @@ and require a human maker to personalize/post the first comment.
 
 Validate copy lengths, paths, and that gallery items are available in Git.
 
+## Task 6.5: Close feasible KAN-32 asset/disclosure gaps
+
+**Files:**
+
+- Modify: `app/lib/screens/camera_screen.dart`
+- Modify: `app/lib/screens/discovery_reveal_screen.dart`
+- Modify: `app/lib/ui/capture_dissolve.dart`
+- Modify: `app/tool/pregen_store_screenshots.dart`
+- Create: `app/test/capture_dissolve_ai_label_test.dart`
+- Create: `app/test/discovery_reveal_ai_label_test.dart`
+- Create/update: store and Fastlane screenshot PNGs
+
+**Step 1: Add failing disclosure tests**
+
+Prove AI-live results need an `AI hỗ trợ` label in capture dissolve and result
+route, while curated content must not show it.
+
+**Step 2: Add the minimal source-driven label**
+
+Pass `content.source == 'live'` into the existing UI and render the existing
+`WonderChip`; do not infer AI from object ID or label curated content.
+
+**Step 3: Extend the existing screenshot generator**
+
+Render real paper-cup result and timeline widgets, disable external narration,
+write all six 1290×2796 images, and mirror the exact bytes into Fastlane.
+
+**Step 4: Verify**
+
+Run the focused disclosure tests and screenshot generator before the full app
+suite. Inspect result/timeline images visually.
+
 ## Task 7: Repository verification and handoff status
 
 **Files:**
@@ -232,6 +266,6 @@ legal sign-off, external publishing, live waitlist, and Product Hunt timing open
 
 **Step 4: Commit scoped changes**
 
-Stage only TASK-017 and new docs. Exclude the user's existing
-`docs/workflow.md` change. Use scoped `TASK-017:` commits and do not push.
-
+Stage only TASK-017 docs plus the scoped AI-label tests/code and generated store
+assets. Exclude the user's existing `docs/workflow.md` change. Use scoped
+`TASK-017:` commits and do not push.

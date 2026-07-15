@@ -48,7 +48,7 @@ nhau. Một branch batch với bảng traceability giúp PM review nhất quán 
 | KAN-4, KAN-5 | `docs/product/sprint-scope.md` | Hoàn tất bản PM review |
 | KAN-6 | `docs/product/beta-success-metrics.md` | Hoàn tất metric + checklist |
 | KAN-31 | `docs/release/privacy-age-rating.md` | Recommendation + legal gate |
-| KAN-32 | `docs/release/store-metadata.md` | Copy + asset manifest + QA |
+| KAN-32 | `docs/release/store-metadata.md`, AI label, store screenshots | Copy + asset manifest + QA + repo assets |
 | KAN-34 | `docs/handoff/product-flows.md` | JTBD/user/release Mermaid |
 | KAN-35 | `docs/handoff/product-technical-overview.md` | Product + architecture handoff |
 | KAN-36 | `docs/growth/viral-loop-strategy.md` | 3 loop + funnel/metrics |
@@ -98,6 +98,9 @@ flowchart LR
 ### Làm trong branch này
 
 - Tất cả Markdown kể trên.
+- Hai bổ sung KAN-32 không đổi kiến trúc: gắn nhãn `AI hỗ trợ` cho result
+  `source == live`, và mở rộng tool hiện có để sinh/mirror result + timeline
+  screenshot từ widget production.
 - Kiểm tra link nội bộ, asset path, Mermaid fence và giới hạn copy.
 - Chạy test/analyze/build để tài liệu handoff phản ánh đúng HEAD.
 
@@ -123,3 +126,10 @@ Người dùng đã cho phép tự động duyệt phương án recommend. Chọ
 tiếp tục mà không dừng ở cổng phê duyệt thiết kế. Các external/legal gates vẫn
 được giữ vì không thể suy ra thẩm quyền từ quyền tự chọn phương án kỹ thuật.
 
+## Scope extension sau repo audit
+
+Audit KAN-32 xác nhận repo đã có generator screenshot nhưng thiếu hai màn kể
+core flow, đồng thời result AI-live chưa có disclosure trực quan. Hai gap này có
+thể sửa và test hoàn toàn trong kiến trúc hiện tại, nên được thêm vào branch sau
+design ban đầu. Extension không thêm dependency, schema, API, PII collection hay
+external state; curated content không hiện nhãn AI.

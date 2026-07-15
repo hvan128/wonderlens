@@ -1,7 +1,5 @@
 // TimelineScreen kiểu CapWords: mỗi chặng full màn, giọng đọc xong tự đẩy chặng
 // tiếp. Test tiêm NarrationService giả để pump nhanh & tất định (không cần TTS).
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

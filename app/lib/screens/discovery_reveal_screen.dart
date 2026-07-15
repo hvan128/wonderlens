@@ -78,17 +78,34 @@ class _DiscoveryRevealScreenState extends State<DiscoveryRevealScreen> {
                                 duration: 560.ms,
                                 curve: Curves.easeOutBack,
                               )
-                              .slideY(begin: 0.12, end: 0, curve: Curves.easeOutCubic),
+                              .slideY(
+                                begin: 0.12,
+                                end: 0,
+                                curve: Curves.easeOutCubic,
+                              ),
                           const SizedBox(height: 22),
                           _NameLabel(name: c.name, onSpeak: _speakName)
                               .animate(delay: 240.ms)
                               .fadeIn()
-                              .slideY(begin: 0.4, end: 0, curve: WonderTokens.curveStandard),
+                              .slideY(
+                                begin: 0.4,
+                                end: 0,
+                                curve: WonderTokens.curveStandard,
+                              ),
                           if (c.materialBadge.isNotEmpty) ...<Widget>[
                             const SizedBox(height: 12),
-                            _MaterialPill(text: c.materialBadge)
-                                .animate(delay: 360.ms)
-                                .fadeIn(),
+                            _MaterialPill(
+                              text: c.materialBadge,
+                            ).animate(delay: 360.ms).fadeIn(),
+                          ],
+                          if (c.source == 'live') ...<Widget>[
+                            const SizedBox(height: 10),
+                            const WonderChip(
+                              label: 'AI hỗ trợ',
+                              icon: PhosphorIconsFill.sparkle,
+                              color: WonderColors.grape,
+                              tone: GlassTone.light,
+                            ).animate(delay: 400.ms).fadeIn(),
                           ],
                         ],
                       ),
@@ -105,7 +122,9 @@ class _DiscoveryRevealScreenState extends State<DiscoveryRevealScreen> {
                   onPressed: _back,
                   child: Text(
                     'Không phải vật này? Chạm để chọn lại',
-                    style: WonderType.label.copyWith(color: WonderColors.textSoft),
+                    style: WonderType.label.copyWith(
+                      color: WonderColors.textSoft,
+                    ),
                   ),
                 ).animate(delay: 460.ms).fadeIn(),
                 const SizedBox(height: 12),
@@ -129,10 +148,7 @@ class _TopBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 16, 0),
       child: Row(
         children: <Widget>[
-          WonderBackButton(
-            onTap: onClose,
-            semanticLabel: 'Quay lại ống kính',
-          ),
+          WonderBackButton(onTap: onClose, semanticLabel: 'Quay lại ống kính'),
           const Spacer(),
           Text(
             'Bé vừa tìm thấy',
@@ -346,7 +362,11 @@ class _MaterialPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          const PhosphorIcon(PhosphorIconsFill.flask, size: 15, color: WonderColors.tealDeep),
+          const PhosphorIcon(
+            PhosphorIconsFill.flask,
+            size: 15,
+            color: WonderColors.tealDeep,
+          ),
           const SizedBox(width: 6),
           Text(
             text,
@@ -471,17 +491,18 @@ class _DotGridPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // Glow ấm phía sau sticker (canh theo vùng giữa-trên).
     final glow = Paint()
-      ..shader = RadialGradient(
-        colors: <Color>[
-          WonderColors.sunny.withValues(alpha: 0.20),
-          WonderColors.sunny.withValues(alpha: 0),
-        ],
-      ).createShader(
-        Rect.fromCircle(
-          center: Offset(size.width / 2, size.height * 0.34),
-          radius: size.width * 0.6,
-        ),
-      );
+      ..shader =
+          RadialGradient(
+            colors: <Color>[
+              WonderColors.sunny.withValues(alpha: 0.20),
+              WonderColors.sunny.withValues(alpha: 0),
+            ],
+          ).createShader(
+            Rect.fromCircle(
+              center: Offset(size.width / 2, size.height * 0.34),
+              radius: size.width * 0.6,
+            ),
+          );
     canvas.drawRect(Offset.zero & size, glow);
 
     // Lưới chấm mờ.
