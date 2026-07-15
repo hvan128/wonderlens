@@ -1,6 +1,6 @@
 # TASK-023 — Android development proxy
 
-**Owner:** Hiệp  
+**Owner:** Hiệp
 **Status:** Ready for review — dev deployment live
 
 ## Goal

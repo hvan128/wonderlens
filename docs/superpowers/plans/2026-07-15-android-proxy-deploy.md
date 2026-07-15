@@ -51,7 +51,7 @@ void main() {
 
 - [x] **Step 2: Run test and confirm old URL fails**
 
-Run: `cd app && flutter test test/android_proxy_config_test.dart`  
+Run: `cd app && flutter test test/android_proxy_config_test.dart`
 Expected: FAIL because current value is `https://wonderlens-proxy.vercel.app`.
 
 - [x] **Step 3: Update Android production URL only**
@@ -62,10 +62,10 @@ Set `AppSettings.publicProxyUrl` and `app/scripts/build-appbundle.sh` to
 
 - [x] **Step 4: Verify focused test and shell references**
 
-Run: `cd app && flutter test test/android_proxy_config_test.dart`  
+Run: `cd app && flutter test test/android_proxy_config_test.dart`
 Expected: PASS.
 
-Run: `rg -n 'PROXY_BASE_URL=' app/scripts/build-appbundle.sh app/scripts/build-release.sh`  
+Run: `rg -n 'PROXY_BASE_URL=' app/scripts/build-appbundle.sh app/scripts/build-release.sh`
 Expected: Android uses new URL; iOS keeps old URL.
 
 - [x] **Step 5: Commit**
@@ -140,7 +140,7 @@ infisical run --env=prod --path=/wonderlens/android-proxy -- bash -ceu '
 
 - [x] **Step 5: Verify names/scopes only**
 
-Run: `vercel env ls production`  
+Run: `vercel env ls production`
 Expected: `APP_SHARED_SECRET` and `OPENAI_API_KEY` exist for Production.
 
 ### Task 3: Deploy and verify proxy end-to-end
@@ -181,8 +181,8 @@ JSON fields `object_id`, `confidence`, `display_name`, `source`.
 
 - [x] **Step 5: Inspect deployment and runtime logs**
 
-Run: `vercel inspect https://wonderlens-android-proxy.vercel.app`  
-Run: `vercel logs https://wonderlens-android-proxy.vercel.app --since 30m --level error`  
+Run: `vercel inspect https://wonderlens-android-proxy.vercel.app`
+Run: `vercel logs https://wonderlens-android-proxy.vercel.app --since 30m --level error`
 Expected: deployment READY; no unhandled runtime errors.
 
 ### Task 4: Build and inspect Android release artifact
@@ -208,9 +208,9 @@ key is absent, report artifact as test-only and do not upload it.
 
 - [x] **Step 3: Run full gates**
 
-Run: `cd app && flutter test`  
-Run: `cd app && flutter analyze`  
-Run: `cd proxy && npx tsc --noEmit`  
+Run: `cd app && flutter test`
+Run: `cd app && flutter analyze`
+Run: `cd proxy && npx tsc --noEmit`
 Expected: all pass.
 
 - [x] **Step 4: Commit deployment evidence**
