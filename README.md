@@ -38,6 +38,24 @@ cp .env.example .env            # điền OPENAI_API_KEY (KHÔNG commit .env)
 npm run dev                     # vercel dev → http://localhost:3000
 ```
 
+## Secret production với Infisical
+
+Production dùng Infisical project `shared-platform-secrets`, environment
+`prod`, path `/wonderlens/android-proxy`. Path này có hai key:
+`OPENAI_API_KEY` và `APP_SHARED_SECRET`. Không paste giá trị vào repo hoặc chat.
+
+Alias `wonderlens-android-proxy.vercel.app` hiện dùng tạm cho development. AAB
+không được upload Google Play khi thiếu `app/android/key.properties`.
+
+Build Android bằng secret injection, không cần tạo file `.env`:
+
+```bash
+infisical run --env=prod --path=/wonderlens/android-proxy \
+  --project-config-dir=. -- bash -ceu 'cd app && ./scripts/build-appbundle.sh'
+```
+
+Xem runbook deploy: [docs/release/android-proxy-deploy.md](docs/release/android-proxy-deploy.md).
+
 ## Trạng thái
 
 | Phase | Nội dung | Trạng thái |
@@ -53,8 +71,10 @@ Chi tiết: [plans/2026-06-27-wonderlens/plan.md](plans/2026-06-27-wonderlens/pl
 
 ## ⚠️ Trước khi deploy proxy công khai
 
-1. Set `OPENAI_API_KEY` trong Vercel env (KHÔNG để trong app).
-2. **Đổi `APP_SHARED_SECRET`** khỏi giá trị mẫu `dev-wonderlens` (giá trị mẫu nằm sẵn trong repo) và truyền vào app bằng `--dart-define=APP_TOKEN=<giá trị mới>`.
+1. Lưu `OPENAI_API_KEY` và `APP_SHARED_SECRET` trong Infisical production path;
+   sync chúng vào Vercel Production trước khi deploy.
+2. Truyền `APP_SHARED_SECRET` vào Android qua build script/`--dart-define`;
+   không bao giờ đưa `OPENAI_API_KEY` vào app.
 3. **Đặt spend limit** ở dashboard OpenAI — lớp phòng vệ chi phí THẬT SỰ cho app gọi client-side. **Bắt buộc NGAY khi proxy live**: `/api/video/create` (Sora text-to-video) tốn ~$0.80/clip và không có rate limit trong code.
 4. Nếu demo bằng Flutter Web: proxy hiện chưa xử lý CORS/preflight → cần bổ sung trước.
 

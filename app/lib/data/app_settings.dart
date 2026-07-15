@@ -32,7 +32,8 @@ class AppSettings {
 
   /// Proxy công khai (URL không phải bí mật — an toàn để nhúng). Làm fallback
   /// khi build mock-only nhưng người dùng bật API thật từ Dev panel.
-  static const publicProxyUrl = 'https://wonderlens-proxy.vercel.app';
+  static const publicProxyUrl =
+      'https://wonderlens-android-proxy.vercel.app';
 
   static Box? _box;
 

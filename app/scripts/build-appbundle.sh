@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Build a release Android App Bundle (.aab) for Google Play with PRODUCTION
-# config baked in, signed with the shared upload key (android/key.properties).
+# Build a release-mode Android App Bundle (.aab) with stable Vercel dev config.
+# Upload to Google Play only when android/key.properties exists.
 #
-# Usage: ./scripts/build-appbundle.sh
+# Usage with Infisical (from repository root):
+#   infisical run --env=prod --path=/wonderlens/android-proxy \
+#     --project-config-dir=. -- bash -ceu 'cd app && ./scripts/build-appbundle.sh'
 # Output: build/app/outputs/bundle/release/app-release.aab
 # Upload: cd android && set -a && source ../fastlane-secrets.env && set +a && fastlane internal
 
@@ -15,10 +17,11 @@ if [[ -f .env.local ]]; then
   set +a
 fi
 
-PROXY_BASE_URL="https://wonderlens-proxy.vercel.app"
+PROXY_BASE_URL="https://wonderlens-android-proxy.vercel.app"
+APP_TOKEN="${APP_TOKEN:-${APP_SHARED_SECRET:-}}"
 
 if [[ -z "${APP_TOKEN:-}" ]]; then
-  echo "ERROR: APP_TOKEN missing in .env.local (= APP_SHARED_SECRET của proxy)" >&2
+  echo "ERROR: APP_TOKEN/APP_SHARED_SECRET missing (use Infisical prod path /wonderlens/android-proxy)" >&2
   exit 1
 fi
 
