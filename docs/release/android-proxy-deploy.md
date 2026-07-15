@@ -3,6 +3,9 @@
 Runbook production cho Vercel project `wonderlens-android-proxy` và Android
 release. Không command nào được in secret value.
 
+> Hiện dùng tạm cho development. Vercel deploy vào Production target để giữ
+> stable alias; AAB ký debug không phải store release.
+
 ## Nguồn secret
 
 | Thuộc tính | Giá trị |

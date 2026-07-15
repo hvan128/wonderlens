@@ -32,7 +32,7 @@
 - Consumes: Vercel production URL from Task 2.
 - Produces: `AppSettings.publicProxyUrl` and Android `PROXY_BASE_URL` pointing to the same production origin.
 
-- [ ] **Step 1: Write the failing URL contract test**
+- [x] **Step 1: Write the failing URL contract test**
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
@@ -49,18 +49,18 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run test and confirm old URL fails**
+- [x] **Step 2: Run test and confirm old URL fails**
 
 Run: `cd app && flutter test test/android_proxy_config_test.dart`  
 Expected: FAIL because current value is `https://wonderlens-proxy.vercel.app`.
 
-- [ ] **Step 3: Update Android production URL only**
+- [x] **Step 3: Update Android production URL only**
 
 Set `AppSettings.publicProxyUrl` and `app/scripts/build-appbundle.sh` to
 `https://wonderlens-android-proxy.vercel.app`. Do not change
 `app/scripts/build-release.sh`.
 
-- [ ] **Step 4: Verify focused test and shell references**
+- [x] **Step 4: Verify focused test and shell references**
 
 Run: `cd app && flutter test test/android_proxy_config_test.dart`  
 Expected: PASS.
@@ -68,7 +68,7 @@ Expected: PASS.
 Run: `rg -n 'PROXY_BASE_URL=' app/scripts/build-appbundle.sh app/scripts/build-release.sh`  
 Expected: Android uses new URL; iOS keeps old URL.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/lib/data/app_settings.dart app/scripts/build-appbundle.sh app/test/android_proxy_config_test.dart
@@ -85,7 +85,7 @@ git commit -m "TASK-023: cấu hình proxy production cho Android"
 - Consumes: authenticated Vercel account `sireal`, scope `sireals-projects`, authenticated Infisical project, and an OpenAI project API key stored by the user in Infisical.
 - Produces: project `wonderlens-android-proxy`, production URL, `APP_SHARED_SECRET`, `OPENAI_API_KEY`.
 
-- [ ] **Step 1: Create and deterministically link project**
+- [x] **Step 1: Create and deterministically link project**
 
 ```bash
 cd proxy
@@ -95,7 +95,7 @@ vercel link --yes --project wonderlens-android-proxy --scope sireals-projects
 
 Expected: `.vercel/project.json` names `wonderlens-android-proxy`.
 
-- [ ] **Step 2: Link the repository to Infisical**
+- [x] **Step 2: Link the repository to Infisical**
 
 Run from the repository root and select `shared-platform-secrets`:
 
@@ -107,7 +107,7 @@ infisical init
 Expected: `.infisical.json` contains only the project ID. The production secret
 path is `/wonderlens/android-proxy`.
 
-- [ ] **Step 3: Populate the Infisical production path**
+- [x] **Step 3: Populate the Infisical production path**
 
 Create `/wonderlens/android-proxy` in environment `prod` and add exactly:
 
@@ -121,7 +121,7 @@ chat, Flutter, git, command output, or an Android artifact.
 `APP_SHARED_SECRET` is embedded in the Android client. It is an abuse throttle,
 not a cryptographic secret that can remain hidden from a shipped app.
 
-- [ ] **Step 4: Sync Infisical values into Vercel Production**
+- [x] **Step 4: Sync Infisical values into Vercel Production**
 
 Run from the repository root. The inner shell checks names and sends values by
 stdin; it never prints them:
@@ -138,7 +138,7 @@ infisical run --env=prod --path=/wonderlens/android-proxy -- bash -ceu '
 '
 ```
 
-- [ ] **Step 5: Verify names/scopes only**
+- [x] **Step 5: Verify names/scopes only**
 
 Run: `vercel env ls production`  
 Expected: `APP_SHARED_SECRET` and `OPENAI_API_KEY` exist for Production.
@@ -152,7 +152,7 @@ Expected: `APP_SHARED_SECRET` and `OPENAI_API_KEY` exist for Production.
 - Consumes: linked Vercel project and production env from Task 2.
 - Produces: healthy public HTTPS API used by Android.
 
-- [ ] **Step 1: Build and deploy production**
+- [x] **Step 1: Build and deploy production**
 
 ```bash
 cd proxy
@@ -164,22 +164,22 @@ vercel deploy --prebuilt --prod
 
 Expected: production alias `https://wonderlens-android-proxy.vercel.app`.
 
-- [ ] **Step 2: Verify static routes and method guard**
+- [x] **Step 2: Verify static routes and method guard**
 
 Expected: `/privacy` and `/support` return `200`; GET `/api/recognize` returns
 `405`.
 
-- [ ] **Step 3: Verify authentication boundary**
+- [x] **Step 3: Verify authentication boundary**
 
 Expected: POST without token returns `401`; POST with correct token and missing
 image returns `400`.
 
-- [ ] **Step 4: Verify real OpenAI boundary**
+- [x] **Step 4: Verify real OpenAI boundary**
 
 POST one small bundled kid-safe image with correct token. Expected: `200` and
-JSON fields `object_id`, `confidence`, `display_name`, `is_hero`.
+JSON fields `object_id`, `confidence`, `display_name`, `source`.
 
-- [ ] **Step 5: Inspect deployment and runtime logs**
+- [x] **Step 5: Inspect deployment and runtime logs**
 
 Run: `vercel inspect https://wonderlens-android-proxy.vercel.app`  
 Run: `vercel logs https://wonderlens-android-proxy.vercel.app --since 30m --level error`  
@@ -194,26 +194,26 @@ Expected: deployment READY; no unhandled runtime errors.
 - Consumes: Android URL and app token from Tasks 1–2.
 - Produces: Android release bundle configured for new proxy.
 
-- [ ] **Step 1: Build through repository release script**
+- [x] **Step 1: Build through repository release script**
 
 Run:
 `infisical run --env=prod --path=/wonderlens/android-proxy --project-config-dir=. -- bash -ceu 'cd app && ./scripts/build-appbundle.sh'`
 Expected: AAB at `build/app/outputs/bundle/release/app-release.aab`.
 
-- [ ] **Step 2: Inspect artifact configuration safely**
+- [x] **Step 2: Inspect artifact configuration safely**
 
 Verify artifact contains `wonderlens-android-proxy.vercel.app`, does not contain
 `OPENAI_API_KEY`, and is signed with release upload key if available. If upload
 key is absent, report artifact as test-only and do not upload it.
 
-- [ ] **Step 3: Run full gates**
+- [x] **Step 3: Run full gates**
 
 Run: `cd app && flutter test`  
 Run: `cd app && flutter analyze`  
 Run: `cd proxy && npx tsc --noEmit`  
 Expected: all pass.
 
-- [ ] **Step 4: Commit deployment evidence**
+- [x] **Step 4: Commit deployment evidence**
 
 Update `tasks/TASK-023-android-proxy-deploy.md` checkboxes/status with verified
 facts only, then commit using:

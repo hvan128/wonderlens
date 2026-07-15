@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Build a release Android App Bundle (.aab) for Google Play with PRODUCTION
-# config baked in, signed with the shared upload key (android/key.properties).
+# Build a release-mode Android App Bundle (.aab) with stable Vercel dev config.
+# Upload to Google Play only when android/key.properties exists.
 #
 # Usage with Infisical (from repository root):
 #   infisical run --env=prod --path=/wonderlens/android-proxy \

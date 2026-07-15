@@ -44,6 +44,9 @@ Production dùng Infisical project `shared-platform-secrets`, environment
 `prod`, path `/wonderlens/android-proxy`. Path này có hai key:
 `OPENAI_API_KEY` và `APP_SHARED_SECRET`. Không paste giá trị vào repo hoặc chat.
 
+Alias `wonderlens-android-proxy.vercel.app` hiện dùng tạm cho development. AAB
+không được upload Google Play khi thiếu `app/android/key.properties`.
+
 Build Android bằng secret injection, không cần tạo file `.env`:
 
 ```bash
