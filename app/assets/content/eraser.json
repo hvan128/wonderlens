@@ -1,0 +1,90 @@
+{
+  "id": "eraser",
+  "name": "Cục tẩy",
+  "emoji": "🧽",
+  "material_badge": "Cao su",
+  "stages": [
+    {
+      "title": "Manh mối: mủ cây cao su 🌳",
+      "kid_text": "Nhiều cục tẩy làm từ cao su. Cao su bắt đầu từ dòng mủ trắng chảy ra khi người ta rạch nhẹ vào thân cây cao su.",
+      "fun_fact": "Mủ cao su chảy ra chậm rãi như dòng sữa trắng đục vậy đó.",
+      "illustration": "assets/images/eraser_stage0.jpg",
+      "audio": "assets/audio/eraser_stage0.mp3",
+      "action": {
+        "type": "hold",
+        "label": "Giữ để hứng mủ cao su"
+      }
+    },
+    {
+      "title": "Trộn cho dẻo và mềm 🌀",
+      "kid_text": "Mủ cao su được làm đặc lại rồi trộn thêm bột màu cho đẹp. Khối cao su trở nên dẻo, mềm và hơi dính tay.",
+      "fun_fact": "Chính độ hơi dính này về sau giúp cục tẩy nhặt được vết chì.",
+      "illustration": "assets/images/eraser_stage1.jpg",
+      "audio": "assets/audio/eraser_stage1.mp3",
+      "predict": {
+        "question": "Sau khi lấy mủ, người ta làm gì để có khối cao su dẻo?",
+        "options": [
+          "Làm đặc lại rồi trộn đều",
+          "Đổ thêm thật nhiều nước",
+          "Đem phơi cho cứng như đá"
+        ],
+        "answer_index": 0,
+        "hint": "Cục tẩy mềm dẻo chứ không cứng như đá đâu!"
+      },
+      "action": {
+        "type": "hold",
+        "label": "Giữ để trộn cao su"
+      }
+    },
+    {
+      "title": "Ép khuôn và cắt thành cục ✂️",
+      "kid_text": "Cao su dẻo được ép vào khuôn thành khối dài, rồi cắt ra thành từng cục tẩy nhỏ vừa tay bé cầm.",
+      "fun_fact": "Từ một khối dài có thể cắt ra rất nhiều cục tẩy giống hệt nhau.",
+      "illustration": "assets/images/eraser_stage2.jpg",
+      "audio": "assets/audio/eraser_stage2.mp3",
+      "predict": {
+        "question": "Làm sao để có nhiều cục tẩy nhỏ bằng nhau?",
+        "options": [
+          "Cắt khối dài thành từng cục",
+          "Nặn tay từng cục một",
+          "Bẻ đại ra thành mảnh"
+        ],
+        "answer_index": 0,
+        "hint": "Cắt từ một khối dài sẽ đều và nhanh hơn!"
+      },
+      "action": {
+        "type": "tap",
+        "label": "Chạm để cắt thành cục tẩy"
+      }
+    },
+    {
+      "title": "Vì sao tẩy được vết chì? ✏️",
+      "kid_text": "Vết bút chì thật ra là những hạt than chì nhỏ bám hờ trên mặt giấy. Cục tẩy hơi dính nên khi chà lên, nó nhặt các hạt than chì đi cùng những vụn tẩy.",
+      "fun_fact": "Vụn tẩy rơi ra chính là than chì bị kéo khỏi trang giấy đó!",
+      "illustration": "assets/images/eraser_stage3.jpg",
+      "audio": "assets/audio/eraser_stage3.mp3",
+      "predict": {
+        "question": "Cục tẩy làm vết chì biến mất bằng cách nào?",
+        "options": [
+          "Dính và nhặt hạt than chì đi",
+          "Sơn màu trắng đè lên",
+          "Làm giấy tự lành lại"
+        ],
+        "answer_index": 0,
+        "hint": "Nhìn vụn tẩy rơi ra, chúng mang theo màu chì đấy!"
+      },
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để tẩy vết chì"
+      }
+    }
+  ],
+  "experiment": {
+    "title": "Nhiệm vụ mini tại nhà",
+    "prompt": "Bé viết một chữ bằng bút chì rồi tẩy đi, nhìn thật kỹ vụn tẩy rơi ra. Vụn tẩy có màu gì? Đoán trước rồi soi nhé!",
+    "reveal": "Vụn tẩy thường ngả xám vì đã nhặt theo những hạt than chì từ vết viết. Cục tẩy không xóa phép màu, nó chỉ dính và kéo các hạt chì đi cùng.",
+    "badge": "Nhà khoa học nhí"
+  },
+  "history": "Ngày xưa, khi chưa có cục tẩy, người ta dùng ruột bánh mì vụn để chà cho mờ vết chì. Về sau, có người phát hiện cao su chà lên giấy lại nhặt được vết chì rất gọn. Từ đó, những cục tẩy cao su nhỏ xinh ra đời và theo bé tới trường mỗi ngày.",
+  "story": "Bé biết không, cục tẩy nhỏ trong hộp bút của bé thường bắt đầu từ dòng mủ trắng của cây cao su. Người ta rạch nhẹ thân cây, hứng lấy mủ, rồi làm đặc và trộn thêm bột màu cho đẹp. Khối cao su trở nên mềm dẻo và hơi dính tay. Nó được ép vào khuôn thành khối dài rồi cắt ra thành từng cục tẩy nhỏ. Điều thú vị nhất là vì sao tẩy được vết chì: vết bút chì chỉ là những hạt than chì bám hờ trên giấy, và cục tẩy hơi dính nên chà tới đâu là nhặt các hạt chì đi tới đó, cuốn theo cả vụn tẩy. Thế là trang giấy lại sạch để bé viết tiếp!"
+}

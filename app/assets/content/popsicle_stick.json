@@ -1,0 +1,90 @@
+{
+  "id": "popsicle_stick",
+  "name": "Que kem gỗ",
+  "emoji": "🍦",
+  "material_badge": "Gỗ",
+  "stages": [
+    {
+      "title": "Manh mối: cây gỗ mềm 🌳",
+      "kid_text": "Que kem thường làm từ loại gỗ mềm, sáng màu và không mùi. Cây gỗ lớn lên trong rừng, thân thẳng và ít mắt gỗ.",
+      "fun_fact": "Người ta chọn gỗ không mùi để que không làm kem bị ám mùi lạ.",
+      "illustration": "assets/images/popsicle_stick_stage0.jpg",
+      "audio": "assets/audio/popsicle_stick_stage0.mp3",
+      "action": {
+        "type": "hold",
+        "label": "Giữ để cây gỗ lớn lên"
+      }
+    },
+    {
+      "title": "Lạng thành lớp mỏng như tờ giấy 📃",
+      "kid_text": "Khúc gỗ được xoay tròn và lạng thành một lớp gỗ mỏng dài, cứ như đang bóc một cuộn giấy khổng lồ vậy.",
+      "fun_fact": "Cả một khúc gỗ tròn có thể lạng ra thành tấm gỗ dài ơi là dài.",
+      "illustration": "assets/images/popsicle_stick_stage1.jpg",
+      "audio": "assets/audio/popsicle_stick_stage1.mp3",
+      "predict": {
+        "question": "Làm sao từ khúc gỗ tròn lại có được lớp gỗ mỏng và dài?",
+        "options": [
+          "Xoay tròn khúc gỗ rồi lạng mỏng",
+          "Đập cho gỗ dẹp ra",
+          "Ngâm gỗ cho nở dài"
+        ],
+        "answer_index": 0,
+        "hint": "Giống như bóc dần một cuộn giấy từ ngoài vào!"
+      },
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để lạng lớp gỗ"
+      }
+    },
+    {
+      "title": "Cắt và bo tròn hai đầu ✂️",
+      "kid_text": "Lớp gỗ mỏng được cắt thành nhiều que nhỏ bằng nhau, rồi bo tròn hai đầu cho khỏi sắc cạnh.",
+      "fun_fact": "Hai đầu bo tròn giúp que không cứa vào môi hay tay bé.",
+      "illustration": "assets/images/popsicle_stick_stage2.jpg",
+      "audio": "assets/audio/popsicle_stick_stage2.mp3",
+      "predict": {
+        "question": "Vì sao hai đầu que kem được bo tròn?",
+        "options": [
+          "Để không sắc cạnh, khỏi cứa tay",
+          "Để que dài ra thêm",
+          "Để que nặng hơn"
+        ],
+        "answer_index": 0,
+        "hint": "Nghĩ tới lúc que chạm vào môi bé nhé!"
+      },
+      "action": {
+        "type": "tap",
+        "label": "Chạm để bo tròn hai đầu"
+      }
+    },
+    {
+      "title": "Sấy khô và chà thật nhẵn ✨",
+      "kid_text": "Que gỗ được sấy khô rồi chà cho thật nhẵn, để không còn dằm gỗ. Khô ráo giúp que sạch và an toàn khi chạm vào kem.",
+      "fun_fact": "Bề mặt nhẵn mịn nên bé cầm que kem mà không sợ dằm đâm tay.",
+      "illustration": "assets/images/popsicle_stick_stage3.jpg",
+      "audio": "assets/audio/popsicle_stick_stage3.mp3",
+      "predict": {
+        "question": "Vì sao que kem cần được chà thật nhẵn?",
+        "options": [
+          "Để không còn dằm gỗ đâm tay",
+          "Để que có vị ngọt",
+          "Để que phát sáng"
+        ],
+        "answer_index": 0,
+        "hint": "Gỗ chưa chà kỹ thì hay có dằm nhỏ đó!"
+      },
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để chà cho nhẵn"
+      }
+    }
+  ],
+  "experiment": {
+    "title": "Nhiệm vụ mini tại nhà",
+    "prompt": "Giữ lại một que kem sạch, nhúng một đầu vào nước một lúc rồi lấy ra. Đầu ướt có hơi cong lên không? Đoán trước rồi thử nhé!",
+    "reveal": "Đầu ướt hút nước và nở ra một chút nên que hơi cong về phía đó. Vì thế người ta phải sấy que thật khô, để khi làm kem nó không tự cong vênh.",
+    "badge": "Nhà khoa học nhí"
+  },
+  "history": "Ngày xưa, que kem chỉ đơn giản là chỗ để cầm cho khỏi lạnh và dính tay. Người ta chọn gỗ mềm, sáng màu và không mùi để que an toàn khi chạm vào miệng. Sau khi ăn xong, chính những que gỗ nhỏ này lại thành đồ chơi thủ công quen thuộc để bé xếp hình, dán nhà.",
+  "story": "Bé biết không, que kem nhỏ bé cầm khi ăn kem bắt đầu từ một cây gỗ mềm trong rừng. Khúc gỗ được xoay tròn và lạng thành một lớp gỗ mỏng dài, cứ như bóc một cuộn giấy khổng lồ. Lớp gỗ mỏng ấy được cắt thành nhiều que nhỏ bằng nhau, rồi bo tròn hai đầu cho khỏi sắc cạnh. Cuối cùng, que được sấy thật khô và chà cho nhẵn mịn để không còn dằm gỗ. Nhờ vậy bé cầm que kem mà không sợ đâm tay, và ăn xong còn có thể giữ lại để xếp thành bao nhiêu món đồ chơi thú vị!"
+}

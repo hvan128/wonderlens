@@ -1,0 +1,90 @@
+{
+  "id": "metal_spoon",
+  "name": "Thìa inox",
+  "emoji": "🥄",
+  "material_badge": "Thép không gỉ",
+  "stages": [
+    {
+      "title": "Manh mối: quặng sắt trong lòng đất ⛏️",
+      "kid_text": "Chiếc thìa sáng loáng làm từ inox, một loại thép. Thép bắt đầu từ quặng sắt, những tảng đá lẫn sắt nằm sâu trong lòng đất.",
+      "fun_fact": "Sắt có ở khắp nơi, thậm chí trong máu của bé cũng có một chút sắt!",
+      "illustration": "assets/images/metal_spoon_stage0.jpg",
+      "audio": "assets/audio/metal_spoon_stage0.mp3",
+      "action": {
+        "type": "hold",
+        "label": "Giữ để đào quặng sắt lên"
+      }
+    },
+    {
+      "title": "Nấu chảy kim loại 🔥",
+      "kid_text": "Quặng sắt được nung trong lò rất nóng cho tới khi chảy thành kim loại lỏng. Người ta trộn thêm một chút chất để thép sáng và không bị gỉ.",
+      "fun_fact": "Chính nhờ chất trộn thêm mà inox không bị han gỉ như đinh sắt cũ.",
+      "illustration": "assets/images/metal_spoon_stage1.jpg",
+      "audio": "assets/audio/metal_spoon_stage1.mp3",
+      "predict": {
+        "question": "Muốn biến tảng quặng cứng thành kim loại tạo hình được, cần làm gì?",
+        "options": [
+          "Nung thật nóng cho chảy ra",
+          "Ngâm vào nước lạnh",
+          "Phơi ngoài nắng"
+        ],
+        "answer_index": 0,
+        "hint": "Kim loại chỉ mềm và chảy ra khi thật nóng thôi!"
+      },
+      "action": {
+        "type": "hold",
+        "label": "Giữ để nung chảy kim loại"
+      }
+    },
+    {
+      "title": "Dập thành hình chiếc thìa 🥄",
+      "kid_text": "Kim loại nguội lại thành tấm mỏng. Một chiếc máy ép rất khỏe dập tấm này thành hình chiếc thìa, có phần lòng cong để múc.",
+      "fun_fact": "Lực ép mạnh tới mức uốn cong tấm thép cứng chỉ trong chớp mắt.",
+      "illustration": "assets/images/metal_spoon_stage2.jpg",
+      "audio": "assets/audio/metal_spoon_stage2.mp3",
+      "predict": {
+        "question": "Nhờ đâu tấm thép phẳng lại có được phần lòng cong để múc?",
+        "options": [
+          "Máy ép rất khỏe dập thành hình",
+          "Để lâu tự cong lại",
+          "Dùng kéo cắt cong"
+        ],
+        "answer_index": 0,
+        "hint": "Cần một lực thật mạnh mới uốn được thép cứng!"
+      },
+      "action": {
+        "type": "tap",
+        "label": "Chạm để dập hình chiếc thìa"
+      }
+    },
+    {
+      "title": "Đánh bóng sáng loáng ✨",
+      "kid_text": "Cuối cùng, thìa được mài và đánh bóng cho nhẵn mịn, sáng như gương. Bề mặt trơn giúp dễ rửa sạch và không đọng thức ăn.",
+      "fun_fact": "Bề mặt càng nhẵn thì ánh sáng phản chiếu càng đều, nên thìa mới bóng loáng.",
+      "illustration": "assets/images/metal_spoon_stage3.jpg",
+      "audio": "assets/audio/metal_spoon_stage3.mp3",
+      "predict": {
+        "question": "Vì sao người ta đánh bóng cho thìa thật nhẵn?",
+        "options": [
+          "Để dễ rửa sạch và sáng đẹp",
+          "Để thìa nặng hơn",
+          "Để thìa mềm ra"
+        ],
+        "answer_index": 0,
+        "hint": "Bề mặt trơn thì thức ăn khó bám lại!"
+      },
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để đánh bóng thìa"
+      }
+    }
+  ],
+  "experiment": {
+    "title": "Nhiệm vụ mini tại nhà",
+    "prompt": "Bé soi mặt mình vào lòng thìa xem sao. Ở mặt trong cong và mặt ngoài cong, khuôn mặt bé trông có khác nhau không? Đoán trước rồi soi thử nhé!",
+    "reveal": "Mặt cong của thìa như một tấm gương cong nên hình phản chiếu bị méo, có bên còn lộn ngược. Bề mặt nhẵn bóng chính là thứ giúp thìa soi được như gương.",
+    "badge": "Nhà khoa học nhí"
+  },
+  "history": "Ngày xưa, người ta làm thìa từ gỗ, sừng hay thậm chí vỏ sò. Về sau, khi biết cách nấu và tạo hình kim loại, con người làm ra thìa bằng thép. Loại thép không gỉ ra đời khoảng một trăm năm trước giúp chiếc thìa luôn sáng bóng và bền lâu mà không bị han gỉ.",
+  "story": "Bé biết không, chiếc thìa sáng loáng bé dùng để ăn cơm bắt đầu từ những tảng quặng sắt nằm sâu trong lòng đất. Người ta đào quặng lên rồi nung trong lò thật nóng cho tới khi sắt chảy thành kim loại lỏng. Họ trộn thêm một chút chất đặc biệt để thép sáng đẹp và không bị gỉ, gọi là inox. Kim loại nguội lại thành tấm mỏng, rồi một chiếc máy ép rất khỏe dập tấm ấy thành hình chiếc thìa có lòng cong để múc. Cuối cùng, thìa được mài và đánh bóng cho nhẵn mịn, sáng như gương. Thế là từ tảng đá trong đất, ta có chiếc thìa xinh xắn trên bàn ăn mỗi ngày!"
+}

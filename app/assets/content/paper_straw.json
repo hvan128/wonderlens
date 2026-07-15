@@ -1,0 +1,90 @@
+{
+  "id": "paper_straw",
+  "name": "Ống hút giấy",
+  "emoji": "🧃",
+  "material_badge": "Giấy",
+  "stages": [
+    {
+      "title": "Manh mối: cây gỗ trong rừng 🌲",
+      "kid_text": "Ống hút giấy làm từ giấy, mà giấy bắt đầu từ cây gỗ. Thân cây được nghiền nhỏ thành bột giấy sền sệt như cháo loãng.",
+      "fun_fact": "Bột giấy ướt nhẹp, chưa ai đoán được nó sẽ thành tờ giấy phẳng phiu!",
+      "illustration": "assets/images/paper_straw_stage0.jpg",
+      "audio": "assets/audio/paper_straw_stage0.mp3",
+      "action": {
+        "type": "hold",
+        "label": "Giữ để nghiền thành bột giấy"
+      }
+    },
+    {
+      "title": "Cán thành tờ giấy mỏng 📄",
+      "kid_text": "Bột giấy được dàn đều rồi ép và sấy cho khô, thành những tờ giấy mỏng dài. Giấy khô ráo, dai và cuộn được dễ dàng.",
+      "fun_fact": "Ép càng kỹ, tờ giấy càng phẳng và bền hơn.",
+      "illustration": "assets/images/paper_straw_stage1.jpg",
+      "audio": "assets/audio/paper_straw_stage1.mp3",
+      "predict": {
+        "question": "Bột giấy sền sệt phải qua bước nào để thành tờ giấy?",
+        "options": [
+          "Dàn đều rồi ép và sấy khô",
+          "Để nguyên trong xô nước",
+          "Đông lạnh thành đá"
+        ],
+        "answer_index": 0,
+        "hint": "Muốn thành tờ giấy khô thì phải làm bay hết nước!"
+      },
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để cán tờ giấy"
+      }
+    },
+    {
+      "title": "Cuộn quanh que thành ống 🌀",
+      "kid_text": "Nhiều lớp giấy được quấn xoắn quanh một que tròn, phết chút keo an toàn cho dính chặt. Cuộn xong ta có một ống giấy dài.",
+      "fun_fact": "Quấn nhiều lớp giúp ống cứng cáp, không bẹp ngay khi hút nước.",
+      "illustration": "assets/images/paper_straw_stage2.jpg",
+      "audio": "assets/audio/paper_straw_stage2.mp3",
+      "predict": {
+        "question": "Vì sao ống hút giấy lại quấn nhiều lớp giấy?",
+        "options": [
+          "Để ống cứng và không bẹp ngay",
+          "Để ống nặng hơn",
+          "Để ống đổi màu"
+        ],
+        "answer_index": 0,
+        "hint": "Một lớp giấy thì mềm oặt, nhiều lớp mới chắc!"
+      },
+      "action": {
+        "type": "hold",
+        "label": "Giữ để cuộn thành ống"
+      }
+    },
+    {
+      "title": "Cắt thành từng ống hút ✂️",
+      "kid_text": "Ống giấy dài được cắt thành nhiều đoạn ngắn bằng nhau, vừa đủ cắm vào ly. Thế là ta có những ống hút giấy xinh xắn.",
+      "fun_fact": "Ống hút giấy dùng xong tự mục nhanh hơn ống nhựa, đỡ hại môi trường.",
+      "illustration": "assets/images/paper_straw_stage3.jpg",
+      "audio": "assets/audio/paper_straw_stage3.mp3",
+      "predict": {
+        "question": "Vì sao nhiều nơi đổi sang dùng ống hút giấy?",
+        "options": [
+          "Vì giấy dễ phân hủy, đỡ hại môi trường",
+          "Vì giấy hút khỏe hơn",
+          "Vì giấy phát ra ánh sáng"
+        ],
+        "answer_index": 0,
+        "hint": "Nghĩ xem thứ nào bỏ đi rồi tự mục nhanh hơn!"
+      },
+      "action": {
+        "type": "tap",
+        "label": "Chạm để cắt thành ống hút"
+      }
+    }
+  ],
+  "experiment": {
+    "title": "Nhiệm vụ mini tại nhà",
+    "prompt": "Bé thả một ống hút giấy và một mẩu giấy phẳng vào cốc nước. Cái nào ngấm nước và mềm nhũn trước? Đoán trước rồi thử nhé!",
+    "reveal": "Mẩu giấy phẳng chỉ một lớp nên mềm rất nhanh, còn ống hút quấn nhiều lớp và có chút keo nên trụ lâu hơn. Đó là lý do ống hút phải cuộn nhiều lớp giấy.",
+    "badge": "Nhà khoa học nhí"
+  },
+  "history": "Từ xưa, người ta từng dùng cọng lúa mạch rỗng để hút nước, rồi chuyển sang ống hút cuộn bằng giấy. Về sau ống hút nhựa trở nên phổ biến vì rẻ và bền. Gần đây, để bớt rác nhựa khó phân hủy, nhiều nơi quay lại dùng ống hút giấy thân thiện với môi trường hơn.",
+  "story": "Bé biết không, ống hút giấy cắm trong ly nước bắt đầu từ một cây gỗ trong rừng. Thân cây được nghiền nhỏ thành bột giấy sền sệt, rồi dàn đều, ép và sấy khô thành những tờ giấy mỏng và dai. Người ta quấn nhiều lớp giấy xoắn quanh một que tròn, phết chút keo an toàn cho dính chặt, thế là có một ống giấy dài và cứng cáp. Ống dài ấy được cắt thành từng đoạn ngắn vừa đủ cắm vào ly. Vì quấn nhiều lớp nên ống không bẹp ngay khi bé hút, mà dùng xong lại mau mục hơn ống nhựa, nên giúp giữ cho môi trường sạch hơn một chút!"
+}

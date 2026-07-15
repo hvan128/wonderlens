@@ -1,0 +1,90 @@
+{
+  "id": "chopsticks",
+  "name": "Đũa",
+  "emoji": "🥢",
+  "material_badge": "Gỗ / Tre",
+  "stages": [
+    {
+      "title": "Manh mối: cây tre trong vườn 🎋",
+      "kid_text": "Đôi đũa quen thuộc thường bắt đầu từ thân cây tre hoặc cây gỗ. Cây lớn lên nhờ nắng, nước và đất, thân cứng cáp và thẳng tắp.",
+      "fun_fact": "Tre là một trong những loài mọc nhanh nhất thế giới, có ngày cao thêm cả gang tay!",
+      "illustration": "assets/images/chopsticks_stage0.jpg",
+      "audio": "assets/audio/chopsticks_stage0.mp3",
+      "action": {
+        "type": "hold",
+        "label": "Giữ để cây tre lớn lên"
+      }
+    },
+    {
+      "title": "Chẻ thành thanh nhỏ 🪵",
+      "kid_text": "Thân tre được cưa thành khúc rồi chẻ dọc thành nhiều thanh dài nhỏ. Mỗi thanh sẽ trở thành một chiếc đũa.",
+      "fun_fact": "Vì thớ tre chạy dọc thân nên chẻ dọc dễ và cho thanh thẳng đẹp.",
+      "illustration": "assets/images/chopsticks_stage1.jpg",
+      "audio": "assets/audio/chopsticks_stage1.mp3",
+      "predict": {
+        "question": "Muốn có nhiều chiếc đũa dài, người ta làm gì với thân tre?",
+        "options": [
+          "Chẻ dọc thành thanh nhỏ",
+          "Cắt vụn thành mùn",
+          "Nghiền thành bột"
+        ],
+        "answer_index": 0,
+        "hint": "Đũa dài và thẳng, nên phải tách theo chiều dài của thân tre!"
+      },
+      "action": {
+        "type": "hold",
+        "label": "Giữ để chẻ thân tre"
+      }
+    },
+    {
+      "title": "Vót cho tròn và thon 🔪",
+      "kid_text": "Mỗi thanh được vót và bào cho một đầu thon nhỏ, một đầu to hơn để cầm. Bề mặt được làm nhẵn để không đâm dằm vào tay.",
+      "fun_fact": "Đầu nhỏ giúp gắp thức ăn khéo, đầu to giúp tay cầm chắc hơn.",
+      "illustration": "assets/images/chopsticks_stage2.jpg",
+      "audio": "assets/audio/chopsticks_stage2.mp3",
+      "predict": {
+        "question": "Vì sao một đầu đũa lại được vót nhỏ hơn đầu kia?",
+        "options": [
+          "Để gắp thức ăn cho khéo",
+          "Để đũa nhẹ hơn cả cân",
+          "Để đũa đổi màu"
+        ],
+        "answer_index": 0,
+        "hint": "Nghĩ xem đầu nào chạm vào thức ăn nhé!"
+      },
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để vót cho thon"
+      }
+    },
+    {
+      "title": "Phơi khô và đánh bóng ✨",
+      "kid_text": "Đũa được phơi hoặc sấy cho thật khô, rồi chà nhẵn bóng. Khô ráo giúp đũa cứng, không cong vênh và dùng được lâu.",
+      "fun_fact": "Gỗ tươi còn nhiều nước nên dễ cong; khô rồi mới thẳng và chắc.",
+      "illustration": "assets/images/chopsticks_stage3.jpg",
+      "audio": "assets/audio/chopsticks_stage3.mp3",
+      "predict": {
+        "question": "Vì sao đũa cần được phơi thật khô trước khi dùng?",
+        "options": [
+          "Để cứng và không bị cong vênh",
+          "Để nặng hơn",
+          "Để có mùi thơm"
+        ],
+        "answer_index": 0,
+        "hint": "Gỗ còn ẩm thì mềm và dễ cong đó!"
+      },
+      "action": {
+        "type": "tap",
+        "label": "Chạm để đánh bóng đũa"
+      }
+    }
+  ],
+  "experiment": {
+    "title": "Nhiệm vụ mini tại nhà",
+    "prompt": "Bé thử cầm đũa gắp một hạt đậu hoặc viên kẹo nhỏ. Đầu nào gắp dễ hơn: đầu nhỏ hay đầu to? Dự đoán trước rồi thử nhé!",
+    "reveal": "Đầu nhỏ chạm gọn vào vật nên gắp khéo hơn. Đầu to là để tay cầm chắc, không phải để gắp.",
+    "badge": "Nhà khoa học nhí"
+  },
+  "history": "Từ xa xưa, nhiều gia đình đã dùng đũa để gắp thức ăn thay cho dùng tay. Người ta chọn tre và gỗ vì dễ kiếm, nhẹ và dễ vót thành thanh dài. Qua nhiều đời, đôi đũa vẫn giữ hình dáng đơn giản mà tiện: một đầu thon để gắp, một đầu to để cầm.",
+  "story": "Bé biết không, đôi đũa xinh xắn trên bàn ăn thường bắt đầu từ một cây tre hay cây gỗ ngoài vườn. Cây lớn lên nhờ nắng và nước, thân thẳng và cứng cáp. Người ta cưa thân tre thành khúc, rồi chẻ dọc thành nhiều thanh nhỏ dài. Mỗi thanh được vót cho một đầu thon nhỏ để gắp, một đầu to hơn để cầm, và bào thật nhẵn cho khỏi dằm tay. Cuối cùng, đũa được phơi hoặc sấy cho thật khô rồi đánh bóng, nhờ vậy mới cứng cáp và không cong vênh. Thế là từ một thân cây, ta có đôi đũa gọn gàng giúp bé ăn cơm mỗi ngày!"
+}

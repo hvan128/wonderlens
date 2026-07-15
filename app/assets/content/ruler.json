@@ -1,0 +1,90 @@
+{
+  "id": "ruler",
+  "name": "Thước kẻ",
+  "emoji": "📏",
+  "material_badge": "Nhựa",
+  "stages": [
+    {
+      "title": "Manh mối: hạt nhựa tí hon ⚪",
+      "kid_text": "Thước kẻ trong veo thường làm từ nhựa. Nhựa bắt đầu từ dầu mỏ, được xử lý thành những hạt nhựa nhỏ như hạt gạo.",
+      "fun_fact": "Dầu mỏ nằm sâu dưới lòng đất, hình thành từ sinh vật biển tí hon rất xa xưa.",
+      "illustration": "assets/images/ruler_stage0.jpg",
+      "audio": "assets/audio/ruler_stage0.mp3",
+      "action": {
+        "type": "hold",
+        "label": "Giữ để gom hạt nhựa"
+      }
+    },
+    {
+      "title": "Nấu mềm và ép thành thanh thẳng 🌡️",
+      "kid_text": "Hạt nhựa được nấu cho mềm chảy, rồi ép qua một khe dài để thành thanh nhựa thẳng tắp. Thanh nguội lại là cứng và giữ hình.",
+      "fun_fact": "Ép qua khe có hình gì thì nhựa sẽ mang đúng hình đó khi nguội.",
+      "illustration": "assets/images/ruler_stage1.jpg",
+      "audio": "assets/audio/ruler_stage1.mp3",
+      "predict": {
+        "question": "Làm sao hạt nhựa rời rạc lại thành thanh thước dài thẳng?",
+        "options": [
+          "Nấu mềm rồi ép qua khe dài",
+          "Dán từng hạt bằng keo",
+          "Xếp hạt thành hàng rồi buộc lại"
+        ],
+        "answer_index": 0,
+        "hint": "Nhựa mềm chảy có thể được ép thành hình dài!"
+      },
+      "action": {
+        "type": "hold",
+        "label": "Giữ để ép thanh nhựa"
+      }
+    },
+    {
+      "title": "Cắt đúng độ dài ✂️",
+      "kid_text": "Thanh nhựa dài được cắt thành từng đoạn bằng nhau, thường là hai gang tay, để làm ra chiếc thước quen thuộc.",
+      "fun_fact": "Cắt bằng máy nên các cây thước dài đúng bằng nhau tăm tắp.",
+      "illustration": "assets/images/ruler_stage2.jpg",
+      "audio": "assets/audio/ruler_stage2.mp3",
+      "predict": {
+        "question": "Vì sao các cây thước lại dài bằng nhau y hệt?",
+        "options": [
+          "Được cắt bằng máy theo đúng độ dài",
+          "Người ta bẻ ước chừng bằng tay",
+          "Thước tự dài đều ra"
+        ],
+        "answer_index": 0,
+        "hint": "Máy cắt chính xác hơn tay người nhiều!"
+      },
+      "action": {
+        "type": "tap",
+        "label": "Chạm để cắt đúng độ dài"
+      }
+    },
+    {
+      "title": "In vạch số đều tăm tắp 🔢",
+      "kid_text": "Cuối cùng, những vạch nhỏ và con số được in lên mặt thước, mỗi vạch cách nhau đúng một khoảng bằng nhau. Nhờ vậy thước mới đo được chính xác.",
+      "fun_fact": "Các vạch cách đều nhau nên đếm vạch là biết vật dài bao nhiêu.",
+      "illustration": "assets/images/ruler_stage3.jpg",
+      "audio": "assets/audio/ruler_stage3.mp3",
+      "predict": {
+        "question": "Nhờ đâu thước kẻ giúp ta đo được chính xác?",
+        "options": [
+          "Các vạch được in cách đều nhau",
+          "Thước có màu trong suốt",
+          "Thước làm bằng nhựa nhẹ"
+        ],
+        "answer_index": 0,
+        "hint": "Bí mật nằm ở khoảng cách giữa các vạch!"
+      },
+      "action": {
+        "type": "swipe",
+        "label": "Vuốt để in vạch số"
+      }
+    }
+  ],
+  "experiment": {
+    "title": "Nhiệm vụ mini tại nhà",
+    "prompt": "Bé thử đo chiều dài quyển sách bằng thước, rồi đo lại bằng cách đặt các ngón tay nối tiếp nhau. Cách nào cho kết quả giống nhau mỗi lần hơn? Đoán trước rồi thử nhé!",
+    "reveal": "Thước cho kết quả giống nhau vì các vạch luôn cách đều nhau. Ngón tay mỗi người một cỡ nên đo bằng tay sẽ lệch. Nhờ vạch đều mà cả thế giới đo giống nhau.",
+    "badge": "Nhà khoa học nhí"
+  },
+  "history": "Từ rất lâu, con người đã cần đo mọi thứ, ban đầu bằng gang tay hay bàn chân, nên mỗi người đo một khác. Về sau, người ta thống nhất những khoảng dài bằng nhau và làm ra chiếc thước có vạch đều. Nhờ vậy, ai đo cũng ra cùng kết quả, giúp xây nhà, may áo và làm đồ vật khớp với nhau.",
+  "story": "Bé biết không, chiếc thước kẻ trong suốt của bé thường bắt đầu từ những hạt nhựa nhỏ xíu như hạt gạo, làm ra từ dầu mỏ sâu dưới lòng đất. Hạt nhựa được nấu cho mềm chảy rồi ép qua một khe dài để thành thanh nhựa thẳng tắp. Khi nguội, thanh nhựa cứng lại và được cắt thành từng đoạn bằng nhau. Bước cuối cùng mới thú vị: người ta in lên mặt thước những vạch nhỏ cách đều nhau đúng một khoảng. Chính nhờ các vạch đều tăm tắp ấy mà bé đặt thước lên là đo được vật dài bao nhiêu, và ai đo cũng ra cùng một kết quả!"
+}

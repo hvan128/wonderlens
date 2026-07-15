@@ -9,6 +9,7 @@
       "kid_text": "Cốc giấy bắt đầu từ sợi gỗ. Nhiều nhà máy dùng gỗ từ rừng trồng để có nguồn nguyên liệu ổn định hơn.",
       "fun_fact": "Một thân cây lớn có thể cho rất nhiều sợi làm giấy.",
       "illustration": "assets/images/paper_cup_stage0.png",
+      "audio": "assets/audio/paper_cup_stage0.mp3",
       "action": {
         "type": "swipe",
         "label": "Vuốt để chở gỗ đến nhà máy"
@@ -19,6 +20,7 @@
       "kid_text": "Gỗ được băm nhỏ, trộn với nước và xử lý cho mềm thành bột giấy sền sệt.",
       "fun_fact": "Bột giấy ướt nhìn giống một nồi cháo loãng khổng lồ.",
       "illustration": "assets/images/paper_cup_stage1.png",
+      "audio": "assets/audio/paper_cup_stage1.mp3",
       "predict": {
         "question": "Gỗ băm nhỏ xử lý với nước sẽ biến thành gì?",
         "options": [
@@ -39,6 +41,7 @@
       "kid_text": "Bột giấy được trải mỏng, ép bớt nước rồi sấy khô thành những cuộn giấy rất lớn.",
       "fun_fact": "Có cuộn giấy dài hơn cả một sân bóng.",
       "illustration": "assets/images/paper_cup_stage2.png",
+      "audio": "assets/audio/paper_cup_stage2.mp3",
       "predict": {
         "question": "Bột giấy ướt được làm gì để thành tấm giấy?",
         "options": [
@@ -59,6 +62,7 @@
       "kid_text": "Giấy được cắt, cuộn thành hình cốc, rồi phủ một lớp màng mỏng bên trong để nước khó thấm ra ngoài.",
       "fun_fact": "Lớp màng mỏng giúp cốc giấy giữ nước trong thời gian ngắn.",
       "illustration": "assets/images/paper_cup_stage3.png",
+      "audio": "assets/audio/paper_cup_stage3.mp3",
       "predict": {
         "question": "Làm sao cốc giấy đựng nước mà không bị rỉ?",
         "options": [
