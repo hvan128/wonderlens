@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import '../data/hero_catalog.dart';
 import '../models/object_content.dart';
 import 'journey_image_service.dart';
+import 'narration_service.dart';
 import 'speech_service.dart';
 import 'video_service.dart';
 
@@ -17,6 +19,15 @@ String? journeyCoverSpeech(ObjectContent c) {
   return history.isNotEmpty
       ? history
       : 'Cùng xem ${c.name} được tạo ra như thế nào nhé!';
+}
+
+/// Hero có audio đóng gói cho lời cover/lịch sử dùng quy ước này.
+/// [heroesWithBundledAudio] định nghĩa trong `hero_catalog.dart`.
+String? journeyCoverAudio(ObjectContent c) {
+  if (c.source != 'asset') return null;
+  if (!heroesWithBundledAudio.contains(c.id)) return null;
+  if (journeyCoverSpeech(c) == null) return null;
+  return 'assets/audio/${c.id}_history.mp3';
 }
 
 /// Toàn bộ lời đọc theo đúng thứ tự timeline sẽ đọc (cover nếu có + từng chặng).
@@ -65,7 +76,9 @@ class JourneyWarmup {
     _id = content.id;
     _images = _imageSvc.generate(content);
     _audio.clear();
-    _warmAudio(content); // ưu tiên cover trước (xem _warmAudio)
+    if (!kUseDeviceTtsOnly) {
+      _warmAudio(content); // ưu tiên cover trước (xem _warmAudio)
+    }
     // TẠM DỪNG gen video (theo yêu cầu): không sinh phim ngầm nữa.
     _video = Future<File?>.value(null);
   }
@@ -87,8 +100,8 @@ class JourneyWarmup {
   /// Ảnh từng chặng: future warm-up nếu đúng vật, không thì sinh mới.
   Future<Map<int, File>> images(ObjectContent content) =>
       (_id == content.id && _images != null)
-          ? _images!
-          : _imageSvc.generate(content);
+      ? _images!
+      : _imageSvc.generate(content);
 
   /// Phim hành trình. Dùng future warm-up (bắt đầu sớm) NẾU còn dùng được (file
   /// vẫn tồn tại). [forceFresh] (nút "Thử lại") hoặc future đã null/mất file →
@@ -100,7 +113,10 @@ class JourneyWarmup {
       if (f != null && await f.exists()) return f; // cache warm-up còn tốt
     }
     final gen = ++_videoGen;
-    final fresh = _videoSvc.generate(content, isCancelled: () => gen != _videoGen);
+    final fresh = _videoSvc.generate(
+      content,
+      isCancelled: () => gen != _videoGen,
+    );
     if (_id == content.id) _video = fresh;
     return fresh;
   }

@@ -1,13 +1,15 @@
 import 'dart:ui' show ImageFilter;
 
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show StandardMessageCodec;
 
 /// Nền **Liquid Glass native của iOS 26** (`UIGlassEffect`) qua PlatformView —
 /// glass thật của hệ điều hành, mượt & thích ứng nội dung phía sau. [child] là
 /// lớp nội dung Flutter phủ LÊN kính. Nền tảng khác (hoặc iOS cũ) rớt về
-/// `BackdropFilter` blur trắng mờ. Kính tự bo capsule theo chiều cao.
+/// `BackdropFilter` blur trắng mờ. [radius] được truyền xuống native; radius lớn
+/// vẫn tạo capsule, radius nhỏ giữ đúng bo góc của card.
 class LiquidGlass extends StatelessWidget {
   final Widget child;
   final double radius;
@@ -22,9 +24,10 @@ class LiquidGlass extends StatelessWidget {
         borderRadius: br,
         child: Stack(
           children: <Widget>[
-            const Positioned.fill(
+            Positioned.fill(
               child: UiKitView(
                 viewType: 'wonder_liquid_glass',
+                creationParams: <String, Object?>{'radius': radius},
                 creationParamsCodec: StandardMessageCodec(),
               ),
             ),

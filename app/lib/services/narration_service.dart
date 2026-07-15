@@ -8,9 +8,14 @@ import 'package:video_player/video_player.dart';
 import '../data/app_settings.dart';
 import 'speech_service.dart';
 
-/// Đọc to nội dung. Bật API thật → **giọng OpenAI** (MP3 từ proxy, phát qua
-/// video_player — audio-only). Offline/lỗi → rớt về **giọng máy** (flutter_tts)
-/// để không bao giờ im. Lỗi nuốt best-effort — giọng là phụ trợ, không chặn flow.
+/// Tạm thời ép mọi narration dùng TTS mặc định của hệ điều hành để phản hồi nhanh.
+/// Đổi về `false` để quay lại đường OpenAI speech qua [SpeechService].
+final bool kUseDeviceTtsOnly = true;
+
+/// Đọc to nội dung. Mặc định hiện tại → **giọng máy** (flutter_tts) cho nhanh.
+/// Khi [kUseDeviceTtsOnly] = false và API thật bật → thử giọng OpenAI (MP3 từ
+/// proxy, phát qua video_player — audio-only), lỗi thì rớt về giọng máy.
+/// Lỗi nuốt best-effort — giọng là phụ trợ, không chặn flow.
 ///
 /// Trước mỗi lần đọc set audio session sang **playback** (loa ngoài): camera để
 /// session ở `playAndRecord` (định tuyến ra loa tai) nên phải ép lại.
@@ -47,7 +52,7 @@ class NarrationService {
     _stopped = false;
     if (text.trim().isEmpty) return;
     await _ensureSession(); // ép loa ngoài cho cả video_player lẫn giọng máy
-    if (AppSettings.useLiveApi) {
+    if (!kUseDeviceTtsOnly && AppSettings.useLiveApi) {
       final ok = await _speakOpenAI(text);
       if (ok || _stopped) return;
       // Lỗi giọng OpenAI → rớt về giọng máy để vẫn có tiếng.
@@ -55,13 +60,50 @@ class NarrationService {
     await _speakDevice(text);
   }
 
+  /// Phát giọng đọc đã pre-gen từ asset; lỗi/missing thì đọc [fallbackText].
+  Future<void> speakAsset(String assetPath, String fallbackText) async {
+    _stopped = false;
+    if (assetPath.trim().isEmpty) {
+      await speak(fallbackText);
+      return;
+    }
+    await _ensureSession();
+    final ok = await _playAudioController(
+      VideoPlayerController.asset(assetPath),
+      debugLabel: 'asset audio',
+    );
+    if (ok || _stopped) return;
+    await speak(fallbackText);
+  }
+
   Future<bool> _speakOpenAI(String text) async {
     final file = await _speech.synthesize(text);
     if (file == null) return false;
     if (_stopped) return true;
+    return _playAudioController(
+      VideoPlayerController.file(file),
+      debugLabel: 'openai tts',
+    );
+  }
+
+  Future<void> _speakDevice(String text) async {
     try {
+      await _ensureTts();
+      await _tts.stop();
+      if (_stopped) return;
+      await _tts.speak(text);
+    } catch (e) {
+      debugPrint('device tts error: $e');
+    }
+  }
+
+  Future<bool> _playAudioController(
+    VideoPlayerController ctrl, {
+    required String debugLabel,
+  }) async {
+    try {
+      await _tts.stop();
       await _disposeAudio();
-      final ctrl = VideoPlayerController.file(file);
       _audio = ctrl;
       await ctrl.initialize();
       if (_stopped) {
@@ -72,7 +114,8 @@ class NarrationService {
       _playDone = done;
       void onTick() {
         final v = ctrl.value;
-        final finished = v.isCompleted ||
+        final finished =
+            v.isCompleted ||
             v.hasError ||
             (v.duration > Duration.zero && v.position >= v.duration);
         if (finished && !done.isCompleted) done.complete();
@@ -86,21 +129,10 @@ class NarrationService {
       await _disposeAudio();
       return true;
     } catch (e) {
-      debugPrint('openai tts play error: $e');
+      debugPrint('$debugLabel play error: $e');
       _playDone = null;
       await _disposeAudio();
       return false;
-    }
-  }
-
-  Future<void> _speakDevice(String text) async {
-    try {
-      await _ensureTts();
-      await _tts.stop();
-      if (_stopped) return;
-      await _tts.speak(text);
-    } catch (e) {
-      debugPrint('device tts error: $e');
     }
   }
 

@@ -5,6 +5,78 @@ import 'package:flutter/material.dart';
 import '../ui/ui.dart';
 import 'object_avatar.dart';
 
+/// Size chung cho object cutout trong các ô sticker nhỏ như Nhật kí và Rương.
+const double kObjectStickerDisplayDiameter = 112;
+const double kObjectStickerLargeDiameter = 132;
+
+/// Size của sticker preview trong thẻ nhật kí ở Home. Hero thu từ màn nhật kí
+/// về thẻ phải kết thúc đúng ở size này để không snap resize ở frame cuối.
+const double kHomePreviewStickerDiameter = 82;
+const double kHomePreviewStickerCardWidth = 94;
+const double kHomePreviewStickerCardHeight = 116;
+const double kHomePreviewStickerCardRadius = 18;
+
+const List<Color> kHomePreviewStickerCardTints = <Color>[
+  Color(0xFFCFC3AE),
+  Color(0xFFD98A45),
+  Color(0xFFE0AE5B),
+  Color(0xFFD8503A),
+  Color(0xFFDCC9A8),
+];
+
+Color homePreviewStickerCardTint(int index) =>
+    kHomePreviewStickerCardTints[index % kHomePreviewStickerCardTints.length];
+
+double objectStickerVisualScale(String objectId) => switch (objectId) {
+  'ball_pen' => 2.70,
+  'battery_aa' => 3.00,
+  'paper_a4' => 1.88,
+  'paper_clip' => 2.53,
+  'pencil' => 2.10,
+  'plastic_bottle' => 1.54,
+  'sticky_note' => 3.00,
+  _ => 1,
+};
+
+double objectHomePreviewVisualScale(String objectId) => switch (objectId) {
+  'paper_cup' => 0.76,
+  'ball_pen' => 1.80,
+  'battery_aa' => 2.00,
+  'paper_a4' => 1.25,
+  'paper_clip' => 1.68,
+  'pencil' => 1.40,
+  'plastic_bottle' => 1.02,
+  'sticky_note' => 2.00,
+  _ => 1,
+};
+
+/// Tiến trình 0 = preview Home, 1 = sticker lớn trong màn nhật kí.
+double objectHomeFlightDiameter(double detailDiameter, double progress) {
+  final t = progress.clamp(0.0, 1.0).toDouble();
+  return lerpDouble(kHomePreviewStickerDiameter, detailDiameter, t)!;
+}
+
+/// Tiến trình 0 = preview Home, 1 = sticker lớn trong màn nhật kí.
+double objectHomeFlightVisualScale(String objectId, double progress) {
+  final t = progress.clamp(0.0, 1.0).toDouble();
+  return lerpDouble(
+    objectHomePreviewVisualScale(objectId),
+    objectStickerVisualScale(objectId),
+    t,
+  )!;
+}
+
+Offset objectStickerVisualOffset(String objectId) => switch (objectId) {
+  'ball_pen' => const Offset(-0.012, -0.196),
+  'battery_aa' => const Offset(-0.007, -0.177),
+  'paper_a4' => const Offset(0.021, -0.030),
+  'paper_clip' => const Offset(0.002, -0.057),
+  'pencil' => const Offset(-0.010, -0.144),
+  'plastic_bottle' => const Offset(0.001, -0.042),
+  'sticky_note' => const Offset(-0.002, -0.003),
+  _ => Offset.zero,
+};
+
 /// Một vật để bày dạng sticker (id để mở lại, tên + emoji để hiển thị).
 class StickerItem {
   final String id;
@@ -97,6 +169,115 @@ class StickerLabel extends StatelessWidget {
   }
 }
 
+class HomeKraftStickerCard extends StatelessWidget {
+  final Color tint;
+  final double shadowOpacity;
+
+  const HomeKraftStickerCard({
+    super.key,
+    required this.tint,
+    this.shadowOpacity = 0.16,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(kHomePreviewStickerCardRadius),
+        boxShadow: <BoxShadow>[
+          if (shadowOpacity > 0)
+            BoxShadow(
+              color: WonderColors.textStrong.withValues(alpha: shadowOpacity),
+              blurRadius: 16,
+              offset: const Offset(0, 9),
+            ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(kHomePreviewStickerCardRadius),
+        child: Stack(
+          fit: StackFit.expand,
+          children: <Widget>[
+            Image.asset(
+              'assets/images/kraft_paper.png',
+              fit: BoxFit.cover,
+              color: tint,
+              colorBlendMode: BlendMode.multiply,
+              errorBuilder: (context, error, stack) => ColoredBox(color: tint),
+            ),
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: <Color>[
+                    Color(0x22FFFFFF),
+                    Color(0x00FFFFFF),
+                    Color(0x1A000000),
+                  ],
+                  stops: <double>[0.0, 0.5, 1.0],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class HomeStickerPreviewTile extends StatelessWidget {
+  final StickerItem item;
+  final int index;
+  final double tilt;
+  final bool avatarShadow;
+  final double cardShadowOpacity;
+
+  const HomeStickerPreviewTile({
+    super.key,
+    required this.item,
+    required this.index,
+    required this.tilt,
+    this.avatarShadow = true,
+    this.cardShadowOpacity = 0.16,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: kHomePreviewStickerCardWidth,
+      height: kHomePreviewStickerCardHeight,
+      child: Transform.rotate(
+        angle: tilt,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: <Widget>[
+            Positioned.fill(
+              child: HomeKraftStickerCard(
+                tint: homePreviewStickerCardTint(index),
+                shadowOpacity: cardShadowOpacity,
+              ),
+            ),
+            ObjectAvatar(
+              objectId: item.id,
+              emoji: item.emoji,
+              diameter: kHomePreviewStickerDiameter,
+              emojiSize: kHomePreviewStickerDiameter * 0.48,
+              glowOpacity: 0.12,
+              sticker: true,
+              stickerBorderFactor: 0.03,
+              stickerVisualScale: objectHomePreviewVisualScale(item.id),
+              stickerVisualOffset: objectStickerVisualOffset(item.id),
+              stickerShadow: avatarShadow,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Nội dung một ô: sticker (nghiêng) + tem tên (width CỐ ĐỊNH để xuống dòng nhất
 /// quán, không nhảy dòng khi FittedBox scale lúc bay). [labelFactor] điều khiển
 /// độ hiện + CO cả rộng lẫn cao của tem (khi về 0 ô co đúng hình vuông sticker →
@@ -107,6 +288,8 @@ class StickerTile extends StatelessWidget {
   final double tilt;
   final double labelWidth;
   final double labelFactor;
+  final double? visualScale;
+  final Offset? visualOffset;
 
   /// false khi render trong Hero overlay lúc bay — tắt bóng blur của sticker
   /// (nguồn nháy đen 1 frame trên Impeller + blur lại mỗi frame tốn GPU).
@@ -119,6 +302,8 @@ class StickerTile extends StatelessWidget {
     this.tilt = 0,
     this.labelWidth = 150,
     this.labelFactor = 1,
+    this.visualScale,
+    this.visualOffset,
     this.shadow = true,
   });
 
@@ -136,6 +321,10 @@ class StickerTile extends StatelessWidget {
             emojiSize: diameter * 0.48,
             glowOpacity: 0.16,
             sticker: true,
+            stickerVisualScale:
+                visualScale ?? objectStickerVisualScale(item.id),
+            stickerVisualOffset:
+                visualOffset ?? objectStickerVisualOffset(item.id),
             stickerShadow: shadow,
           ),
         ),
@@ -185,6 +374,7 @@ class ObjectSticker extends StatelessWidget {
   /// kia là cutout vuông trần (Rương ↔ cover timeline): chuyến bay vuông↔vuông
   /// không đổi tỉ lệ nên vật không bao giờ bị tem ép co/che ("cắt mất nửa").
   final bool labelInHero;
+  final int? homePreviewIndex;
 
   const ObjectSticker({
     super.key,
@@ -192,67 +382,56 @@ class ObjectSticker extends StatelessWidget {
     required this.heroTag,
     required this.onTap,
     this.onLongPress,
-    this.diameter = 132,
+    this.diameter = kObjectStickerLargeDiameter,
     this.tilt = 0,
     this.labelWidth = 150,
     this.isOpener = false,
     this.flightEndTilt,
     this.labelInHero = true,
+    this.homePreviewIndex,
   });
 
-  Widget _avatar({required bool shadow, double? tiltOverride}) =>
-      Transform.rotate(
-        angle: tiltOverride ?? tilt,
-        child: ObjectAvatar(
-          objectId: item.id,
-          emoji: item.emoji,
-          diameter: diameter,
-          emojiSize: diameter * 0.48,
-          glowOpacity: 0.16,
-          sticker: true,
-          stickerShadow: shadow,
-        ),
-      );
+  Widget _avatar({
+    required bool shadow,
+    double? tiltOverride,
+    double? diameterOverride,
+    double? visualScaleOverride,
+    Offset? visualOffsetOverride,
+  }) {
+    final d = diameterOverride ?? diameter;
+    return Transform.rotate(
+      angle: tiltOverride ?? tilt,
+      child: ObjectAvatar(
+        objectId: item.id,
+        emoji: item.emoji,
+        diameter: d,
+        emojiSize: d * 0.48,
+        glowOpacity: 0.16,
+        sticker: true,
+        stickerVisualScale:
+            visualScaleOverride ?? objectStickerVisualScale(item.id),
+        stickerVisualOffset:
+            visualOffsetOverride ?? objectStickerVisualOffset(item.id),
+        stickerShadow: shadow,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final endTilt = flightEndTilt ?? tilt;
     final hero = Hero(
       tag: heroTag,
       createRectTween: stickerLinearRectTween,
-      flightShuttleBuilder:
-          (flightContext, animation, direction, fromContext, toContext) {
-            return Material(
-              type: MaterialType.transparency,
-              child: AnimatedBuilder(
-                animation: animation,
-                builder: (context, _) {
-                  // animation.value: 0 = phía route dưới, 1 = phía route được
-                  // push (cả push lẫn pop) → lerp góc là khớp cả hai chiều.
-                  final t = lerpDouble(tilt, endTilt, animation.value)!;
-                  return FittedBox(
-                    fit: BoxFit.contain,
-                    // shadow=false khi bay: blur trong overlay dễ nháy đen
-                    // (Impeller) và blur lại mỗi frame tốn GPU.
-                    child: labelInHero
-                        ? StickerTile(
-                            item: item,
-                            diameter: diameter,
-                            tilt: t,
-                            labelWidth: labelWidth,
-                            labelFactor: stickerLabelFactor(
-                              direction,
-                              animation.value,
-                              isOpener,
-                            ),
-                            shadow: false,
-                          )
-                        : _avatar(shadow: false, tiltOverride: t),
-                  );
-                },
-              ),
-            );
-          },
+      flightShuttleBuilder: objectStickerFlightShuttleBuilder(
+        item: item,
+        diameter: diameter,
+        tilt: tilt,
+        labelWidth: labelWidth,
+        isOpener: isOpener,
+        flightEndTilt: flightEndTilt,
+        labelInHero: labelInHero,
+        homePreviewIndex: homePreviewIndex,
+      ),
       child: labelInHero
           ? StickerTile(
               item: item,
@@ -287,6 +466,98 @@ class ObjectSticker extends StatelessWidget {
             ),
     );
   }
+}
+
+HeroFlightShuttleBuilder objectStickerFlightShuttleBuilder({
+  required StickerItem item,
+  double diameter = kObjectStickerLargeDiameter,
+  double tilt = 0,
+  double labelWidth = 150,
+  bool isOpener = false,
+  double? flightEndTilt,
+  bool labelInHero = true,
+  int? homePreviewIndex,
+}) {
+  return (flightContext, animation, direction, fromContext, toContext) {
+    return Material(
+      type: MaterialType.transparency,
+      child: AnimatedBuilder(
+        animation: animation,
+        builder: (context, _) {
+          // animation.value: 0 = phía route dưới, 1 = phía route được push
+          // (cả push lẫn pop) → lerp góc là khớp cả hai chiều.
+          final progress = animation.value;
+          final previewIndex = homePreviewIndex;
+          final homePreview = !isOpener && previewIndex != null;
+          final endTilt = flightEndTilt ?? tilt;
+          final t = lerpDouble(tilt, endTilt, progress)!;
+          final flightDiameter = homePreview
+              ? objectHomeFlightDiameter(diameter, progress)
+              : diameter;
+          final flightVisualScale = homePreview
+              ? objectHomeFlightVisualScale(item.id, progress)
+              : objectStickerVisualScale(item.id);
+          final flightVisualOffset = objectStickerVisualOffset(item.id);
+          final labelFactor = stickerLabelFactor(direction, progress, isOpener);
+
+          final detailFlight = FittedBox(
+            fit: BoxFit.contain,
+            // shadow=false khi bay: blur trong overlay dễ nháy đen (Impeller)
+            // và blur lại mỗi frame tốn GPU.
+            child: labelInHero
+                ? StickerTile(
+                    item: item,
+                    diameter: flightDiameter,
+                    tilt: t,
+                    labelWidth: labelWidth,
+                    labelFactor: labelFactor,
+                    visualScale: flightVisualScale,
+                    visualOffset: flightVisualOffset,
+                    shadow: false,
+                  )
+                : Transform.rotate(
+                    angle: t,
+                    child: ObjectAvatar(
+                      objectId: item.id,
+                      emoji: item.emoji,
+                      diameter: flightDiameter,
+                      emojiSize: flightDiameter * 0.48,
+                      glowOpacity: 0.16,
+                      sticker: true,
+                      stickerVisualScale: flightVisualScale,
+                      stickerVisualOffset: flightVisualOffset,
+                      stickerShadow: false,
+                    ),
+                  ),
+          );
+
+          if (!homePreview) return detailFlight;
+
+          final homeFactor = ((0.20 - progress) / 0.20)
+              .clamp(0.0, 1.0)
+              .toDouble();
+          if (homeFactor <= 0) return detailFlight;
+
+          final homeTile = HomeStickerPreviewTile(
+            item: item,
+            index: previewIndex,
+            tilt: stickerTilt(previewIndex),
+            avatarShadow: true,
+            cardShadowOpacity: 0.16,
+          );
+
+          return Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: <Widget>[
+              Opacity(opacity: homeFactor, child: homeTile),
+              Opacity(opacity: 1 - homeFactor, child: detailFlight),
+            ],
+          );
+        },
+      ),
+    );
+  };
 }
 
 /// Lưới sticker **hai cột so le** (cột phải hạ xuống một nhịp) cho cảm giác dán
@@ -334,6 +605,7 @@ class StickerStaggeredGrid extends StatelessWidget {
           isOpener: isOpener,
           flightEndTilt: flightEndTilt,
           labelInHero: labelInHero,
+          homePreviewIndex: isOpener ? null : i,
           onTap: () => onTap(item.id),
           onLongPress: onLongPress == null ? null : () => onLongPress!(item.id),
         ),
@@ -389,6 +661,7 @@ class ObjectStickerGrid extends StatelessWidget {
       // Đầu kia là cutout vuông trần → tem đứng lại, chỉ sticker vuông bay
       // (vuông↔vuông, không đổi tỉ lệ → vật không bị ép co/che lúc bay).
       labelInHero: false,
+      diameter: kObjectStickerDisplayDiameter,
     );
   }
 }

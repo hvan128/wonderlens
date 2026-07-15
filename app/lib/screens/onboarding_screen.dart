@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -6,7 +7,10 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/app_settings.dart';
+import '../data/capture_store.dart';
+import '../data/collection_repository.dart';
 import '../data/content_repository.dart';
+import '../data/onboarding_mission.dart';
 import '../models/object_content.dart';
 import '../services/narration_service.dart';
 import '../ui/ui.dart';
@@ -20,6 +24,12 @@ import 'timeline_screen.dart';
 ///   trình cốc giấy offline → thoát hành trình = xong onboarding, về home.
 /// Có "Bỏ qua", chỉ hiện đúng một lần (cờ trong AppSettings).
 class OnboardingScreen extends StatefulWidget {
+  final OnboardingMission mission;
+
+  /// First-run thì đóng cờ `onboarding_seen`; mission từ notification chỉ là
+  /// một capsule khám phá, không ảnh hưởng quyền hiện onboarding lần đầu.
+  final bool markOnboardingSeen;
+
   /// Giọng kể tiêm từ ngoài (test) — null thì tự tạo khi cần, như flow thật.
   final NarrationService? narration;
 
@@ -30,19 +40,30 @@ class OnboardingScreen extends StatefulWidget {
 
   const OnboardingScreen({
     super.key,
+    this.mission = OnboardingMission.firstRun,
+    this.markOnboardingSeen = true,
     this.narration,
     this.buildBeat = const Duration(milliseconds: 1700),
   });
+
+  factory OnboardingScreen.mission({
+    Key? key,
+    required String objectId,
+    NarrationService? narration,
+    Duration buildBeat = const Duration(milliseconds: 1700),
+  }) => OnboardingScreen(
+    key: key,
+    mission: OnboardingMission.forObjectId(objectId),
+    markOnboardingSeen: false,
+    narration: narration,
+    buildBeat: buildBeat,
+  );
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  static const String _heroId = 'paper_cup';
-  static const String _sceneAsset = 'assets/images/onboarding_scene.jpg';
-  static const String _cutoutAsset = 'assets/images/onboarding_cutout.png';
-
   bool _busy = false;
   // Ảnh cho hiệu ứng tan biến (CaptureDissolve sở hữu & tự giải phóng).
   ui.Image? _dissolveFrame;
@@ -56,10 +77,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final ContentRepository _repo = ContentRepository();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _speakPrompt());
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Nạp sẵn ảnh cảnh để viewfinder giả hiện tức thì.
-    precacheImage(const AssetImage(_sceneAsset), context);
+    precacheImage(AssetImage(widget.mission.sceneAsset), context);
   }
 
   @override
@@ -69,8 +96,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   /// Giải mã asset → `ui.Image` (mirror `_decodeImage` của camera_screen).
-  Future<ui.Image> _decodeAsset(String key) async {
-    final ByteData data = await rootBundle.load(key);
+  Future<ui.Image> _decodeAsset(String key, {String? fallback}) async {
+    ByteData data;
+    try {
+      data = await rootBundle.load(key);
+    } catch (_) {
+      final fb = fallback;
+      if (fb == null || fb == key) rethrow;
+      data = await rootBundle.load(fb);
+    }
     final ui.Codec codec = await ui.instantiateImageCodec(
       data.buffer.asUint8List(),
     );
@@ -83,12 +117,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   /// biến ngay → "AI dựng chuyện" (ở đây: nội dung hero bundled + nhịp chờ).
   Future<void> _capture() async {
     if (_busy || _dissolveFrame != null) return;
+    _stopNarration();
     setState(() => _busy = true);
     try {
-      final ui.Image frame = await _decodeAsset(_sceneAsset);
+      final ui.Image frame = await _decodeAsset(
+        widget.mission.sceneAsset,
+        fallback: OnboardingMission.firstRun.sceneAsset,
+      );
       final ui.Image mask;
       try {
-        mask = await _decodeAsset(_cutoutAsset);
+        mask = await _decodeAsset(
+          widget.mission.cutoutAsset,
+          fallback: OnboardingMission.firstRun.cutoutAsset,
+        );
       } catch (_) {
         // Chưa bàn giao quyền sở hữu cho CaptureDissolve → tự dọn frame.
         frame.dispose();
@@ -105,14 +146,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         _dissolveTitle = null;
       });
 
-      final ObjectContent? content = await _repo.load(_heroId);
+      final ObjectContent? content = await _repo.load(widget.mission.objectId);
       await Future<void>.delayed(widget.buildBeat);
       // Bé có thể đã bấm Huỷ trong lúc "đang dựng" → đừng bung kết quả.
       if (!mounted || _dissolveFrame == null) return;
       WonderHaptics.success();
       setState(() {
         _content = content;
-        _dissolveTitle = content?.name ?? 'Cốc giấy';
+        _dissolveTitle = content?.name ?? widget.mission.name;
       });
     } catch (e) {
       debugPrint('Onboarding capture error: $e');
@@ -123,7 +164,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _dismissOverlay() {
-    _narration?.stop();
+    _stopNarration();
     setState(() {
       _dissolveFrame = null;
       _dissolveMask = null;
@@ -132,10 +173,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     });
   }
 
+  NarrationService _narrator() =>
+      widget.narration ?? (_narration ??= NarrationService());
+
+  void _stopNarration() {
+    widget.narration?.stop();
+    _narration?.stop();
+  }
+
+  void _speakPrompt() {
+    if (!mounted || _journeyStarted || _dissolveFrame != null) return;
+    _narrator().speakAsset(
+      widget.mission.promptAudio,
+      '${widget.mission.promptText} ${widget.mission.promptHint}',
+    );
+  }
+
   void _speak(String name) {
     WonderHaptics.selection();
     // Khởi tạo lười — chỉ chạm loa mới đụng plugin TTS/audio.
-    (widget.narration ?? (_narration ??= NarrationService())).speak(name);
+    _narrator().speakAsset(widget.mission.resultAudio, name);
   }
 
   /// Nút ✓ — mở hành trình thật ngay trong overlay (same-screen như camera).
@@ -146,12 +203,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       return;
     }
     WonderHaptics.primary();
-    _narration?.stop();
+    _stopNarration();
     setState(() => _journeyStarted = true);
   }
 
   void _finish() {
-    AppSettings.markOnboardingSeen();
+    unawaited(
+      CaptureStore.instance.seedAsset(
+        widget.mission.objectId,
+        widget.mission.stickerAsset,
+      ),
+    );
+    CollectionRepository().recordHeroId(widget.mission.objectId);
+    if (widget.markOnboardingSeen) AppSettings.markOnboardingSeen();
     context.go('/home');
   }
 
@@ -168,10 +232,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           // Cảnh mẫu — đóng vai preview camera. Thiếu asset thì nền tối, flow
           // vẫn chạy (không bao giờ crash vì media).
           Image.asset(
-            _sceneAsset,
+            widget.mission.sceneAsset,
             fit: BoxFit.cover,
-            errorBuilder: (_, _, _) =>
-                const ColoredBox(color: WonderColors.ink),
+            errorBuilder: (_, _, _) => Image.asset(
+              OnboardingMission.firstRun.sceneAsset,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) =>
+                  const ColoredBox(color: WonderColors.ink),
+            ),
           ),
           const _Scrims(),
           // Khung ngắm + câu đố — mờ đi khi overlay lên (như camera).
@@ -180,7 +248,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: AnimatedOpacity(
                 opacity: showChrome ? 1 : 0,
                 duration: WonderTokens.durBase,
-                child: _AimChrome(busy: _busy),
+                child: _AimChrome(busy: _busy, mission: widget.mission),
               ),
             ),
           ),
@@ -259,13 +327,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 20),
                     child: Center(
-                      child: ApertureCaptureButton(
-                        size: WonderTokens.scanSize,
-                        busy: _busy,
-                        showGuide: false,
-                        animateOnTap: false,
-                        onCapture: _busy ? null : _capture,
-                        semanticLabel: 'Chụp thử chiếc cốc',
+                      child: _CaptureTapCue(
+                        active: !_busy,
+                        buttonSize: WonderTokens.scanSize,
+                        child: ApertureCaptureButton(
+                          size: WonderTokens.scanSize,
+                          busy: _busy,
+                          showGuide: false,
+                          animateOnTap: false,
+                          onCapture: _busy ? null : _capture,
+                          semanticLabel: 'Chụp thử ${widget.mission.name}',
+                        ),
                       ),
                     ),
                   ),
@@ -318,6 +390,177 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 }
 
+/// Cue hình ảnh "bấm vào đây" cho nút capture: vòng pulse + dấu chạm nhỏ.
+/// Không dùng chữ để tránh cạnh tranh với câu đố và giữ onboarding dưới 10s.
+class _CaptureTapCue extends StatefulWidget {
+  final bool active;
+  final double buttonSize;
+  final Widget child;
+
+  const _CaptureTapCue({
+    required this.active,
+    required this.buttonSize,
+    required this.child,
+  });
+
+  @override
+  State<_CaptureTapCue> createState() => _CaptureTapCueState();
+}
+
+class _CaptureTapCueState extends State<_CaptureTapCue>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1900),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.active) _pulse.repeat();
+  }
+
+  @override
+  void didUpdateWidget(covariant _CaptureTapCue oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.active && !_pulse.isAnimating) {
+      _pulse.repeat();
+    } else if (!widget.active && _pulse.isAnimating) {
+      _pulse.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduce = reduceMotionOf(context);
+    final boxSize = widget.buttonSize * 1.48;
+    final cue = RepaintBoundary(
+      child: CustomPaint(
+        painter: _CaptureTapCuePainter(
+          progress: reduce || !widget.active ? 0.58 : _pulse.value,
+          buttonSize: widget.buttonSize,
+          active: widget.active,
+        ),
+      ),
+    );
+
+    return SizedBox.square(
+      dimension: boxSize,
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: <Widget>[
+          Positioned.fill(child: IgnorePointer(child: cue)),
+          widget.child,
+        ],
+      ),
+    );
+  }
+}
+
+class _CaptureTapCuePainter extends CustomPainter {
+  final double progress;
+  final double buttonSize;
+  final bool active;
+
+  const _CaptureTapCuePainter({
+    required this.progress,
+    required this.buttonSize,
+    required this.active,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    final r = buttonSize / 2;
+    final p = progress.clamp(0.0, 1.0);
+    final pulse = Curves.easeOutCubic.transform(p);
+    final contact = (1 - ((p - 0.50).abs() / 0.18).clamp(0.0, 1.0));
+
+    final outer = Paint()
+      ..isAntiAlias = true
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 3
+      ..color = Colors.white.withValues(
+        alpha: active ? 0.28 * (1 - pulse) : 0.22,
+      );
+    canvas.drawCircle(c, r * (1.04 + 0.24 * pulse), outer);
+
+    final inner = Paint()
+      ..isAntiAlias = true
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 2.2
+      ..color = WonderColors.mint.withValues(
+        alpha: active ? 0.55 * contact : 0.38,
+      );
+    canvas.drawCircle(c, r * (0.74 + 0.10 * contact), inner);
+
+    final arcPaint = Paint()
+      ..isAntiAlias = true
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 3.2
+      ..color = Colors.white.withValues(alpha: active ? 0.70 : 0.48);
+    final rect = Rect.fromCircle(center: c, radius: r * 0.98);
+    canvas.drawArc(rect, -math.pi * 0.78, math.pi * 0.18, false, arcPaint);
+    canvas.drawArc(rect, -math.pi * 0.18, math.pi * 0.18, false, arcPaint);
+
+    final start = c + Offset(r * 0.72, -r * 0.78);
+    final end = c + Offset(r * 0.28, -r * 0.30);
+    final approach = p < 0.52
+        ? Curves.easeOutCubic.transform(p / 0.52)
+        : Curves.easeInOut.transform(((1 - p) / 0.48).clamp(0.0, 1.0));
+    final tip = Offset.lerp(start, end, approach)!;
+
+    final shadow = Paint()
+      ..isAntiAlias = true
+      ..color = Colors.black.withValues(alpha: 0.18);
+    canvas.drawCircle(tip + const Offset(0, 2), 13, shadow);
+
+    final finger = Paint()
+      ..isAntiAlias = true
+      ..style = PaintingStyle.fill
+      ..color = Colors.white.withValues(alpha: active ? 0.95 : 0.75);
+    canvas.drawCircle(tip, 12, finger);
+
+    final nail = Paint()
+      ..isAntiAlias = true
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..color = WonderColors.coral.withValues(alpha: 0.58);
+    canvas.drawArc(
+      Rect.fromCircle(center: tip.translate(-1, -1), radius: 7),
+      -math.pi * 0.85,
+      math.pi * 0.58,
+      false,
+      nail,
+    );
+
+    if (contact > 0) {
+      final spark = Paint()
+        ..isAntiAlias = true
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.4
+        ..color = Colors.white.withValues(alpha: 0.58 * contact);
+      canvas.drawCircle(end, 18 + 10 * (1 - contact), spark);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CaptureTapCuePainter oldDelegate) =>
+      oldDelegate.progress != progress ||
+      oldDelegate.buttonSize != buttonSize ||
+      oldDelegate.active != active;
+}
+
 /// Khung ngắm 4 góc + câu đố mời chụp — dáng góc đồng bộ `_CornersPainter`
 /// của camera_screen.dart. Khác camera thật (khung căn giữa, người dùng tự
 /// lia máy cho vật vào khung): cảnh ở đây cố định nên khung tự hạ xuống ôm
@@ -325,7 +568,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 /// sáng màu, chữ trắng trần không đủ tương phản.
 class _AimChrome extends StatelessWidget {
   final bool busy;
-  const _AimChrome({required this.busy});
+  final OnboardingMission mission;
+
+  const _AimChrome({required this.busy, required this.mission});
 
   /// Tâm chủ thể theo trục dọc của ảnh scene (đo từ bbox alpha của cutout).
   /// Màn dọc cover chỉ crop chiều ngang nên tỉ lệ dọc giữ nguyên mọi phone.
@@ -369,9 +614,7 @@ class _AimChrome extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       Text(
-                        busy
-                            ? 'Đang soi manh mối…'
-                            : 'Đố bé biết chiếc cốc này từ đâu tới?',
+                        busy ? 'Đang soi manh mối…' : mission.promptText,
                         textAlign: TextAlign.center,
                         style: WonderType.body.copyWith(
                           color: Colors.white,
@@ -381,7 +624,7 @@ class _AimChrome extends StatelessWidget {
                       if (!busy) ...<Widget>[
                         const SizedBox(height: 2),
                         Text(
-                          'Chạm nút tròn bên dưới để chụp thử nhé!',
+                          mission.promptHint,
                           textAlign: TextAlign.center,
                           style: WonderType.heading.copyWith(
                             color: Colors.white,

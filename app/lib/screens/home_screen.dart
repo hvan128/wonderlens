@@ -6,7 +6,7 @@ import '../services/camera_warmup.dart';
 import '../ui/ui.dart';
 import '../util/vn_time.dart';
 import '../widgets/dev_panel.dart';
-import '../widgets/object_avatar.dart';
+import '../widgets/object_sticker_grid.dart';
 import 'day_detail_screen.dart';
 
 /// Trang chủ (tab): **header co giãn theo cuộn** — vuốt lên thì ẩn lời chào + thu
@@ -57,8 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final repo = CollectionRepository();
-    final journal = repo.journalEntries();
-    final discoveries = repo.discoveredIds().length + journal.length;
+    final entries = repo.discoveryEntries();
+    final discoveries = entries.length;
     final ringSize = (MediaQuery.sizeOf(context).width * 0.62).clamp(
       190.0,
       260.0,
@@ -68,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _range = maxExt - minExt;
 
     final byDay = <String, List<JournalEntry>>{};
-    for (final e in journal) {
+    for (final e in entries) {
       final d = e.discoveredAt;
       (byDay['${d.year}.${d.month}.${d.day}'] ??= <JournalEntry>[]).add(e);
     }
@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
               sliver: SliverList(
                 delegate: SliverChildListDelegate(<Widget>[
                   Text(
-                    'Tháng ${journal.first.discoveredAt.month}',
+                    'Nhật kí khám phá',
                     style: WonderType.display.copyWith(
                       color: WonderColors.textStrong,
                       fontSize: 25,
@@ -116,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 14),
                   for (var i = 0; i < days.length; i++) ...<Widget>[
-                    _DayCard(
+                    _JournalDayFrame(
                       entries: days[i],
                       color: _cardColors[i % _cardColors.length],
                       onOpen: () => context.push(
@@ -127,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 18),
                   ],
                 ]),
               ),
@@ -284,15 +284,34 @@ class _Greeting extends StatelessWidget {
   }
 }
 
-/// Thẻ một ngày: nền màu dịu bo tròn + ngày + số vật + thumbnail cutout. Chạm cả
-/// thẻ → mở màn chi tiết ([DayDetailView], route `/day`); mỗi vật bọc [Hero] để
-/// **bay** sang sticker lớn ở màn chi tiết (và bay ngược về khi thoát).
-class _DayCard extends StatelessWidget {
+class _DayLabel extends StatelessWidget {
+  final DateTime day;
+
+  const _DayLabel({required this.day});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 14),
+      child: Text(
+        '${day.day} tháng ${day.month}',
+        style: WonderType.body.copyWith(
+          color: WonderColors.ink,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          height: 1.1,
+        ),
+      ),
+    );
+  }
+}
+
+class _JournalDayFrame extends StatelessWidget {
   final List<JournalEntry> entries;
   final Color color;
   final VoidCallback onOpen;
 
-  const _DayCard({
+  const _JournalDayFrame({
     required this.entries,
     required this.color,
     required this.onOpen,
@@ -301,89 +320,168 @@ class _DayCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final d = entries.first.discoveredAt;
-    final show = entries.take(4).toList();
     return Pressable(
       onTap: onOpen,
       haptic: false,
       semanticLabel: 'Mở nhật ký ngày ${d.day} tháng ${d.month}',
-      child: Stack(
-        // Clip.none: quầng bóng (glow) của nền thẻ tràn ra ngoài không bị cắt.
-        clipBehavior: Clip.none,
-        children: <Widget>[
-          // Nền thẻ = Hero: khi mở, phóng to thành nền màn chi tiết (thu về khi
-          // thoát). Là sibling của các avatar Hero (Flutter cấm Hero lồng Hero).
-          Positioned.fill(
-            child: Hero(
-              tag: dayCardHeroTag(d),
-              createRectTween: dayLinearRectTween,
-              flightShuttleBuilder: dayCardFlightShuttle(color),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(26),
-                  boxShadow: <BoxShadow>[
-                    BoxShadow(
-                      color: color.withValues(alpha: 0.5),
-                      blurRadius: 18,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(34),
+          border: Border.all(
+            color: WonderColors.textStrong.withValues(alpha: 0.10),
+            width: 1,
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(22, 20, 22, 18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              _DayLabel(day: d),
+              const SizedBox(height: 6),
+              _DayCard(entries: entries, color: color),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Thẻ một ngày: nền màu dịu bo tròn + thumbnail cutout. Chạm cả thẻ → mở màn
+/// chi tiết ([DayDetailView], route `/day`); mỗi vật bọc [Hero] để **bay** sang
+/// sticker lớn ở màn chi tiết (và bay ngược về khi thoát).
+class _DayCard extends StatelessWidget {
+  static const double _stickerSpacing = 4;
+
+  final List<JournalEntry> entries;
+  final Color color;
+
+  const _DayCard({required this.entries, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final d = entries.first.discoveredAt;
+    final show = entries.take(3).toList();
+    return Stack(
+      // Clip.none: quầng bóng (glow) của nền thẻ tràn ra ngoài không bị cắt.
+      clipBehavior: Clip.none,
+      children: <Widget>[
+        // Nền thẻ = Hero: khi mở, phóng to thành nền màn chi tiết (thu về khi
+        // thoát). Là sibling của các avatar Hero (Flutter cấm Hero lồng Hero).
+        Positioned.fill(
+          child: Hero(
+            tag: dayCardHeroTag(d),
+            createRectTween: dayLinearRectTween,
+            flightShuttleBuilder: dayCardFlightShuttle(color),
+            child: _DayCardSurface(color: color),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 24, 12, 24),
+          child: Center(
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              runAlignment: WrapAlignment.center,
+              spacing: _stickerSpacing,
+              runSpacing: _stickerSpacing,
               children: <Widget>[
-                Text(
-                  '${d.day} tháng ${d.month}',
-                  style: WonderType.display.copyWith(
-                    color: WonderColors.textStrong,
-                    fontSize: 23,
-                    fontWeight: FontWeight.w600,
+                for (var j = 0; j < show.length; j++)
+                  _HomeStickerPreview(
+                    entry: show[j],
+                    index: j,
+                    tilt: dayStickerTilt(j),
                   ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  '${entries.length} vật',
-                  style: WonderType.body.copyWith(
-                    color: WonderColors.textStrong.withValues(alpha: 0.55),
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: <Widget>[
-                    for (var j = 0; j < show.length; j++)
-                      Hero(
-                        tag: dayObjectHeroTag(show[j].id),
-                        createRectTween: dayLinearRectTween,
-                        child: Material(
-                          type: MaterialType.transparency,
-                          child: Transform.rotate(
-                            angle: dayStickerTilt(j),
-                            child: ObjectAvatar(
-                              objectId: show[j].id,
-                              emoji: show[j].emoji,
-                              diameter: 66,
-                              emojiSize: 34,
-                              glowOpacity: 0.16,
-                              sticker: true,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
               ],
             ),
           ),
-        ],
+        ),
+      ],
+    );
+  }
+}
+
+class _HomeStickerPreview extends StatelessWidget {
+  final JournalEntry entry;
+  final int index;
+  final double tilt;
+
+  const _HomeStickerPreview({
+    required this.entry,
+    required this.index,
+    required this.tilt,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final item = StickerItem(
+      id: entry.id,
+      name: entry.name,
+      emoji: entry.emoji,
+    );
+    return SizedBox(
+      width: kHomePreviewStickerCardWidth,
+      height: kHomePreviewStickerCardHeight,
+      child: Hero(
+        tag: dayObjectHeroTag(entry.id),
+        createRectTween: dayLinearRectTween,
+        flightShuttleBuilder: objectStickerFlightShuttleBuilder(
+          item: item,
+          tilt: tilt,
+          homePreviewIndex: index,
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: HomeStickerPreviewTile(item: item, index: index, tilt: tilt),
+        ),
+      ),
+    );
+  }
+}
+
+class _DayCardSurface extends StatelessWidget {
+  final Color color;
+
+  const _DayCardSurface({required this.color});
+
+  static const double _radius = 26;
+
+  @override
+  Widget build(BuildContext context) {
+    final br = BorderRadius.circular(_radius);
+    return GlassSurface(
+      tone: GlassTone.light,
+      // Native UIGlassEffect hiện vẫn render dạng capsule trong vài bounds rộng.
+      // Card nhật kí cần bo góc chữ nhật ổn định, nên dùng recipe Flutter glass.
+      native: false,
+      radius: _radius,
+      padding: EdgeInsets.zero,
+      tint: color,
+      tintOpacity: 0.16,
+      blur: 18,
+      shadows: <BoxShadow>[
+        BoxShadow(
+          color: WonderColors.textStrong.withValues(alpha: 0.08),
+          blurRadius: 18,
+          offset: const Offset(0, 10),
+        ),
+      ],
+      child: SizedBox.expand(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: br,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: <Color>[
+                color.withValues(alpha: 0.22),
+                Colors.white.withValues(alpha: 0.12),
+                WonderColors.sky.withValues(alpha: 0.08),
+              ],
+              stops: const <double>[0.0, 0.58, 1.0],
+            ),
+          ),
+        ),
       ),
     );
   }

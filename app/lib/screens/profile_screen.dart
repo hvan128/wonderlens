@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../data/app_settings.dart';
 import '../data/collection_repository.dart';
 import '../data/content_repository.dart';
 import '../data/hero_catalog.dart';
+import '../data/subscription_repository.dart';
+import '../services/mission_notification_service.dart';
 import '../ui/ui.dart';
 import '../widgets/dev_panel.dart';
 import '../widgets/legal_links.dart';
@@ -75,7 +78,22 @@ class ProfileScreen extends StatelessWidget {
         ),
         children: <Widget>[
           const _ProfileHeader(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
+          const _SettingsSection(),
+          const SizedBox(height: 30),
+          Text(
+            'Thành tích khám phá',
+            style: WonderType.title.copyWith(
+              color: WonderColors.textStrong,
+              fontSize: 24,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Những món bé đã soi sẽ nằm lại ở đây.',
+            style: WonderType.caption.copyWith(color: WonderColors.textSoft),
+          ),
+          const SizedBox(height: 16),
           _ShowcaseCluster(items: showcase, onOpen: openItem),
           const SizedBox(height: 30),
           Text(
@@ -105,7 +123,7 @@ class ProfileScreen extends StatelessWidget {
                 : PhosphorIconsBold.shareNetwork,
             onTap: total == 0 ? () => context.push('/camera') : share,
           ),
-          const SizedBox(height: 36),
+          const SizedBox(height: 24),
           _MaterialBadgeShelf(badges: badges),
           const SizedBox(height: 24),
           Center(
@@ -135,12 +153,250 @@ class _ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      'Hồ sơ của bé',
+      'Cài đặt',
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
-      style: WonderType.display.copyWith(
-        color: WonderColors.textStrong,
-        fontSize: 30,
+      style: WonderType.title.copyWith(color: WonderColors.textSoft),
+    );
+  }
+}
+
+class _SettingsSection extends StatelessWidget {
+  const _SettingsSection();
+
+  Future<void> _setReminderEnabled(BuildContext context, bool value) async {
+    WonderHaptics.selection();
+    final ok = await MissionNotificationService.instance.setRemindersEnabled(
+      value,
+    );
+    if (!context.mounted) return;
+    if (!ok && value) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Chưa bật được thông báo. Phụ huynh có thể thử lại sau.',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _scheduleTestReminder(BuildContext context) async {
+    WonderHaptics.warning();
+    final ok = await MissionNotificationService.instance
+        .scheduleDebugTestReminder();
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? 'Đã đặt nhắc thử sau 10 giây.'
+              : 'Chưa bật được thông báo. Phụ huynh có thể thử lại sau.',
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppSettings.missionRemindersEnabled,
+      builder: (context, remindersEnabled, _) {
+        return ValueListenableBuilder<SubscriptionState>(
+          valueListenable: SubscriptionRepository.state,
+          builder: (context, plusState, _) {
+            return DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.94),
+                borderRadius: BorderRadius.circular(WonderTokens.radiusLg),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.86)),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: WonderColors.textStrong.withValues(alpha: 0.07),
+                    blurRadius: 30,
+                    offset: const Offset(0, 16),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(WonderTokens.radiusLg),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    _SettingsTile(
+                      icon: remindersEnabled
+                          ? PhosphorIconsFill.notification
+                          : PhosphorIconsBold.notification,
+                      title: 'Nhắc khám phá',
+                      semanticLabel: remindersEnabled
+                          ? 'Tắt nhắc khám phá'
+                          : 'Bật nhắc khám phá',
+                      onTap: () =>
+                          _setReminderEnabled(context, !remindersEnabled),
+                      onLongPress: () => _scheduleTestReminder(context),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Text(
+                            remindersEnabled ? 'Bật' : 'Tắt',
+                            style: WonderType.label.copyWith(
+                              color: remindersEnabled
+                                  ? WonderColors.tealDeep
+                                  : WonderColors.textSoft.withValues(
+                                      alpha: 0.58,
+                                    ),
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Transform.scale(
+                            scale: 0.78,
+                            child: Switch.adaptive(
+                              value: remindersEnabled,
+                              activeThumbColor: Colors.white,
+                              activeTrackColor: WonderColors.sunny,
+                              inactiveThumbColor: Colors.white,
+                              inactiveTrackColor: WonderColors.textSoft
+                                  .withValues(alpha: 0.20),
+                              onChanged: (value) =>
+                                  _setReminderEnabled(context, value),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const _SettingsDivider(),
+                    _SettingsTile(
+                      icon: plusState.isPremium
+                          ? PhosphorIconsFill.checkCircle
+                          : PhosphorIconsFill.sparkle,
+                      title: 'WonderLens Plus',
+                      semanticLabel: 'Mở WonderLens Plus',
+                      onTap: () => context.push('/subscription'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Text(
+                            _plusStatus(plusState),
+                            style: WonderType.label.copyWith(
+                              color: plusState.isPremium
+                                  ? WonderColors.sunnyDeep
+                                  : WonderColors.textSoft.withValues(
+                                      alpha: 0.58,
+                                    ),
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          PhosphorIcon(
+                            PhosphorIconsBold.caretRight,
+                            color: WonderColors.textSoft.withValues(
+                              alpha: 0.42,
+                            ),
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _plusStatus(SubscriptionState state) {
+    if (!state.isPremium) return 'Chưa bật';
+    return state.source == 'store' ? 'Store' : 'Đang bật';
+  }
+}
+
+class _SettingsTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String semanticLabel;
+  final Widget trailing;
+  final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+
+  const _SettingsTile({
+    required this.icon,
+    required this.title,
+    required this.semanticLabel,
+    required this.trailing,
+    required this.onTap,
+    this.onLongPress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        splashColor: WonderColors.sunny.withValues(alpha: 0.10),
+        highlightColor: WonderColors.sunny.withValues(alpha: 0.06),
+        child: Semantics(
+          button: true,
+          label: semanticLabel,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 64),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 14, 6),
+              child: Row(
+                children: <Widget>[
+                  SizedBox(
+                    width: 30,
+                    height: 40,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: PhosphorIcon(
+                        icon,
+                        color: WonderColors.textStrong,
+                        size: 23,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: WonderType.heading.copyWith(
+                        color: WonderColors.textStrong,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  trailing,
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsDivider extends StatelessWidget {
+  const _SettingsDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 54, right: 18),
+      child: Divider(
+        height: 1,
+        thickness: 1,
+        color: WonderColors.textSoft.withValues(alpha: 0.10),
       ),
     );
   }

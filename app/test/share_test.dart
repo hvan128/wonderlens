@@ -14,6 +14,9 @@ class _FakeNarration implements NarrationService {
   @override
   Future<void> speak(String text) => Future<void>.value();
   @override
+  Future<void> speakAsset(String assetPath, String fallbackText) =>
+      Future<void>.value();
+  @override
   Future<void> stop() async {}
   @override
   void dispose() {}
@@ -70,7 +73,10 @@ void main() {
         home: Builder(
           builder: (context) => MediaQuery(
             data: MediaQuery.of(context).copyWith(disableAnimations: true),
-            child: TimelineScreen(content: content, narration: _FakeNarration()),
+            child: TimelineScreen(
+              content: content,
+              narration: _FakeNarration(),
+            ),
           ),
         ),
       ),

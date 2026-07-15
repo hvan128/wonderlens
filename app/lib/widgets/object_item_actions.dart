@@ -14,6 +14,7 @@ Future<T?> showObjectItemActionsSheet<T>({
   required StickerItem item,
   required bool saved,
   SaveStickerCard? onSave,
+  VoidCallback? onShare,
   VoidCallback? onDelete,
 }) {
   return showGlassSheet<T>(
@@ -23,6 +24,7 @@ Future<T?> showObjectItemActionsSheet<T>({
       item: item,
       saved: saved,
       onSave: onSave,
+      onShare: onShare,
       onDelete: onDelete,
     ),
   );
@@ -32,6 +34,9 @@ class ObjectItemActions extends StatefulWidget {
   final StickerItem item;
   final bool saved;
   final SaveStickerCard? onSave;
+
+  /// Mở bảng chia sẻ thẻ hành trình khoa học của vật (khoe lên mạng xã hội).
+  final VoidCallback? onShare;
   final VoidCallback? onDelete;
 
   const ObjectItemActions({
@@ -39,6 +44,7 @@ class ObjectItemActions extends StatefulWidget {
     required this.item,
     required this.saved,
     this.onSave,
+    this.onShare,
     this.onDelete,
   });
 
@@ -117,6 +123,20 @@ class _ObjectItemActionsState extends State<ObjectItemActions> {
             ),
           ),
           const SizedBox(height: WonderTokens.space16),
+        ],
+        if (widget.onShare != null) ...<Widget>[
+          _ActionRow(
+            icon: PhosphorIconsBold.shareNetwork,
+            label: 'Khoe khám phá',
+            subtitle: 'Chia sẻ thẻ hành trình khoa học của vật này.',
+            onTap: () {
+              Navigator.of(context).pop();
+              widget.onShare!();
+            },
+          ),
+          const SizedBox(height: WonderTokens.space8),
+        ],
+        if (widget.onSave != null)
           _ActionRow(
             icon: _saving
                 ? PhosphorIconsBold.history
@@ -125,7 +145,6 @@ class _ObjectItemActionsState extends State<ObjectItemActions> {
             subtitle: 'Lưu thẻ giấy có sticker và tên vào thư viện ảnh.',
             onTap: _saving ? null : () => unawaited(_save()),
           ),
-        ],
         if (widget.onDelete != null) ...<Widget>[
           const SizedBox(height: WonderTokens.space8),
           _ActionRow(

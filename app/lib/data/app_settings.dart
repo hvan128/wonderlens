@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:ui' show Offset;
+
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -13,6 +16,9 @@ class AppSettings {
   static const _kUrl = 'proxy_base_url';
   static const _kToken = 'app_token';
   static const _kOnboardingSeen = 'onboarding_seen';
+  static const _kMissionReminders = 'mission_reminders_enabled';
+  static const _kMissionReminderObject = 'mission_reminder_object_id';
+  static const _kStickerLayout = 'chest_sticker_layout';
 
   /// Giá trị nhúng lúc build (qua `--dart-define`).
   static const envBaseUrl = String.fromEnvironment(
@@ -33,6 +39,10 @@ class AppSettings {
   /// Cờ bật API thật; UI lắng nghe để bật/tắt switch tức thì.
   static final ValueNotifier<bool> liveMode = ValueNotifier<bool>(false);
 
+  /// Phụ huynh đã bật nhắc khám phá định kỳ chưa.
+  static final ValueNotifier<bool> missionRemindersEnabled =
+      ValueNotifier<bool>(false);
+
   /// Gọi 1 lần lúc khởi động app (sau hoặc trước [CollectionRepository.init]).
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -47,6 +57,8 @@ class AppSettings {
     // sẽ gọi AI sinh hành trình cho mọi vật. Cần proxy + token hợp lệ (dart-define
     // APP_TOKEN) — offline/lỗi thì báo thân thiện, không rớt về vật hero mock.
     liveMode.value = true;
+    missionRemindersEnabled.value =
+        (box.get(_kMissionReminders) as bool?) ?? false;
   }
 
   static bool get useLiveApi => liveMode.value;
@@ -103,6 +115,47 @@ class AppSettings {
   /// Đánh dấu đã xem onboarding (bền qua Hive — chỉ hiện đúng một lần).
   static void markOnboardingSeen() {
     _box?.put(_kOnboardingSeen, true);
+  }
+
+  static String get missionReminderObjectId =>
+      ((_box?.get(_kMissionReminderObject) as String?) ?? 'paper_cup').trim();
+
+  static void setMissionReminderObjectId(String objectId) {
+    final id = objectId.trim();
+    if (id.isEmpty) return;
+    _box?.put(_kMissionReminderObject, id);
+  }
+
+  static void setMissionRemindersEnabled(bool value) {
+    missionRemindersEnabled.value = value;
+    _box?.put(_kMissionReminders, value);
+  }
+
+  /// Vị trí **chuẩn hoá** (nx, ny ∈ [0,1]) cuối cùng của từng sticker trong
+  /// Rương — để lần sau mở lại đúng như lúc rời đi. Chuẩn hoá theo kích thước
+  /// tấm nền nên bền qua đổi thiết bị / xoay màn.
+  static Map<String, Offset> get chestStickerLayout {
+    final raw = _box?.get(_kStickerLayout) as String?;
+    if (raw == null || raw.isEmpty) return const <String, Offset>{};
+    try {
+      final json = jsonDecode(raw) as Map<String, dynamic>;
+      final out = <String, Offset>{};
+      json.forEach((k, v) {
+        if (v is List && v.length == 2) {
+          out[k] = Offset((v[0] as num).toDouble(), (v[1] as num).toDouble());
+        }
+      });
+      return out;
+    } catch (_) {
+      return const <String, Offset>{};
+    }
+  }
+
+  static void setChestStickerLayout(Map<String, Offset> layout) {
+    final json = <String, List<double>>{
+      for (final e in layout.entries) e.key: <double>[e.value.dx, e.value.dy],
+    };
+    _box?.put(_kStickerLayout, jsonEncode(json));
   }
 
   /// Lưu override token (chuỗi rỗng = xoá override, quay về giá trị build).

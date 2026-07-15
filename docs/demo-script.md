@@ -5,7 +5,7 @@
 ## Chuẩn bị trước khi lên sân khấu
 - Cài **bản release** lên điện thoại (`flutter run --release -d <device>`), tắt bản debug.
 - Để sẵn vài **vật văn phòng** trên bàn: cốc giấy, bút bi, kẹp giấy, chai nước.
-- **Demo không cần mạng** cho vật hero (nhận diện mock/offline + nội dung + giọng đọc on-device). Nếu muốn khoe AI live cho vật lạ → bật wifi + đã cấu hình `PROXY_BASE_URL`.
+- **Demo không cần mạng** nếu bật mock/offline cho vật hero (nội dung + giọng đọc on-device). Nếu muốn khoe AI live cho vật lạ → bật wifi + build/cấu hình `PROXY_BASE_URL` và `APP_TOKEN`.
 - Bật âm lượng. Kiểm tra giọng đọc tiếng Việt (Settings → Accessibility → Spoken Content → Voices → Tiếng Việt).
 - **Quay sẵn 1 clip dự phòng** chạy đủ luồng, phòng khi sự cố sân khấu.
 
@@ -19,10 +19,10 @@
 
 ## Lưới an toàn khi demo
 - Nhận diện sai/độ tin cậy thấp → app hỏi "Có phải …?" + **Soi lại**.
-- Mất mạng lúc khoe AI live → app báo thân thiện, KHÔNG crash; quay về vật hero offline.
+- Mất mạng lúc khoe AI live → app báo thân thiện, KHÔNG crash; bật mock/offline nếu cần quay về demo hero.
 - Sự cố thiết bị → phát **clip dự phòng**.
 
 ## Trạng thái hiện tại (cho người trình bày)
-- Nhận diện: **mock offline xoay tua** — mỗi lần chụp ra lần lượt 1 trong 8 vật hero (lần chụp đầu sau khi mở app = Cốc giấy). Bật **API thật** (OpenAI Vision) bằng `--dart-define=PROXY_BASE_URL=...` lúc build, hoặc bật ngay trong app qua **Dev panel ẩn** (nhấn giữ logo "WonderLens" / nhãn "NHIỆM VỤ KHÁM PHÁ").
+- Mock offline xoay tua khi bật chế độ demo — mỗi lần chụp ra lần lượt 1 trong 8 vật hero (lần chụp đầu sau khi mở app = Cốc giấy). API thật gọi proxy bằng `--dart-define=PROXY_BASE_URL=... --dart-define=APP_TOKEN=...`, hoặc cấu hình trong **Dev panel ẩn** (nhấn giữ logo "WonderLens" / nhãn "NHIỆM VỤ KHÁM PHÁ").
 - 8 vật hero có nội dung + giọng đọc chạy offline.
 - AI live + kid-safe guardrail là **prompt-based**, cần red-team output thật trước khi cho trẻ dùng công khai.

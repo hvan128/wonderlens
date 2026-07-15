@@ -5,10 +5,12 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 
 import '../data/capture_store.dart';
+import '../data/hero_catalog.dart';
 import '../ui/ui.dart';
 
 /// Avatar tròn của một vật: nếu đã có **ảnh sản phẩm** (cutout tách nền do trẻ
-/// chụp) thì hiện ảnh; nếu chưa thì rớt về **emoji** trên nền gradient (look cũ).
+/// chụp) thì hiện ảnh; hero object chưa có ảnh chụp dùng bundled cutout.
+/// Emoji chỉ còn là fallback cuối cho vật AI-live/unknown chưa có cutout.
 ///
 /// Lắng nghe [CaptureStore.revision] để tự cập nhật ngay khi vừa lưu ảnh mới
 /// (vd: quét xong → overlay/timeline hiện ảnh thật, không cần rời màn).
@@ -25,12 +27,21 @@ class ObjectAvatar extends StatelessWidget {
   final bool hero;
 
   /// `sticker` = true → hiện ảnh cutout **die-cut viền trắng** (không cắt tròn),
-  /// kiểu miếng dán theo đúng hình vật. Không có ảnh thật → rớt về emoji badge.
+  /// kiểu miếng dán theo đúng hình vật. Hero object dùng bundled cutout nếu
+  /// chưa có ảnh thật.
   final bool sticker;
 
   /// Bề dày viền trắng die-cut theo tỉ lệ [diameter] (chỉ khi [sticker]). Mặc
-  /// định 0.06; hạ xuống cho viền mảnh hơn (vd bày trên card giấy).
+  /// định 0.04 để sticker nhẹ mắt trên thẻ nhật ký và rương.
   final double stickerBorderFactor;
+
+  /// Scale riêng cho phần ảnh bên trong sticker. Dùng để cân thị giác giữa các
+  /// asset có lượng transparent padding khác nhau mà không sửa file gốc.
+  final double stickerVisualScale;
+
+  /// Dịch phần ảnh sticker theo tỉ lệ kích thước ảnh sau scale để đưa vật thật
+  /// về tâm ô khi transparent padding của asset lệch.
+  final Offset stickerVisualOffset;
 
   /// Bóng đổ mềm (blur) sau sticker. TẮT khi render trong Hero overlay lúc bay:
   /// ImageFiltered trong overlay có thể nháy đen 1 frame (glitch Impeller) và
@@ -46,7 +57,9 @@ class ObjectAvatar extends StatelessWidget {
     this.glowOpacity = 0.42,
     this.hero = false,
     this.sticker = false,
-    this.stickerBorderFactor = 0.06,
+    this.stickerBorderFactor = 0.04,
+    this.stickerVisualScale = 1,
+    this.stickerVisualOffset = Offset.zero,
     this.stickerShadow = true,
   });
 
@@ -66,9 +79,13 @@ class ObjectAvatar extends StatelessWidget {
     return ValueListenableBuilder<int>(
       valueListenable: CaptureStore.revision,
       builder: (context, _, _) {
+        final asset = _bundledCutoutAsset();
+        if (asset != null && sticker) {
+          return _stickerCutoutAsset(asset);
+        }
         final file = CaptureStore.instance.fileFor(objectId);
         if (file == null) {
-          return _emojiBadge();
+          return asset == null ? _emojiBadge() : _assetAvatar(asset);
         }
         if (sticker) {
           return _stickerCutout(file);
@@ -104,43 +121,110 @@ class ObjectAvatar extends StatelessWidget {
     );
   }
 
+  Widget _assetAvatar(String asset) {
+    return Container(
+      width: diameter,
+      height: diameter,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.9),
+          width: 2,
+        ),
+        boxShadow: WonderShadows.glow(WonderColors.teal, opacity: glowOpacity),
+      ),
+      child: ClipOval(
+        child: Image.asset(
+          asset,
+          width: diameter,
+          height: diameter,
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+          filterQuality: FilterQuality.medium,
+          errorBuilder: (context, error, stack) => _emojiBadge(),
+        ),
+      ),
+    );
+  }
+
+  String? _bundledCutoutAsset() {
+    return heroCutoutAssetForId(objectId);
+  }
+
   /// Ảnh cutout die-cut: viền trắng theo đúng silhouette của vật. Vẽ nhiều bản
   /// silhouette-trắng lệch quanh 8 hướng (dựng chắc trên mọi backend, không phụ
   /// thuộc ImageFilter.dilate) rồi đặt ảnh thật lên trên. Ảnh render nhỏ hơn
   /// khung [diameter] đúng bằng bề dày viền để đường viền không bị cắt mép.
   Widget _stickerCutout(File file) {
-    final border = (diameter * stickerBorderFactor).clamp(2.0, 7.0);
-    final inner = diameter - border * 2;
-
-    Widget photo() => Image.file(
-      file,
-      width: inner,
-      height: inner,
-      fit: BoxFit.contain,
-      gaplessPlayback: true,
-      filterQuality: FilterQuality.medium,
-      errorBuilder: (context, error, stack) => _emojiBadge(),
-    );
-    // srcATop + màu: giữ nguyên alpha ảnh nhưng nhuộm đặc → silhouette theo hình.
-    Widget silhouette(Color c) => ColorFiltered(
-      colorFilter: ColorFilter.mode(c, BlendMode.srcATop),
-      child: Image.file(
+    return _stickerCutoutImage(
+      photo: (inner) => Image.file(
         file,
         width: inner,
         height: inner,
         fit: BoxFit.contain,
         gaplessPlayback: true,
+        filterQuality: FilterQuality.medium,
+        errorBuilder: (context, error, stack) => _emojiBadge(),
       ),
+      silhouette: (color, inner) => ColorFiltered(
+        colorFilter: ColorFilter.mode(color, BlendMode.srcATop),
+        child: Image.file(
+          file,
+          width: inner,
+          height: inner,
+          fit: BoxFit.contain,
+          gaplessPlayback: true,
+        ),
+      ),
+    );
+  }
+
+  Widget _stickerCutoutAsset(String asset) {
+    return _stickerCutoutImage(
+      photo: (inner) => Image.asset(
+        asset,
+        width: inner,
+        height: inner,
+        fit: BoxFit.contain,
+        gaplessPlayback: true,
+        filterQuality: FilterQuality.medium,
+        errorBuilder: (context, error, stack) => _emojiBadge(),
+      ),
+      silhouette: (color, inner) => ColorFiltered(
+        colorFilter: ColorFilter.mode(color, BlendMode.srcATop),
+        child: Image.asset(
+          asset,
+          width: inner,
+          height: inner,
+          fit: BoxFit.contain,
+          gaplessPlayback: true,
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+        ),
+      ),
+    );
+  }
+
+  Widget _stickerCutoutImage({
+    required Widget Function(double inner) photo,
+    required Widget Function(Color color, double inner) silhouette,
+  }) {
+    final border = (diameter * stickerBorderFactor).clamp(2.0, 7.0);
+    final inner = diameter - border * 2;
+    final imageSize = inner * stickerVisualScale.clamp(0.4, 3.0);
+    final visualOffset = Offset(
+      stickerVisualOffset.dx * imageSize,
+      stickerVisualOffset.dy * imageSize,
     );
     // Bóng đổ mềm ôm theo hình (đặt sau lưng) → sticker nổi trên mọi nền, kể cả
     // nền sáng đồng tông (viền trắng vẫn tách khỏi nền).
     final Widget shadow = Transform.translate(
-      offset: Offset(0, border * 0.9),
+      offset: visualOffset + Offset(0, border * 0.9),
       child: Opacity(
         opacity: 0.22,
         child: ImageFiltered(
           imageFilter: ImageFilter.blur(sigmaX: border, sigmaY: border),
-          child: silhouette(Colors.black),
+          child: silhouette(Colors.black, imageSize),
         ),
       ),
     );
@@ -158,14 +242,15 @@ class ObjectAvatar extends StatelessWidget {
             for (var i = 0; i < 8; i++)
               Transform.translate(
                 offset:
+                    visualOffset +
                     Offset(
-                      math.cos(i * math.pi / 4),
-                      math.sin(i * math.pi / 4),
-                    ) *
-                    border,
-                child: silhouette(Colors.white),
+                          math.cos(i * math.pi / 4),
+                          math.sin(i * math.pi / 4),
+                        ) *
+                        border,
+                child: silhouette(Colors.white, imageSize),
               ),
-            photo(),
+            Transform.translate(offset: visualOffset, child: photo(imageSize)),
           ],
         ),
       ),

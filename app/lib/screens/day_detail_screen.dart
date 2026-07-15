@@ -6,10 +6,13 @@ import 'package:flutter/services.dart';
 
 import '../data/capture_store.dart';
 import '../data/collection_repository.dart';
+import '../data/content_repository.dart';
+import '../models/object_content.dart';
 import '../services/photo_library_service.dart';
 import '../ui/ui.dart';
 import '../widgets/object_item_actions.dart';
 import '../widgets/object_sticker_grid.dart';
+import '../widgets/share_sheet.dart';
 
 /// Dữ liệu cho route `/day` (go_router `extra`): nhóm vật của một ngày + màu thẻ
 /// nguồn (để nền màn chi tiết morph từ đúng màu thẻ đó).
@@ -40,10 +43,45 @@ HeroFlightShuttleBuilder dayCardFlightShuttle(Color cardColor) {
       animation: animation,
       builder: (context, _) {
         final t = animation.value; // 0 = thẻ, 1 = màn full
+        final radius = lerpDouble(26, 0, t)!;
+        final borderAlpha = lerpDouble(0.58, 0, t)!;
+        final shadowAlpha = lerpDouble(0.08, 0, t)!;
         return DecoratedBox(
           decoration: BoxDecoration(
-            color: Color.lerp(cardColor, WonderBackground.base, t),
-            borderRadius: BorderRadius.circular(lerpDouble(26, 0, t)!),
+            borderRadius: BorderRadius.circular(radius),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: <Color>[
+                Color.lerp(
+                  cardColor.withValues(alpha: 0.28),
+                  WonderBackground.base,
+                  t,
+                )!,
+                Color.lerp(
+                  Colors.white.withValues(alpha: 0.18),
+                  WonderBackground.base,
+                  t,
+                )!,
+                Color.lerp(
+                  WonderColors.sky.withValues(alpha: 0.08),
+                  WonderBackground.base,
+                  t,
+                )!,
+              ],
+              stops: const <double>[0.0, 0.58, 1.0],
+            ),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: borderAlpha),
+            ),
+            boxShadow: <BoxShadow>[
+              if (shadowAlpha > 0)
+                BoxShadow(
+                  color: WonderColors.textStrong.withValues(alpha: shadowAlpha),
+                  blurRadius: 18,
+                  offset: const Offset(0, 10),
+                ),
+            ],
           ),
         );
       },
@@ -130,6 +168,7 @@ class _DayDetailViewState extends State<DayDetailView> {
       item: item,
       saved: saved,
       onSave: (key) => _saveStickerToPhotos(item, key),
+      onShare: () => unawaited(_shareItem(entry)),
       onDelete: saved
           ? () {
               final removed = _repo.remove(id);
@@ -146,6 +185,16 @@ class _DayDetailViewState extends State<DayDetailView> {
             }
           : null,
     );
+  }
+
+  /// Mở bảng chia sẻ thẻ hành trình của vật. Hero lấy content asset đầy đủ qua
+  /// [ContentRepository]; vật AI-live dựng lại từ nhật ký ([JournalEntry]).
+  Future<void> _shareItem(JournalEntry entry) async {
+    final ObjectContent content = entry.isHero
+        ? (await ContentRepository().load(entry.id)) ?? entry.toContent()
+        : entry.toContent();
+    if (!mounted) return;
+    await showDiscoveryShareSheet(context, content);
   }
 
   Future<void> _saveStickerToPhotos(StickerItem item, GlobalKey key) async {

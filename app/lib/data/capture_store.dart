@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart' show FileImage;
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// Lưu ảnh "sản phẩm" — cutout (tách nền) của vật trẻ vừa chụp — vào thư mục
@@ -47,6 +48,10 @@ class CaptureStore {
           _ids.add(_idFromPath(entity.path));
         }
       }
+      await instance.seedAsset(
+        'paper_cup',
+        'assets/images/paper_cup_cutout.png',
+      );
     } catch (e) {
       debugPrint('CaptureStore init error: $e');
     }
@@ -77,6 +82,20 @@ class CaptureStore {
       revision.value++;
     } catch (e) {
       debugPrint('CaptureStore save error: $e');
+    }
+  }
+
+  /// Lưu một cutout bundled vào store như ảnh vật thật. Dùng cho hero cố định
+  /// trong onboarding: sau khi seed, ObjectAvatar hiển thị sticker thay emoji.
+  Future<void> seedAsset(String objectId, String assetPath) async {
+    try {
+      final bytes = await rootBundle.load(assetPath);
+      await save(
+        objectId,
+        bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
+      );
+    } catch (e) {
+      debugPrint('CaptureStore seed asset error: $e');
     }
   }
 

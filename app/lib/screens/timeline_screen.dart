@@ -58,7 +58,8 @@ class _Step {
   final _Kind kind;
   final int stageIndex; // chỉ dùng cho stage
   final String speech;
-  const _Step(this.kind, this.stageIndex, this.speech);
+  final String? audio;
+  const _Step(this.kind, this.stageIndex, this.speech, {this.audio});
 }
 
 class _TimelineScreenState extends State<TimelineScreen>
@@ -152,9 +153,14 @@ class _TimelineScreenState extends State<TimelineScreen>
   List<_Step> _buildSteps(ObjectContent c) {
     final steps = <_Step>[];
     final cover = journeyCoverSpeech(c);
-    if (cover != null) steps.add(_Step(_Kind.cover, -1, cover));
+    if (cover != null) {
+      steps.add(_Step(_Kind.cover, -1, cover, audio: journeyCoverAudio(c)));
+    }
     for (var i = 0; i < c.stages.length; i++) {
-      steps.add(_Step(_Kind.stage, i, journeyStageSpeech(c.stages[i])));
+      final stage = c.stages[i];
+      steps.add(
+        _Step(_Kind.stage, i, journeyStageSpeech(stage), audio: stage.audio),
+      );
     }
     steps.add(const _Step(_Kind.outro, -1, ''));
     return steps;
@@ -235,7 +241,7 @@ class _TimelineScreenState extends State<TimelineScreen>
     }
     setState(() => _narrating = true);
     final sw = Stopwatch()..start();
-    await _speakGuarded(step.speech);
+    await _speakGuarded(step.speech, assetAudio: step.audio);
     if (!mounted || myEpoch != _epoch) return;
     setState(() => _narrating = false);
     final remain = _minDwell - sw.elapsed;
@@ -255,13 +261,17 @@ class _TimelineScreenState extends State<TimelineScreen>
     return gate.future;
   }
 
-  Future<void> _speakGuarded(String text) async {
+  Future<void> _speakGuarded(String text, {String? assetAudio}) async {
     final ceiling = Completer<void>();
     final timer = Timer(_maxDwell, () {
       if (!ceiling.isCompleted) ceiling.complete();
     });
+    final audio = assetAudio?.trim();
+    final speak = audio == null || audio.isEmpty
+        ? _narration.speak(text)
+        : _narration.speakAsset(audio, text);
     await Future.any<void>(<Future<void>>[
-      _narration.speak(text).whenComplete(() {
+      speak.whenComplete(() {
         if (!ceiling.isCompleted) ceiling.complete();
       }),
       ceiling.future,

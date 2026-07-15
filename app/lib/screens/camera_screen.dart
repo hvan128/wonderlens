@@ -178,19 +178,16 @@ class _CameraScreenState extends State<CameraScreen>
       // Vào hiệu ứng tan biến + chạy AI song song. minShow đảm bảo hiệu ứng
       // luôn được chạy trọn dù AI trả về nhanh.
       _showDissolve(frameImage, maskImage);
-      final Future<void> minShow =
-          Future<void>.delayed(const Duration(milliseconds: 1500));
-      ObjectContent? content = await _generate.generate(bytes);
+      final Future<void> minShow = Future<void>.delayed(
+        const Duration(milliseconds: 1500),
+      );
+      final ObjectContent? content = await _generate.generate(bytes);
       if (!mounted) return;
 
-      // AI lỗi/hết quota → rớt về vật hero (dữ liệu đóng gói) để không kẹt
-      // "bí ẩn" và vẫn dựng đủ hành trình cho việc test UI offline / hết credit.
-      content ??= await _repo.load(_service.mockOffline().objectId);
-      if (!mounted) return;
       if (content == null) {
         _presentMessage(
-          'Món này còn hơi bí ẩn',
-          'Bé thử đổi góc chụp hoặc quét lại nhé!',
+          'AI chưa kể được món này',
+          'Bé kiểm tra mạng rồi thử đổi góc chụp nhé!',
         );
         return;
       }
@@ -419,9 +416,8 @@ class _CameraScreenState extends State<CameraScreen>
                     size: 48,
                     blur: 0,
                     semanticLabel: 'Đóng máy ảnh',
-                    onTap: () => context.canPop()
-                        ? context.pop()
-                        : context.go('/home'),
+                    onTap: () =>
+                        context.canPop() ? context.pop() : context.go('/home'),
                   ),
                 ),
               ),
@@ -650,7 +646,11 @@ class _FramingCorners extends StatelessWidget {
                   color: Colors.white,
                   fontSize: 16,
                   shadows: const <Shadow>[
-                    Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 1)),
+                    Shadow(
+                      color: Colors.black54,
+                      blurRadius: 10,
+                      offset: Offset(0, 1),
+                    ),
                   ],
                 ),
               ),
@@ -670,7 +670,8 @@ class _CornersPainter extends CustomPainter {
     final r = m * 0.1; // bán kính bo tròn khuỷu góc
     final line = Paint()
       ..color = Colors.white
-      ..strokeWidth = 2.5 // nét mảnh như #11
+      ..strokeWidth =
+          2.5 // nét mảnh như #11
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.stroke;
@@ -782,29 +783,27 @@ class _OverlayShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox.expand(
-          child: ColoredBox(
-            color: Colors.black.withValues(alpha: 0.45),
-            child: SafeArea(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 460),
-                    child: child,
-                  ),
-                ),
+      child: ColoredBox(
+        color: Colors.black.withValues(alpha: 0.45),
+        child: SafeArea(
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 460),
+                child: child,
               ),
             ),
           ),
-        )
-        .animate()
-        .scaleXY(
-          begin: 0.92,
-          end: 1,
-          duration: WonderTokens.durSlow,
-          curve: WonderTokens.curveEmphasized,
-        );
+        ),
+      ),
+    ).animate().scaleXY(
+      begin: 0.92,
+      end: 1,
+      duration: WonderTokens.durSlow,
+      curve: WonderTokens.curveEmphasized,
+    );
   }
 }
 

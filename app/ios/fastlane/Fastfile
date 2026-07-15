@@ -125,6 +125,50 @@ platform :ios do
     end
   end
 
+  desc "Xem trạng thái subscription (state + trường còn thiếu) trên ASC — chỉ đọc"
+  lane :iap_status do
+    require "net/http"
+    require "json"
+
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      filepath: File.expand_path(ENV["ASC_KEY_FILEPATH"])
+    )
+    Spaceship::ConnectAPI.token = token
+    jwt = token.text
+    get = lambda do |path|
+      uri = URI("https://api.appstoreconnect.apple.com/#{path}")
+      req = Net::HTTP::Get.new(uri)
+      req["Authorization"] = "Bearer #{jwt}"
+      res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
+      res.body.nil? || res.body.empty? ? {} : JSON.parse(res.body)
+    end
+
+    app = Spaceship::ConnectAPI::App.find("com.wonderlens.wonderlens")
+    UI.user_error!("app not found") unless app
+    groups = get.call("v1/apps/#{app.id}/subscriptionGroups?limit=200")
+    groups.fetch("data", []).each do |group|
+      UI.important("Group: #{group.dig('attributes', 'referenceName')} (#{group['id']})")
+      subs = get.call("v1/subscriptionGroups/#{group['id']}/subscriptions?limit=200")
+      subs.fetch("data", []).each do |sub|
+        attrs = sub["attributes"]
+        UI.important("  #{attrs['productId']}: state=#{attrs['state']}")
+        loc = get.call("v1/subscriptions/#{sub['id']}/subscriptionLocalizations?limit=200")
+        UI.important("    localizations: #{loc.fetch('data', []).map { |l| l.dig('attributes', 'locale') }.join(', ')}")
+        price = get.call("v1/subscriptions/#{sub['id']}/prices?limit=20")
+        UI.important("    prices: #{price.fetch('data', []).length}")
+        avail = get.call("v1/subscriptions/#{sub['id']}/subscriptionAvailability")
+        UI.important("    availability: #{avail['data'] ? 'set' : 'MISSING'}")
+        ss = get.call("v1/subscriptions/#{sub['id']}/appStoreReviewScreenshot")
+        state = ss.dig("data", "attributes", "assetDeliveryState", "state") rescue nil
+        UI.important("    review screenshot: #{ss['data'] ? (state || 'uploaded, no state') : 'MISSING'}")
+        plan = get.call("v1/subscriptions/#{sub['id']}/planAvailabilities?limit=20")
+        UI.important("    plan availabilities: #{plan.fetch('data', []).length}")
+      end
+    end
+  end
+
   desc "Set text metadata qua Spaceship trực tiếp (né bug deliver 'No data' với app mới)"
   lane :set_metadata do
     token = Spaceship::ConnectAPI::Token.create(
@@ -312,8 +356,18 @@ platform :ios do
       s.cancel_submission rescue UI.error("hủy #{s.id}: #{$!.message}")
     end
 
-    # 3) Chọn build cho version + verify.
+    # 3) Nếu version đã được duyệt và đang chờ developer release, phải reject
+    # bản chờ release trước thì ASC mới cho sửa build.
+    unless app.get_edit_app_store_version
+      if app.reject_version_if_possible!(platform: Spaceship::ConnectAPI::Platform::IOS)
+        UI.message("đã hủy bản chờ release để sửa build")
+        sleep(12)
+      end
+    end
+
+    # 4) Chọn build cho version + verify.
     v = app.get_edit_app_store_version
+    UI.user_error!("không lấy được edit app store version sau khi hủy release") unless v
     v.select_build(build_id: build.id)
     sleep(6)
     v = app.get_edit_app_store_version
@@ -321,11 +375,137 @@ platform :ios do
     UI.user_error!("build chưa đổi (đang #{b&.version || 'NONE'})") unless b&.version == build.version
     UI.success("version dùng build #{b.version}")
 
-    # 4) Submission (sẵn có hoặc mới) + thêm version + gửi duyệt.
+    # 5) Submission (sẵn có hoặc mới) + thêm version + gửi duyệt.
     sub = app.get_ready_review_submission(platform: Spaceship::ConnectAPI::Platform::IOS) ||
       app.create_review_submission(platform: Spaceship::ConnectAPI::Platform::IOS)
     sub.add_app_store_version_to_review_items(app_store_version_id: v.id) rescue UI.important("thêm version: #{$!.message}")
     sub.submit_for_review
     UI.success("Đã gửi duyệt lại build #{build.version} ✓ (#{sub.id})")
+  end
+
+  desc "Nhân giá VNM sang mọi lãnh thổ còn thiếu (subscriptionSubmissions đòi giá đủ mọi lãnh thổ app bán)"
+  lane :equalize_prices do
+    require "net/http"
+    require "json"
+
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV["ASC_KEY_ID"], issuer_id: ENV["ASC_ISSUER_ID"],
+      filepath: File.expand_path(ENV["ASC_KEY_FILEPATH"])
+    )
+    Spaceship::ConnectAPI.token = token
+    jwt = token.text
+    get = lambda do |path|
+      uri = URI("https://api.appstoreconnect.apple.com/#{path}")
+      req = Net::HTTP::Get.new(uri)
+      req["Authorization"] = "Bearer #{jwt}"
+      res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
+      res.body.nil? || res.body.empty? ? {} : JSON.parse(res.body)
+    end
+    post = lambda do |path, body|
+      uri = URI("https://api.appstoreconnect.apple.com/#{path}")
+      req = Net::HTTP::Post.new(uri)
+      req["Authorization"] = "Bearer #{jwt}"
+      req["Content-Type"] = "application/json"
+      req.body = JSON.generate(body)
+      res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
+      parsed = res.body.nil? || res.body.empty? ? {} : JSON.parse(res.body)
+      return parsed if res.is_a?(Net::HTTPSuccess)
+
+      message = parsed["errors"]&.map { |e| "#{e['code']}: #{e['detail']}" }&.join(" | ")
+      raise "POST #{path} failed (#{res.code}): #{message || res.body}"
+    end
+
+    app = Spaceship::ConnectAPI::App.find("com.wonderlens.wonderlens")
+    groups = get.call("v1/apps/#{app.id}/subscriptionGroups?limit=200")
+    groups.fetch("data", []).each do |group|
+      subs = get.call("v1/subscriptionGroups/#{group['id']}/subscriptions?limit=200")
+      subs.fetch("data", []).each do |s|
+        sub_id = s["id"]
+        product_id = s.dig("attributes", "productId")
+
+        # Apple không trả "relationships" trên subscriptionPrices trừ khi có
+        # ?include= — thiếu include khiến base_point_id/have_territories rỗng.
+        existing = get.call("v1/subscriptions/#{sub_id}/prices?limit=200&include=subscriptionPricePoint,territory")
+        base_price = existing.fetch("data", []).first
+        unless base_price
+          UI.important("#{product_id}: chưa có giá gốc, bỏ qua")
+          next
+        end
+        base_point_id = base_price.dig("relationships", "subscriptionPricePoint", "data", "id")
+        have_territories = existing.fetch("data", []).map { |p| p.dig("relationships", "territory", "data", "id") }.compact.to_set
+
+        equalizations = get.call("v1/subscriptionPricePoints/#{base_point_id}/equalizations?limit=200&include=territory")
+        added = 0
+        equalizations.fetch("data", []).each do |point|
+          territory_id = point.dig("relationships", "territory", "data", "id")
+          next if territory_id.nil? || have_territories.include?(territory_id)
+
+          payload = {
+            data: {
+              type: "subscriptionPrices",
+              relationships: {
+                subscription: { data: { type: "subscriptions", id: sub_id } },
+                territory: { data: { type: "territories", id: territory_id } },
+                subscriptionPricePoint: { data: { type: "subscriptionPricePoints", id: point["id"] } }
+              }
+            }
+          }
+          begin
+            post.call("v1/subscriptionPrices", payload)
+            added += 1
+          rescue => e
+            UI.important("#{product_id} #{territory_id}: #{e.message}")
+          end
+        end
+        UI.success("#{product_id}: thêm giá cho #{added} lãnh thổ ✓")
+      end
+    end
+  end
+
+  desc "Chờ build xử lý → chọn build cho version → gắn version vào review submission → gửi duyệt (Apple tự gộp subscription đầu tiên)"
+  lane :submit_with_iap do
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV["ASC_KEY_ID"], issuer_id: ENV["ASC_ISSUER_ID"],
+      filepath: File.expand_path(ENV["ASC_KEY_FILEPATH"])
+    )
+    Spaceship::ConnectAPI.token = token
+
+    app = Spaceship::ConnectAPI::App.find("com.wonderlens.wonderlens")
+    want = ENV["RESUBMIT_BUILD"]
+
+    build = nil
+    60.times do
+      builds = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 10)
+      build = want ? builds.find { |b| b.version == want } : builds.first
+      break if build && build.processing_state == "VALID"
+      UI.message("chờ build #{want || 'mới nhất'} xử lý (#{build&.processing_state || 'chưa thấy'})")
+      sleep(30)
+    end
+    UI.user_error!("build chưa xử lý xong") unless build && build.processing_state == "VALID"
+    UI.success("dùng build #{build.version} (#{build.id})")
+
+    v = app.get_edit_app_store_version
+    v.select_build(build_id: build.id)
+    sleep(6)
+    v = app.get_edit_app_store_version
+    b = (v.build rescue nil)
+    UI.user_error!("build chưa đổi (đang #{b&.version || 'NONE'})") unless b&.version == build.version
+    UI.success("version #{v.version_string} dùng build #{b.version}")
+
+    vloc = v.get_app_store_version_localizations.find { |l| l.locale == "vi" }
+    vloc.update(attributes: {
+      whatsNew: "Ra mắt WonderLens Plus: mở khoá thêm lượt soi vật và lưu hành trình khám phá."
+    })
+    UI.success("whatsNew (vi) ✓")
+
+    # subscriptionSubmissions từ chối 409 FIRST_SUBSCRIPTION_MUST_BE_SUBMITTED_ON_VERSION
+    # cho subscription đầu tiên của app — không gọi riêng được, Apple tự gộp
+    # subscription MISSING_METADATA (đã đủ field) vào review submission của
+    # version khi submit_for_review bên dưới.
+    sub = app.get_ready_review_submission(platform: Spaceship::ConnectAPI::Platform::IOS) ||
+      app.create_review_submission(platform: Spaceship::ConnectAPI::Platform::IOS)
+    sub.add_app_store_version_to_review_items(app_store_version_id: v.id) rescue UI.important("thêm version: #{$!.message}")
+    sub.submit_for_review
+    UI.success("Đã gửi duyệt version #{v.version_string} (build #{b.version}) ✓ (#{sub.id})")
   end
 end

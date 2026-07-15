@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
 
 import 'package:wonderlens/data/app_settings.dart';
+import 'package:wonderlens/data/collection_repository.dart';
 import 'package:wonderlens/screens/onboarding_screen.dart';
 import 'package:wonderlens/screens/timeline_screen.dart';
 import 'package:wonderlens/services/narration_service.dart';
@@ -23,14 +24,23 @@ class _FakeNarration implements NarrationService {
   }
 
   @override
+  Future<void> speakAsset(String assetPath, String fallbackText) {
+    spoken.add(fallbackText);
+    return Future<void>.value();
+  }
+
+  @override
   Future<void> stop() async {}
 
   @override
   void dispose() {}
 }
 
-GoRouter _router(NarrationService narration) => GoRouter(
-  initialLocation: '/onboarding',
+GoRouter _router(
+  NarrationService narration, {
+  String initialLocation = '/onboarding',
+}) => GoRouter(
+  initialLocation: initialLocation,
   routes: <RouteBase>[
     GoRoute(
       path: '/onboarding',
@@ -38,6 +48,14 @@ GoRouter _router(NarrationService narration) => GoRouter(
       // thật) nên phải kết thúc ngay trong cửa sổ đó, không đợi fake pump.
       builder: (context, state) =>
           OnboardingScreen(narration: narration, buildBeat: Duration.zero),
+    ),
+    GoRoute(
+      path: '/onboarding/mission/:objectId',
+      builder: (context, state) => OnboardingScreen.mission(
+        objectId: state.pathParameters['objectId'] ?? 'paper_cup',
+        narration: narration,
+        buildBeat: Duration.zero,
+      ),
     ),
     GoRoute(
       path: '/home',
@@ -49,8 +67,11 @@ GoRouter _router(NarrationService narration) => GoRouter(
 
 /// disableAnimations như timeline_test: _StoryScrim bỏ flutter_animate delay
 /// (Timer không huỷ được) → teardown không treo; CaptureDissolve rút intro.
-Widget _host(NarrationService narration) => MaterialApp.router(
-  routerConfig: _router(narration),
+Widget _host(
+  NarrationService narration, {
+  String initialLocation = '/onboarding',
+}) => MaterialApp.router(
+  routerConfig: _router(narration, initialLocation: initialLocation),
   builder: (context, child) => MediaQuery(
     data: MediaQuery.of(context).copyWith(disableAnimations: true),
     child: child!,
@@ -61,6 +82,17 @@ Future<void> _pumpOnboarding(WidgetTester tester, NarrationService n) async {
   await tester.pumpWidget(_host(n));
   await tester.pump();
   expect(find.text('Đố bé biết chiếc cốc này từ đâu tới?'), findsOneWidget);
+}
+
+Future<void> _pumpMission(
+  WidgetTester tester,
+  NarrationService n,
+  String objectId,
+) async {
+  await tester.pumpWidget(
+    _host(n, initialLocation: '/onboarding/mission/$objectId'),
+  );
+  await tester.pump();
 }
 
 /// Chạm nút khẩu độ (chụp tức thì như camera) và pump tới khi có kết quả.
@@ -85,10 +117,12 @@ void main() {
   setUp(() {
     box = _MemBox();
     AppSettings.debugSetBox(box);
+    CollectionRepository.debugSetBox(box);
   });
   tearDown(() {
     AppSettings.debugOnboardingSeenOverride = null;
     AppSettings.debugSetBox(null);
+    CollectionRepository.debugSetBox(null);
   });
 
   testWidgets('Chụp thử → tan biến → tên vật, ✓ mở hành trình thật', (
@@ -128,7 +162,7 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('"Bỏ qua" đi thẳng về trang chủ + persist cờ', (
+  testWidgets('"Bỏ qua" seed cốc giấy, về trang chủ + persist cờ', (
     WidgetTester tester,
   ) async {
     final n = _FakeNarration();
@@ -140,9 +174,28 @@ void main() {
     expect(find.text('HOME_STUB'), findsOneWidget);
     // Hợp đồng "chỉ hiện đúng một lần": cờ phải được ghi bền vào box.
     expect(box.get('onboarding_seen'), isTrue);
+    expect(CollectionRepository().discoveredIds(), ['paper_cup']);
 
     await tester.pumpWidget(const SizedBox());
   });
+
+  testWidgets(
+    'Mission onboarding seed đúng vật nhưng không đóng cờ first-run',
+    (WidgetTester tester) async {
+      final n = _FakeNarration();
+      await _pumpMission(tester, n, 'ball_pen');
+      expect(find.text('Cùng soi bút bi hôm nay nhé!'), findsOneWidget);
+
+      await tester.tap(find.text('Bỏ qua'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 800));
+      expect(find.text('HOME_STUB'), findsOneWidget);
+      expect(box.get('onboarding_seen'), isNot(isTrue));
+      expect(CollectionRepository().discoveredIds(), ['ball_pen']);
+
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
 }
 
 /// Box Hive giả in-memory — chỉ get/put mà AppSettings dùng (Hive file thật

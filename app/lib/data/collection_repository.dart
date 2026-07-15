@@ -53,8 +53,12 @@ class JournalEntry {
     'content': content,
   });
 
-  /// Dựng lại nội dung hành trình để mở timeline — luôn nguồn 'live' (nhãn AI).
-  ObjectContent toContent() => ObjectContent.fromJson(content, source: 'live');
+  bool get isHero => heroById(id) != null;
+
+  /// Dựng lại nội dung hành trình tối thiểu. Hero nên được mở bằng
+  /// [ContentRepository] để lấy content asset đầy đủ.
+  ObjectContent toContent() =>
+      ObjectContent.fromJson(content, source: isHero ? 'asset' : 'live');
 }
 
 /// Lưu bộ sưu tập + huy hiệu vào Hive (local, bền qua restart, không cần server).
@@ -67,6 +71,7 @@ class CollectionRepository {
   static const _boxName = 'wonderlens_collection';
   static const _key = 'discovered';
   static const _journalKey = 'journal';
+  static const _heroJournalKey = 'hero_journal';
   static Box? _box;
 
   /// Gọi 1 lần lúc khởi động app.
@@ -104,18 +109,48 @@ class CollectionRepository {
     final box = _box;
     if (box == null) return const DiscoveryResult(isNewObject: false);
 
-    final material = heroById(content.id)?.material;
-    if (material == null) return _recordJournal(box, content);
+    final hero = heroById(content.id);
+    if (hero == null) return _recordJournal(box, content);
 
+    return _recordHero(box, hero);
+  }
+
+  /// Ghi trực tiếp một hero object theo id khi flow không cần load full content
+  /// (vd: onboarding seed vật mẫu). Unknown id không ghi gì.
+  DiscoveryResult recordHeroId(String id) {
+    final box = _box;
+    final hero = heroById(id);
+    if (box == null || hero == null) {
+      return const DiscoveryResult(isNewObject: false);
+    }
+    return _recordHero(box, hero);
+  }
+
+  DiscoveryResult _recordHero(Box box, HeroItem hero) {
     final current = discoveredIds();
-    final hadBadge = badges().contains(material);
-    final isNew = !current.contains(content.id);
+    final hadBadge = badges().contains(hero.material);
+    final isNew = !current.contains(hero.id);
 
     if (isNew) {
-      box.put(_key, [...current, content.id]);
+      box.put(_key, [...current, hero.id]);
     }
-    final newBadge = (isNew && !hadBadge) ? material : null;
+    _ensureHeroJournalEntry(box, hero);
+    final newBadge = (isNew && !hadBadge) ? hero.material : null;
     return DiscoveryResult(isNewObject: isNew, newBadge: newBadge);
+  }
+
+  void _ensureHeroJournalEntry(Box box, HeroItem hero) {
+    final raw = _heroJournalRaw(box);
+    final exists = _parseJournalRaw(raw).any((e) => e.id == hero.id);
+    if (exists) return;
+    final entry = JournalEntry(
+      id: hero.id,
+      name: hero.name,
+      emoji: hero.emoji,
+      discoveredAt: vnNow(),
+      content: _heroEntryContent(hero),
+    );
+    box.put(_heroJournalKey, <String>[entry.toJsonString(), ...raw]);
   }
 
   /// Xoá một vật khỏi rương/journal local. Ảnh cutout do [CaptureStore] quản lý
@@ -131,6 +166,20 @@ class CollectionRepository {
         for (final x in discovered)
           if (x != id) x,
       ]);
+      changed = true;
+    }
+
+    final heroRaw = _heroJournalRaw(box);
+    final nextHero = <String>[];
+    for (final s in heroRaw) {
+      var remove = false;
+      try {
+        remove = JournalEntry.fromJsonString(s).id == id;
+      } catch (_) {}
+      if (!remove) nextHero.add(s);
+    }
+    if (nextHero.length != heroRaw.length) {
+      box.put(_heroJournalKey, nextHero);
       changed = true;
     }
 
@@ -179,8 +228,49 @@ class CollectionRepository {
   List<JournalEntry> journalEntries() {
     final box = _box;
     if (box == null) return const [];
+    return _parseJournalRaw(_journalRaw(box));
+  }
+
+  /// Nhật ký ngày trên trang chủ: gồm hero đã sưu tầm + vật AI-live.
+  ///
+  /// `journalEntries()` vẫn chỉ trả AI-live để giữ đúng contract rương/AI. Hero
+  /// dùng log riêng; dữ liệu cũ chỉ có `discovered` thì synthesize một entry để
+  /// trang chủ không bị trống hoặc rớt mất vật đã có.
+  List<JournalEntry> discoveryEntries() {
+    final box = _box;
+    if (box == null) return const [];
+
+    final discovered = discoveredIds();
+    final heroEntries = <String, JournalEntry>{
+      for (final e in _parseJournalRaw(_heroJournalRaw(box)))
+        if (discovered.contains(e.id) && heroById(e.id) != null) e.id: e,
+    };
+    for (final id in discovered) {
+      final hero = heroById(id);
+      if (hero == null || heroEntries.containsKey(id)) continue;
+      heroEntries[id] = JournalEntry(
+        id: hero.id,
+        name: hero.name,
+        emoji: hero.emoji,
+        discoveredAt: vnNow(),
+        content: _heroEntryContent(hero),
+      );
+    }
+
+    final entries = <JournalEntry>[...heroEntries.values, ...journalEntries()]
+      ..sort((a, b) => b.discoveredAt.compareTo(a.discoveredAt));
+    return entries;
+  }
+
+  static List<String> _journalRaw(Box box) =>
+      ((box.get(_journalKey) as List?)?.cast<String>()) ?? const [];
+
+  static List<String> _heroJournalRaw(Box box) =>
+      ((box.get(_heroJournalKey) as List?)?.cast<String>()) ?? const [];
+
+  static List<JournalEntry> _parseJournalRaw(List<String> raw) {
     final out = <JournalEntry>[];
-    for (final s in _journalRaw(box)) {
+    for (final s in raw) {
       try {
         out.add(JournalEntry.fromJsonString(s));
       } catch (e) {
@@ -190,8 +280,13 @@ class CollectionRepository {
     return out;
   }
 
-  static List<String> _journalRaw(Box box) =>
-      ((box.get(_journalKey) as List?)?.cast<String>()) ?? const [];
+  static Map<String, dynamic> _heroEntryContent(HeroItem hero) => {
+    'id': hero.id,
+    'name': hero.name,
+    'emoji': hero.emoji,
+    'material_badge': hero.material,
+    'stages': const <Object>[],
+  };
 }
 
 /// Tên cấp độ theo số vật đã khám phá.

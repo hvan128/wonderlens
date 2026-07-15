@@ -60,6 +60,7 @@ abstract final class PhosphorIconsBold {
   static const IconData houseSimple = IconsaxPlusLinear.home_2;
   static const IconData lockSimple = IconsaxPlusLinear.lock_1;
   static const IconData magnifyingGlass = IconsaxPlusLinear.search_normal_1;
+  static const IconData notification = IconsaxPlusLinear.notification;
   static const IconData question = IconsaxPlusLinear.message_question;
   static const IconData shareNetwork = IconsaxPlusLinear.share;
   static const IconData saveAdd = IconsaxPlusLinear.save_add;
@@ -69,6 +70,8 @@ abstract final class PhosphorIconsBold {
   static const IconData grid = IconsaxPlusLinear.grid_2;
   static const IconData journey = IconsaxPlusLinear.routing_2;
   static const IconData user = IconsaxPlusLinear.user;
+  // Check trần cho checklist — Iconsax chỉ có tick_circle/square nổi bật hơn.
+  static const IconData check = Icons.check_rounded;
   // X trần (đóng/huỷ) — Iconsax chỉ có close_circle/square (có viền), dùng
   // Material Icons.close cho nét X gọn không viền.
   static const IconData x = Icons.close;
@@ -85,11 +88,16 @@ abstract final class PhosphorIconsFill {
   static const IconData lightbulb = IconsaxPlusBold.lamp_on;
   static const IconData lightning = IconsaxPlusBold.flash_1;
   static const IconData medal = IconsaxPlusBold.medal_star;
+  static const IconData notification = IconsaxPlusBold.notification;
   static const IconData play = IconsaxPlusBold.play;
   static const IconData question = IconsaxPlusBold.message_question;
   static const IconData sealCheck = IconsaxPlusBold.verify;
   static const IconData sparkle = IconsaxPlusBold.magic_star;
   static const IconData star = IconsaxPlusBold.star;
+  // Chỉ số "hệ" chất liệu trên thẻ khoe (ShareCard kiểu thẻ bài).
+  static const IconData tree = IconsaxPlusBold.tree; // thân thiện môi trường
+  static const IconData shield = IconsaxPlusBold.shield; // độ bền
+  static const IconData repeat = IconsaxPlusBold.repeat; // độ phổ biến
   static const IconData speakerSimpleHigh = IconsaxPlusBold.volume_high;
   static const IconData trophy = IconsaxPlusBold.cup;
   static const IconData warningCircle = IconsaxPlusBold.warning_2;

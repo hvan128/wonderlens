@@ -24,6 +24,12 @@ class _FakeNarration implements NarrationService {
   }
 
   @override
+  Future<void> speakAsset(String assetPath, String fallbackText) {
+    spoken.add(fallbackText);
+    return Future<void>.value();
+  }
+
+  @override
   Future<void> stop() async {
     stops++;
   }
@@ -49,13 +55,13 @@ void main() {
   // (MaterialApp tự dựng MediaQuery từ view, ghi đè lớp ngoài). reduce-motion bật
   // → _StoryScrim bỏ flutter_animate (delay dùng Timer) → teardown không treo.
   Widget host(_FakeNarration n) => MaterialApp(
-        home: Builder(
-          builder: (context) => MediaQuery(
-            data: MediaQuery.of(context).copyWith(disableAnimations: true),
-            child: TimelineScreen(content: content, narration: n),
-          ),
-        ),
-      );
+    home: Builder(
+      builder: (context) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(disableAnimations: true),
+        child: TimelineScreen(content: content, narration: n),
+      ),
+    ),
+  );
 
   // Vượt sàn dwell (2200ms) + đọc (40ms) + slack để sang bước kế.
   Future<void> settleStep(WidgetTester tester) =>
@@ -111,8 +117,9 @@ void main() {
     await settleStep(tester); // về outro để vòng dừng gọn
   });
 
-  testWidgets('đi hết hành trình -> hiện phần thưởng, không ném lỗi',
-      (tester) async {
+  testWidgets('đi hết hành trình -> hiện phần thưởng, không ném lỗi', (
+    tester,
+  ) async {
     final n = _FakeNarration();
     await tester.pumpWidget(host(n));
     await tester.pump();

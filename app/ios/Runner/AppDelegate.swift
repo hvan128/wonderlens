@@ -3,6 +3,7 @@ import CoreImage
 import Flutter
 import Photos
 import UIKit
+import UserNotifications
 import Vision
 
 @main
@@ -14,6 +15,7 @@ import Vision
     // Cho phim hành trình + giọng đọc có tiếng KỂ CẢ khi gạt công tắc im lặng
     // (mặc định video_player theo category bị mute switch tắt → app trẻ em cần nghe).
     try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+    UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
@@ -208,21 +210,23 @@ final class NativeTabBarView: NSObject, FlutterPlatformView, UITabBarDelegate {
 
 /// PlatformView: nền **Liquid Glass native của iOS 26** (`UIGlassEffect`), rớt
 /// về material blur trên iOS cũ. Không nhận chạm (các nút tab là widget Flutter
-/// phủ lên trên). Tự bo capsule theo chiều cao.
+/// phủ lên trên). Bo góc theo radius Flutter truyền xuống; radius lớn thành capsule.
 final class LiquidGlassFactory: NSObject, FlutterPlatformViewFactory {
   func create(
     withFrame frame: CGRect,
     viewIdentifier viewId: Int64,
     arguments args: Any?
   ) -> FlutterPlatformView {
-    LiquidGlassPlatformView(frame: frame)
+    let params = args as? [String: Any]
+    let radius = params?["radius"] as? Double ?? 999
+    return LiquidGlassPlatformView(frame: frame, radius: CGFloat(radius))
   }
 }
 
 final class LiquidGlassPlatformView: NSObject, FlutterPlatformView {
   private let capsule: GlassCapsuleView
-  init(frame: CGRect) {
-    capsule = GlassCapsuleView(frame: frame)
+  init(frame: CGRect, radius: CGFloat) {
+    capsule = GlassCapsuleView(frame: frame, radius: radius)
     super.init()
   }
   func view() -> UIView { capsule }
@@ -230,8 +234,10 @@ final class LiquidGlassPlatformView: NSObject, FlutterPlatformView {
 
 final class GlassCapsuleView: UIView {
   private let effectView: UIVisualEffectView
+  private let radius: CGFloat
 
-  override init(frame: CGRect) {
+  init(frame: CGRect, radius: CGFloat) {
+    self.radius = radius
     if #available(iOS 26.0, *) {
       effectView = UIVisualEffectView(effect: UIGlassEffect())
     } else {
@@ -250,7 +256,7 @@ final class GlassCapsuleView: UIView {
   override func layoutSubviews() {
     super.layoutSubviews()
     effectView.frame = bounds
-    effectView.layer.cornerRadius = min(bounds.width, bounds.height) / 2.0
+    effectView.layer.cornerRadius = min(radius, min(bounds.width, bounds.height) / 2.0)
   }
 }
 

@@ -6,158 +6,933 @@ import '../models/object_content.dart';
 import '../theme/wonder_tokens.dart';
 import '../ui/wonder_logo.dart';
 
-/// Khung thẻ chia sẻ chung: nền tối sang trọng + vệt spotlight + thương hiệu
-/// WonderLens ở đỉnh + tagline ở chân. Bề rộng cố định → chụp PNG luôn gọn, nét.
+/// Bề rộng cố định → chụp PNG luôn gọn, nét.
 ///
-/// Lưu ý: thẻ này được render để chụp PNG (RepaintBoundary.toImage) nên KHÔNG
-/// dùng BackdropFilter/glass (backdrop không chụp được) — chỉ gradient đặc.
+/// Lưu ý: các thẻ share render để chụp PNG (RepaintBoundary.toImage) nên KHÔNG
+/// dùng BackdropFilter/glass (backdrop không chụp được) — chỉ gradient đặc + ảnh.
 const double kShareCardWidth = 340;
 
-class _WonderCardShell extends StatelessWidget {
-  final List<Widget> children;
-  const _WonderCardShell({required this.children});
+/// Nền giấy ấm cho lõi thẻ bài.
+const Color _kPaper = Color(0xFFFBF6EA);
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: kShareCardWidth,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(32),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: <Color>[Color(0xFF15405A), Color(0xFF0B1220)],
-        ),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: WonderColors.teal.withValues(alpha: 0.30),
-            blurRadius: 36,
-            spreadRadius: -8,
-            offset: const Offset(0, 14),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(32),
-        child: Stack(
-          children: <Widget>[
-            // Vệt sáng "spotlight" dịu ở đỉnh cho khối có chiều sâu.
-            Positioned(
-              top: -90,
-              left: -30,
-              right: -30,
-              child: Container(
-                height: 260,
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    colors: <Color>[
-                      WonderColors.teal.withValues(alpha: 0.28),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(22),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  const _Brand(),
-                  const SizedBox(height: 18),
-                  ...children,
-                  const SizedBox(height: 22),
-                  const _Tagline(),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+/// "Hệ" chất liệu — như element của Pokémon. Phân loại [materialBadge] tự do
+/// ("Nhựa + Mực", "Thép không gỉ"…) về 5 nhóm + màu điểm nhấn + 3 chỉ số phái
+/// sinh (0..5: thân thiện · bền · phổ biến). Vật lạ → hệ mặc định (teal).
+class _MaterialType {
+  final String label;
+  final Color accent;
+  final int eco;
+  final int durable;
+  final int common;
+  const _MaterialType(
+    this.label,
+    this.accent,
+    this.eco,
+    this.durable,
+    this.common,
+  );
 }
 
-/// Thẻ chia sẻ một lần khám phá: ẢNH THẬT (cutout) của vật + tên + hành trình.
+_MaterialType _materialTypeOf(String badge) {
+  final b = badge.toLowerCase();
+  if (b.contains('giấy')) {
+    return const _MaterialType('Giấy', Color(0xFFB88A2E), 4, 2, 5);
+  }
+  if (b.contains('nhựa')) {
+    return const _MaterialType('Nhựa', Color(0xFF0E97AC), 1, 3, 5);
+  }
+  if (b.contains('thép') || b.contains('inox') || b.contains('kim loại')) {
+    return const _MaterialType('Kim loại', Color(0xFF566B82), 2, 5, 3);
+  }
+  if (b.contains('gỗ') || b.contains('tre')) {
+    return const _MaterialType('Gỗ · Tre', Color(0xFF8A5A2B), 4, 3, 3);
+  }
+  if (b.contains('cao su')) {
+    return const _MaterialType('Cao su', Color(0xFFC0512E), 2, 4, 2);
+  }
+  return _MaterialType(
+    badge.isEmpty ? 'Vật liệu' : badge,
+    WonderColors.tealDeep,
+    3,
+    3,
+    3,
+  );
+}
+
+/// Loại bỏ emoji/ký hiệu khỏi chuỗi để thẻ khoe sạch (chỉ dùng icon Iconsax).
+String _plain(String s) => s
+    .replaceAll(
+      RegExp(
+        r'[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FE0F}\u{200D}\u{1F1E6}-\u{1F1FF}]',
+        unicode: true,
+      ),
+      '',
+    )
+    .trim();
+
+/// Thẻ chia sẻ một lần khám phá — kiểu **thẻ bài sưu tầm** (Pokémon): khung vàng
+/// mật + lõi giấy ấm. Chất liệu là "hệ" (màu + chỉ số), hành trình hình thành là
+/// chuỗi tiến hoá (ảnh từng chặng), lịch sử là dòng chú giải. Điểm nhấn đổi theo
+/// hệ; icon lấy từ bộ Iconsax (shim), logo là ảnh thật.
 class ShareCard extends StatelessWidget {
   final ObjectContent content;
 
-  static const int _maxStages = 6;
+  static const int _maxStages = 4;
   static const double width = kShareCardWidth;
 
   const ShareCard({super.key, required this.content});
 
   @override
   Widget build(BuildContext context) {
+    final type = _materialTypeOf(content.materialBadge);
+    final accent = type.accent;
     final stages = content.stages;
-    final shown = stages.length > _maxStages
+    final evo = stages.length > _maxStages
         ? stages.sublist(0, _maxStages)
         : stages;
-    final hiddenCount = stages.length - shown.length;
+    final history = (content.history ?? '').trim();
 
-    return _WonderCardShell(
-      children: <Widget>[
-        Center(
-          child: _HeroPhoto(objectId: content.id, emoji: content.emoji),
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(26),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[
+            Color(0xFFFFE7A6),
+            WonderColors.sunny,
+            WonderColors.sunnyDeep,
+            Color(0xFFB96E00),
+          ],
+          stops: <double>[0.0, 0.32, 0.78, 1.0],
         ),
-        const SizedBox(height: 16),
-        Center(
-          child: Text(
-            content.name,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 27,
-              fontWeight: FontWeight.w900,
-              height: 1.1,
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.28),
+            blurRadius: 34,
+            spreadRadius: -10,
+            offset: const Offset(0, 16),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
+            gradient: const RadialGradient(
+              center: Alignment(0, -0.9),
+              radius: 1.25,
+              colors: <Color>[Color(0xFFFFFDF6), _kPaper],
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(13, 12, 13, 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                _PokeHeader(
+                  name: content.name,
+                  type: type,
+                  rarity: stages.length,
+                ),
+                const SizedBox(height: 11),
+                _PokeBody(content: content, type: type),
+                const SizedBox(height: 13),
+                _SectionHeader(
+                  icon: PhosphorIconsBold.journey,
+                  text: 'HÀNH TRÌNH HÌNH THÀNH',
+                  accent: accent,
+                ),
+                const SizedBox(height: 8),
+                _EvolutionChain(stages: evo, accent: accent),
+                if (history.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: 12),
+                  _HistoryFlavor(text: history, accent: accent),
+                ],
+                const SizedBox(height: 12),
+                Container(
+                  height: 1,
+                  color: WonderColors.textStrong.withValues(alpha: 0.12),
+                ),
+                const SizedBox(height: 10),
+                _PokeFooter(source: content.source, accent: accent),
+              ],
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        Center(
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
+      ),
+    );
+  }
+}
+
+/// Đầu thẻ: tên (Baloo) + huy hiệu hệ bên trái; dải sao "độ hiếm" (= số chặng
+/// hành trình) bên phải.
+class _PokeHeader extends StatelessWidget {
+  final String name;
+  final _MaterialType type;
+  final int rarity;
+
+  const _PokeHeader({
+    required this.name,
+    required this.type,
+    required this.rarity,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              if (content.materialBadge.isNotEmpty)
-                _Pill(
-                  icon: PhosphorIconsFill.flask,
-                  text: content.materialBadge,
-                  color: WonderColors.teal,
+              Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontFamily: 'Baloo 2',
+                  color: WonderColors.textStrong,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  height: 1,
                 ),
-              if (content.source == 'live')
-                const _Pill(
-                  icon: PhosphorIconsFill.sparkle,
-                  text: 'AI kể chuyện vui',
-                  color: WonderColors.sunny,
-                ),
+              ),
+              const SizedBox(height: 5),
+              _TypeBadge(type: type),
             ],
           ),
         ),
-        const SizedBox(height: 20),
-        const _Divider(),
-        const SizedBox(height: 16),
-        const _Label(
-          icon: PhosphorIconsBold.journey,
-          text: 'HÀNH TRÌNH KHOA HỌC',
+        const SizedBox(width: 8),
+        _RarityStars(count: rarity),
+      ],
+    );
+  }
+}
+
+/// Huy hiệu "hệ" — icon phân tích chất liệu + tên hệ, nhuộm theo màu hệ.
+class _TypeBadge extends StatelessWidget {
+  final _MaterialType type;
+  const _TypeBadge({required this.type});
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = type.accent;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(7, 4, 10, 4),
+      decoration: BoxDecoration(
+        color: Color.alphaBlend(
+          accent.withValues(alpha: 0.16),
+          Colors.white,
         ),
-        const SizedBox(height: 12),
-        for (var i = 0; i < shown.length; i++)
-          _StageRow(index: i, title: shown[i].title),
-        if (hiddenCount > 0)
+        borderRadius: BorderRadius.circular(WonderTokens.pill),
+        border: Border.all(color: accent.withValues(alpha: 0.45), width: 1.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          PhosphorIcon(PhosphorIconsFill.flask, size: 13, color: accent),
+          const SizedBox(width: 5),
+          Text(
+            'Hệ ${type.label}',
+            style: TextStyle(
+              color: Color.alphaBlend(
+                accent.withValues(alpha: 0.82),
+                WonderColors.textStrong,
+              ),
+              fontSize: 11.5,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Dải 5 sao độ hiếm — số sao sáng = số chặng của hành trình.
+class _RarityStars extends StatelessWidget {
+  final int count;
+  const _RarityStars({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    final filled = count.clamp(0, 5);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        for (var i = 0; i < 5; i++)
           Padding(
-            padding: const EdgeInsets.only(left: 38, top: 2),
-            child: Text(
-              '… và $hiddenCount manh mối nữa',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
-                fontSize: 13,
-                fontStyle: FontStyle.italic,
+            padding: EdgeInsets.only(left: i == 0 ? 0 : 1.5),
+            child: PhosphorIcon(
+              PhosphorIconsFill.star,
+              size: 12,
+              color: i < filled
+                  ? WonderColors.sunnyDeep
+                  : WonderColors.textStrong.withValues(alpha: 0.16),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Thân thẻ 2 cột: cửa sổ ảnh (trái) + bảng chỉ số (phải), cao bằng nhau.
+class _PokeBody extends StatelessWidget {
+  final ObjectContent content;
+  final _MaterialType type;
+
+  const _PokeBody({required this.content, required this.type});
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Expanded(
+            flex: 105,
+            child: _HeroWindow(objectId: content.id, accent: type.accent),
+          ),
+          const SizedBox(width: 11),
+          Expanded(
+            flex: 100,
+            child: _StatsPanel(
+              type: type,
+              stageCount: content.stages.length,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Cửa sổ ảnh vật (ảnh bé chụp) trong khung vàng + nền sáng dịu; sao hero góc
+/// trên, nhãn "Ảnh của bé" góc dưới. Chưa có ảnh → icon ảnh nhạt (không emoji).
+class _HeroWindow extends StatelessWidget {
+  final String objectId;
+  final Color accent;
+
+  const _HeroWindow({required this.objectId, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    final file = CaptureStore.instance.fileFor(objectId);
+    return Container(
+      constraints: const BoxConstraints(minHeight: 140),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(13),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[Color(0xFFFFE7A6), WonderColors.sunnyDeep],
+        ),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: WonderColors.sunnyDeep.withValues(alpha: 0.35),
+            blurRadius: 12,
+            spreadRadius: -6,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Stack(
+          fit: StackFit.expand,
+          children: <Widget>[
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment(0, -0.6),
+                  radius: 1.2,
+                  colors: <Color>[
+                    Color(0xFFFFFFFF),
+                    Color(0xFFDDEFF4),
+                    Color(0xFFC3E4EC),
+                  ],
+                  stops: <double>[0.0, 0.62, 1.0],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: file != null
+                  ? Image.file(
+                      file,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.high,
+                      gaplessPlayback: true,
+                      errorBuilder: (_, _, _) => _fallback(),
+                    )
+                  : _fallback(),
+            ),
+            Positioned(
+              right: 7,
+              top: 6,
+              child: Container(
+                width: 23,
+                height: 23,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(7)),
+                  gradient: WonderGradients.badge,
+                ),
+                child: const PhosphorIcon(
+                  PhosphorIconsFill.star,
+                  size: 12,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            if (file != null)
+              Positioned(
+                left: 7,
+                bottom: 7,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(WonderTokens.pill),
+                    boxShadow: <BoxShadow>[
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.14),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      PhosphorIcon(
+                        PhosphorIconsFill.image,
+                        size: 11,
+                        color: WonderColors.tealDeep,
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        'Ảnh của bé',
+                        style: TextStyle(
+                          color: WonderColors.textStrong,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _fallback() => Center(
+    child: PhosphorIcon(
+      PhosphorIconsFill.image,
+      size: 52,
+      color: accent.withValues(alpha: 0.45),
+    ),
+  );
+}
+
+/// Bảng chỉ số kiểu thẻ bài: 3 trục (thân thiện · bền · phổ biến) dạng pip 5
+/// nấc, phái sinh theo hệ; chân bảng ghi chất liệu + số chặng.
+class _StatsPanel extends StatelessWidget {
+  final _MaterialType type;
+  final int stageCount;
+
+  const _StatsPanel({required this.type, required this.stageCount});
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = type.accent;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10),
+      decoration: BoxDecoration(
+        color: Color.alphaBlend(
+          accent.withValues(alpha: 0.07),
+          const Color(0xFFFFFDF6),
+        ),
+        borderRadius: BorderRadius.circular(13),
+        border: Border.all(color: accent.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          _StatRow(
+            icon: PhosphorIconsFill.tree,
+            label: 'Thân thiện',
+            value: type.eco,
+            accent: accent,
+          ),
+          const SizedBox(height: 9),
+          _StatRow(
+            icon: PhosphorIconsFill.shield,
+            label: 'Độ bền',
+            value: type.durable,
+            accent: accent,
+          ),
+          const SizedBox(height: 9),
+          _StatRow(
+            icon: PhosphorIconsFill.repeat,
+            label: 'Phổ biến',
+            value: type.common,
+            accent: accent,
+          ),
+          const SizedBox(height: 9),
+          Container(
+            height: 1,
+            color: WonderColors.textStrong.withValues(alpha: 0.12),
+          ),
+          const SizedBox(height: 7),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    text: 'Chất liệu ',
+                    style: TextStyle(
+                      color: WonderColors.textSoft,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w900,
+                    ),
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: type.label,
+                        style: const TextStyle(color: WonderColors.textStrong),
+                      ),
+                    ],
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Text.rich(
+                TextSpan(
+                  text: '$stageCount',
+                  style: const TextStyle(
+                    color: WonderColors.textStrong,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w900,
+                  ),
+                  children: const <TextSpan>[
+                    TextSpan(
+                      text: ' chặng',
+                      style: TextStyle(color: WonderColors.textSoft),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final int value;
+  final Color accent;
+
+  const _StatRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        PhosphorIcon(icon, size: 14, color: accent),
+        const SizedBox(width: 7),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: WonderColors.textStrong,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+        _Pips(value: value, accent: accent),
+      ],
+    );
+  }
+}
+
+/// 5 ô vuông nhỏ; số ô sáng = giá trị chỉ số.
+class _Pips extends StatelessWidget {
+  final int value;
+  final Color accent;
+
+  const _Pips({required this.value, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        for (var i = 0; i < 5; i++)
+          Padding(
+            padding: EdgeInsets.only(left: i == 0 ? 0 : 3),
+            child: Container(
+              width: 7,
+              height: 7,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(2),
+                color: i < value
+                    ? accent
+                    : WonderColors.textStrong.withValues(alpha: 0.14),
               ),
             ),
           ),
+      ],
+    );
+  }
+}
+
+/// Nhãn mục kiểu thẻ bài: icon + chữ HOA + gạch mờ dần theo màu hệ.
+class _SectionHeader extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final Color accent;
+
+  const _SectionHeader({
+    required this.icon,
+    required this.text,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        PhosphorIcon(icon, size: 14, color: accent),
+        const SizedBox(width: 7),
+        Text(
+          text,
+          style: TextStyle(
+            color: accent,
+            fontSize: 10.5,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0.8,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Container(
+            height: 1.5,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(2),
+              gradient: LinearGradient(
+                colors: <Color>[
+                  accent.withValues(alpha: 0.4),
+                  accent.withValues(alpha: 0),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Chuỗi tiến hoá: ảnh từng chặng (illustration) nối bằng mũi tên; thiếu ảnh →
+/// ô số thứ tự. Nhãn dưới là tên chặng đã bỏ emoji.
+class _EvolutionChain extends StatelessWidget {
+  final List<Stage> stages;
+  final Color accent;
+
+  const _EvolutionChain({required this.stages, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    final row = <Widget>[];
+    for (var i = 0; i < stages.length; i++) {
+      if (i > 0) {
+        row.add(
+          Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: PhosphorIcon(
+              PhosphorIconsBold.caretRight,
+              size: 13,
+              color: accent.withValues(alpha: 0.7),
+            ),
+          ),
+        );
+      }
+      row.add(
+        Expanded(child: _EvoStep(stage: stages[i], index: i, accent: accent)),
+      );
+    }
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: row);
+  }
+}
+
+class _EvoStep extends StatelessWidget {
+  final Stage stage;
+  final int index;
+  final Color accent;
+
+  const _EvoStep({
+    required this.stage,
+    required this.index,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final illustration = stage.illustration;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Container(
+          width: 44,
+          height: 44,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: accent.withValues(alpha: 0.35),
+              width: 2,
+            ),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: WonderColors.sunnyDeep.withValues(alpha: 0.25),
+                blurRadius: 6,
+                spreadRadius: -3,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: (illustration != null && illustration.isNotEmpty)
+              ? Image.asset(
+                  illustration,
+                  fit: BoxFit.cover,
+                  filterQuality: FilterQuality.medium,
+                  errorBuilder: (_, _, _) => _numTile(),
+                )
+              : _numTile(),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          _plain(stage.title),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: WonderColors.textSoft,
+            fontSize: 9.5,
+            fontWeight: FontWeight.w900,
+            height: 1.1,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _numTile() => DecoratedBox(
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: <Color>[
+          accent,
+          Color.alphaBlend(Colors.black.withValues(alpha: 0.25), accent),
+        ],
+      ),
+    ),
+    child: Center(
+      child: Text(
+        '${index + 1}',
+        style: const TextStyle(
+          fontFamily: 'Baloo 2',
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    ),
+  );
+}
+
+/// Hộp "Lịch sử" — dòng chú giải nghiêng, viền trái theo màu hệ.
+class _HistoryFlavor extends StatelessWidget {
+  final String text;
+  final Color accent;
+
+  const _HistoryFlavor({required this.text, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(11),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Color.alphaBlend(
+            accent.withValues(alpha: 0.08),
+            const Color(0xFFFFFDF6),
+          ),
+          border: Border.all(color: accent.withValues(alpha: 0.22)),
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Container(width: 3, color: accent),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(11, 9, 12, 9),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          PhosphorIcon(
+                            PhosphorIconsBold.books,
+                            size: 12,
+                            color: accent,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            'LỊCH SỬ',
+                            style: TextStyle(
+                              color: accent,
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        text,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF3A4A63),
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          fontStyle: FontStyle.italic,
+                          height: 1.42,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Chân thẻ: logo thật + thương hiệu (trái) · nguồn nội dung (phải).
+class _PokeFooter extends StatelessWidget {
+  final String source;
+  final Color accent;
+
+  const _PokeFooter({required this.source, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    final live = source == 'live';
+    return Row(
+      children: <Widget>[
+        Image.asset(
+          'assets/images/brand_logo.png',
+          width: 26,
+          height: 26,
+          filterQuality: FilterQuality.medium,
+          errorBuilder: (_, _, _) => Container(
+            width: 26,
+            height: 26,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: WonderGradients.cta,
+            ),
+            child: const PhosphorIcon(
+              PhosphorIconsDuotone.binoculars,
+              size: 15,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        const Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                'WonderLens',
+                style: TextStyle(
+                  fontFamily: 'Baloo 2',
+                  color: WonderColors.textStrong,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  height: 1,
+                ),
+              ),
+              SizedBox(height: 2),
+              Text(
+                'Khoa học vui cho bé tò mò',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: WonderColors.textSoft,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            PhosphorIcon(
+              live ? PhosphorIconsFill.sparkle : PhosphorIconsFill.sealCheck,
+              size: 12,
+              color: accent,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              live ? 'AI kể chuyện' : 'Curated',
+              style: const TextStyle(
+                color: WonderColors.textSoft,
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -475,121 +1250,6 @@ class _KraftMiniTile extends StatelessWidget {
   }
 }
 
-/// Khung ảnh thật của vật: cutout (tách nền) trên nền sáng dịu trong khung bo
-/// góc + viền sáng + glow. Chưa có ảnh → rớt về emoji trên gradient thương hiệu.
-class _HeroPhoto extends StatelessWidget {
-  final String objectId;
-  final String emoji;
-  const _HeroPhoto({required this.objectId, required this.emoji});
-
-  @override
-  Widget build(BuildContext context) {
-    final file = CaptureStore.instance.fileFor(objectId);
-    const size = 158.0;
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30),
-        gradient: file != null
-            ? const RadialGradient(
-                colors: <Color>[Color(0xFFFFFFFF), Color(0xFFD9EEF4)],
-              )
-            : WonderGradients.badge,
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.92),
-          width: 3,
-        ),
-        boxShadow: WonderShadows.glow(WonderColors.teal, opacity: 0.55),
-      ),
-      child: file != null
-          ? Padding(
-              padding: const EdgeInsets.all(14),
-              child: Image.file(
-                file,
-                fit: BoxFit.contain,
-                filterQuality: FilterQuality.high,
-                gaplessPlayback: true,
-                errorBuilder: (_, _, _) => Center(
-                  child: Text(emoji, style: const TextStyle(fontSize: 70)),
-                ),
-              ),
-            )
-          : Center(child: Text(emoji, style: const TextStyle(fontSize: 78))),
-    );
-  }
-}
-
-class _Brand extends StatelessWidget {
-  const _Brand();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        Container(
-          width: 36,
-          height: 36,
-          alignment: Alignment.center,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: WonderGradients.cta,
-          ),
-          child: const PhosphorIcon(
-            PhosphorIconsDuotone.binoculars,
-            size: 20,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              const Text(
-                'WonderLens',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              Text(
-                'Khoa học vui cho bé tò mò',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
-                  fontSize: 11,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _Tagline extends StatelessWidget {
-  const _Tagline();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Soi đồ vật • Mở manh mối • Gom huy hiệu',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          color: Colors.white.withValues(alpha: 0.55),
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
-
 class _Label extends StatelessWidget {
   final IconData icon;
   final String text;
@@ -706,52 +1366,3 @@ class _Pill extends StatelessWidget {
   }
 }
 
-class _StageRow extends StatelessWidget {
-  final int index;
-  final String title;
-  const _StageRow({required this.index, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            width: 26,
-            height: 26,
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: WonderGradients.cta,
-            ),
-            child: Text(
-              '${index + 1}',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 3),
-              child: Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  height: 1.25,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

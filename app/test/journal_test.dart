@@ -1,5 +1,6 @@
 // Nhật ký "Khám phá thêm (AI)": vật lạ được lưu bền + round-trip nội dung,
-// dedup theo id, hero không vào nhật ký (vẫn theo luồng discovered cũ).
+// dedup theo id. Feed ngày trên home gồm cả hero + AI, nhưng journal AI vẫn
+// tách riêng để không gắn nhãn nhầm.
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -93,10 +94,39 @@ void main() {
     expect(r.newBadge, 'Giấy');
     expect(repo.discoveredIds(), ['paper_cup']);
     expect(repo.journalEntries(), isEmpty);
+    expect(repo.discoveryEntries().single.id, 'paper_cup');
+    expect(repo.discoveryEntries().single.isHero, isTrue);
 
     // Khám phá lại: không nhân đôi.
     expect(repo.record(hero).isNewObject, isFalse);
     expect(repo.discoveredIds(), ['paper_cup']);
+    expect(repo.discoveryEntries(), hasLength(1));
+  });
+
+  test('recordHeroId seed hero theo id và không nhân đôi', () {
+    final first = repo.recordHeroId('paper_cup');
+    expect(first.isNewObject, isTrue);
+    expect(first.newBadge, 'Giấy');
+    expect(repo.discoveredIds(), ['paper_cup']);
+
+    final second = repo.recordHeroId('paper_cup');
+    expect(second.isNewObject, isFalse);
+    expect(repo.discoveredIds(), ['paper_cup']);
+
+    expect(repo.recordHeroId('khong_ton_tai').isNewObject, isFalse);
+    expect(repo.discoveredIds(), ['paper_cup']);
+    expect(repo.journalEntries(), isEmpty);
+    expect(repo.discoveryEntries().single.name, 'Cốc giấy');
+  });
+
+  test('discoveryEntries backfill hero cũ chỉ có discovered', () {
+    box.put('discovered', <String>['paper_cup']);
+
+    final entries = repo.discoveryEntries();
+    expect(entries, hasLength(1));
+    expect(entries.single.id, 'paper_cup');
+    expect(entries.single.name, 'Cốc giấy');
+    expect(entries.single.isHero, isTrue);
   });
 
   test('containsObject và remove xoá hero khỏi discovered', () {

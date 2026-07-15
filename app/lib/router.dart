@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'app_route_observer.dart';
+import 'data/content_repository.dart';
 import 'models/object_content.dart';
 import 'screens/camera_screen.dart';
 import 'screens/collection_screen.dart';
@@ -10,6 +11,7 @@ import 'screens/discovery_reveal_screen.dart';
 import 'screens/main_shell.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/splash_screen.dart';
+import 'screens/subscription_screen.dart';
 import 'screens/timeline_screen.dart';
 import 'services/camera_warmup.dart';
 import 'ui/ui.dart';
@@ -36,6 +38,19 @@ final appRouter = GoRouter(
         fade: true,
         duration: WonderTokens.durSlow,
         child: const OnboardingScreen(),
+      ),
+    ),
+    GoRoute(
+      // Mission onboarding từ local notification: tap vào nhắc khám phá sẽ mở
+      // thẳng capsule của một hero object curated/offline.
+      path: '/onboarding/mission/:objectId',
+      pageBuilder: (context, state) => wonderPage(
+        key: state.pageKey,
+        fade: true,
+        duration: WonderTokens.durSlow,
+        child: OnboardingScreen.mission(
+          objectId: state.pathParameters['objectId'] ?? 'paper_cup',
+        ),
       ),
     ),
     GoRoute(
@@ -70,7 +85,16 @@ final appRouter = GoRouter(
               CameraWarmup.instance.prewarmIfGranted();
               context.push('/camera');
             },
-            onOpenEntry: (e) => context.push('/timeline', extra: e.toContent()),
+            onOpenEntry: (e) async {
+              if (e.isHero) {
+                final content = await ContentRepository().load(e.id);
+                if (context.mounted && content != null) {
+                  context.push('/timeline', extra: content);
+                }
+                return;
+              }
+              context.push('/timeline', extra: e.toContent());
+            },
           ),
           transitionsBuilder: (context, animation, secondary, child) {
             // Nội dung (tiêu đề + tem tên) mờ vào SỚM — xong trong ~nửa đầu morph
@@ -127,6 +151,13 @@ final appRouter = GoRouter(
             child: child,
           );
         },
+      ),
+    ),
+    GoRoute(
+      path: '/subscription',
+      pageBuilder: (context, state) => MaterialPage<void>(
+        key: state.pageKey,
+        child: const SubscriptionScreen(),
       ),
     ),
   ],
