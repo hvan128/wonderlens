@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../theme/wonder_tokens.dart';
+import 'glass_surface.dart';
 import 'motion.dart';
 import 'phosphor_compat.dart';
+import 'wonder_chip.dart';
 
 /// Nạp & cache fragment program tan biến (`shaders/dissolve.frag`) một lần cho
 /// toàn app — để lúc bé chụp xong tạo shader tức thì, không delay.
@@ -59,6 +61,9 @@ class CaptureDissolve extends StatefulWidget {
   /// Đọc tên (loa). Null → ẩn.
   final VoidCallback? onSpeak;
 
+  /// Nội dung do AI-live hỗ trợ phải có nhãn rõ ở khoảnh khắc kết quả.
+  final bool aiAssisted;
+
   const CaptureDissolve({
     super.key,
     required this.frame,
@@ -67,6 +72,7 @@ class CaptureDissolve extends StatefulWidget {
     required this.onRetake,
     this.onSpeak,
     this.title,
+    this.aiAssisted = false,
     this.center = const Offset(0.5, 0.5),
   });
 
@@ -171,10 +177,12 @@ class _CaptureDissolveState extends State<CaptureDissolve>
                     animation: Listenable.merge(<Listenable>[_c, _spin]),
                     builder: (BuildContext context, _) {
                       final double t = _c.value;
-                      final double progress = Curves.easeInOut
-                          .transform((t / 0.72).clamp(0.0, 1.0));
-                      final double border = Curves.easeInOut
-                          .transform(((t - 0.12) / 0.78).clamp(0.0, 1.0));
+                      final double progress = Curves.easeInOut.transform(
+                        (t / 0.72).clamp(0.0, 1.0),
+                      );
+                      final double border = Curves.easeInOut.transform(
+                        ((t - 0.12) / 0.78).clamp(0.0, 1.0),
+                      );
                       return CustomPaint(
                         size: Size.infinite,
                         painter: _DissolvePainter(
@@ -198,9 +206,9 @@ class _CaptureDissolveState extends State<CaptureDissolve>
         ),
         // Chớp trắng nhẹ lúc mở màn.
         IgnorePointer(
-          child: const ColoredBox(color: Colors.white)
-              .animate()
-              .fadeOut(duration: 260.ms, curve: Curves.easeOut),
+          child: const ColoredBox(
+            color: Colors.white,
+          ).animate().fadeOut(duration: 260.ms, curve: Curves.easeOut),
         ),
         // Đáy: đang dựng ↔ kết quả.
         Positioned(
@@ -222,6 +230,7 @@ class _CaptureDissolveState extends State<CaptureDissolve>
                         onOpen: widget.onOpen,
                         onRetake: widget.onRetake,
                         onSpeak: widget.onSpeak,
+                        aiAssisted: widget.aiAssisted,
                       )
                     : const SizedBox.shrink(key: ValueKey<String>('loading')),
               ),
@@ -375,8 +384,12 @@ class _HalftonePainter extends CustomPainter {
         final inten = (env * (0.16 + 0.95 * pulse)).clamp(0.0, 1.0);
         if (inten <= 0.03) continue;
         final hue = ((math.atan2(dy, dx) / (2 * math.pi)) + 0.5) * 360.0;
-        paint.color =
-            HSVColor.fromAHSV(inten * 0.8, hue % 360.0, 0.5, 1.0).toColor();
+        paint.color = HSVColor.fromAHSV(
+          inten * 0.8,
+          hue % 360.0,
+          0.5,
+          1.0,
+        ).toColor();
         // Dot nhỏ, mịn (bán kính ~≤ 6px) — thanh mảnh thay vì blob thô.
         canvas.drawCircle(Offset(x, y), gap * 0.28 * inten + 0.35, paint);
       }
@@ -477,6 +490,7 @@ class _ResultPanel extends StatelessWidget {
   final VoidCallback onOpen;
   final VoidCallback onRetake;
   final VoidCallback? onSpeak;
+  final bool aiAssisted;
 
   const _ResultPanel({
     super.key,
@@ -484,6 +498,7 @@ class _ResultPanel extends StatelessWidget {
     required this.onOpen,
     required this.onRetake,
     this.onSpeak,
+    this.aiAssisted = false,
   });
 
   @override
@@ -492,47 +507,54 @@ class _ResultPanel extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Flexible(child: _NamePlate(title: title)),
-            if (onSpeak != null) ...<Widget>[
-              const SizedBox(width: 12),
-              _SpeakerIcon(onTap: onSpeak!),
-            ],
-          ],
-        ).animate().fadeIn(duration: 300.ms).slideY(
-              begin: 0.3,
-              end: 0,
-              curve: WonderTokens.curveStandard,
-            ),
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Flexible(child: _NamePlate(title: title)),
+                if (onSpeak != null) ...<Widget>[
+                  const SizedBox(width: 12),
+                  _SpeakerIcon(onTap: onSpeak!),
+                ],
+              ],
+            )
+            .animate()
+            .fadeIn(duration: 300.ms)
+            .slideY(begin: 0.3, end: 0, curve: WonderTokens.curveStandard),
+        if (aiAssisted) ...<Widget>[
+          const SizedBox(height: 10),
+          const WonderChip(
+            label: 'AI hỗ trợ',
+            icon: PhosphorIconsFill.sparkle,
+            color: WonderColors.grape,
+            tone: GlassTone.light,
+          ),
+        ],
         const SizedBox(height: 26),
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            _CircleAction(
-              icon: Icons.refresh_rounded,
-              semantic: 'Soi lại',
-              onTap: onRetake,
-            ),
-            const SizedBox(width: 26),
-            _CircleAction(
-              icon: Icons.check_rounded,
-              semantic: 'Mở hành trình',
-              primary: true,
-              onTap: onOpen,
-            ),
-            const SizedBox(width: 26),
-            _CircleAction(
-              icon: Icons.close_rounded,
-              semantic: 'Huỷ',
-              onTap: onRetake,
-            ),
-          ],
-        ).animate(delay: 160.ms).fadeIn(duration: 320.ms).slideY(
-              begin: 0.3,
-              end: 0,
-              curve: WonderTokens.curveStandard,
-            ),
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                _CircleAction(
+                  icon: Icons.refresh_rounded,
+                  semantic: 'Soi lại',
+                  onTap: onRetake,
+                ),
+                const SizedBox(width: 26),
+                _CircleAction(
+                  icon: Icons.check_rounded,
+                  semantic: 'Mở hành trình',
+                  primary: true,
+                  onTap: onOpen,
+                ),
+                const SizedBox(width: 26),
+                _CircleAction(
+                  icon: Icons.close_rounded,
+                  semantic: 'Huỷ',
+                  onTap: onRetake,
+                ),
+              ],
+            )
+            .animate(delay: 160.ms)
+            .fadeIn(duration: 320.ms)
+            .slideY(begin: 0.3, end: 0, curve: WonderTokens.curveStandard),
       ],
     );
   }

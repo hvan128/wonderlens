@@ -460,6 +460,7 @@ class _CameraScreenState extends State<CameraScreen>
         },
         onRetake: _dismissOverlay,
         onSpeak: content != null ? () => _speak(content.name) : null,
+        aiAssisted: content?.source == 'live',
       );
     }
     return const SizedBox.shrink();
