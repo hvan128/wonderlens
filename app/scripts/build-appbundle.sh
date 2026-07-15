@@ -15,7 +15,8 @@ if [[ -f .env.local ]]; then
   set +a
 fi
 
-PROXY_BASE_URL="https://wonderlens-proxy.vercel.app"
+PROXY_BASE_URL="https://wonderlens-android-proxy.vercel.app"
+APP_TOKEN="${APP_TOKEN:-${APP_SHARED_SECRET:-}}"
 
 if [[ -z "${APP_TOKEN:-}" ]]; then
   echo "ERROR: APP_TOKEN missing in .env.local (= APP_SHARED_SECRET của proxy)" >&2
