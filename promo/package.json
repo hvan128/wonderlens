@@ -10,8 +10,13 @@
     "render:cupwow": "remotion render WonderLensCupWowPromo out/wonderlens-cup-wow-promo.mp4 --timeout=300000 --concurrency=1",
     "render:cupui": "remotion render WonderLensCupUiPromo out/wonderlens-cup-ui-promo.mp4 --timeout=300000 --concurrency=1",
     "render:cupjourney": "remotion render WonderLensCupJourneyPromo out/wonderlens-cup-journey-promo.mp4 --timeout=300000 --concurrency=1",
+    "render:story": "remotion render WonderLensStoryPromo out/wonderlens-story-promo-silent.mp4 --timeout=300000 --concurrency=1",
+    "audio:story": "node scripts/build-story-audio.mjs",
+    "render:story:final": "npm run render:story && npm run audio:story",
     "sora:cup-stages": "node scripts/generate-sora-cup-stage-videos.mjs",
-    "still": "remotion still WonderLensPromo"
+    "still": "remotion still WonderLensPromo",
+    "render:gsap-landing": "node scripts/render-gsap-landing.mjs",
+    "render:gsap-landing:dry": "node scripts/render-gsap-landing.mjs --dry-run"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.484",
@@ -23,6 +28,7 @@
   "devDependencies": {
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "playwright": "^1.61.1",
     "typescript": "^5.9.3"
   }
 }

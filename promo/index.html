@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WonderLens Promo</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      background: #0c1b22;
+      color: #ecf7fb;
+      font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      color: #7ae1f2;
+    }
+
+    p {
+      margin: 0 0 14px;
+      color: #aecbd4;
+    }
+
+    .links a {
+      color: #7ae1f2;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .row {
+      margin-top: 18px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .title {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: #bde8f1;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .play-all {
+      margin-top: 10px;
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #082329;
+      background: #7ae1f2;
+      cursor: pointer;
+    }
+
+    .frame {
+      border: 0;
+      width: 100%;
+      max-width: 420px;
+      height: auto;
+      border-radius: 14px;
+      background: #fff;
+      aspect-ratio: 9 / 16;
+    }
+
+    video {
+      width: min(420px, 100%);
+      height: auto;
+      border: 0;
+      border-radius: 14px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>WonderLens Promo Preview</h1>
+  <p>
+    Bấm link hoặc xem trực tiếp ở các mục dưới. Nếu video không tự chạy do browser policy,
+    nhấn vào video một lần để kích hoạt.
+  </p>
+  <div class="links">
+    <a href="gsap-landing.html">→ Xem landing GSAP (anim web)</a>
+  </div>
+
+  <button id="playAll" class="play-all">Phát cả video</button>
+
+  <div class="row">
+    <div class="card">
+      <div class="title">WonderLens landing GSAP</div>
+      <iframe src="gsap-landing.html" class="frame" loading="lazy"></iframe>
+    </div>
+
+    <div class="card">
+      <div class="title">Video GSAP landing (render từ trình duyệt)</div>
+      <video id="gsapVideo" controls muted loop playsinline preload="metadata">
+        <source src="out/wonderlens-gsap-landing.mp4" type="video/mp4" />
+      </video>
+    </div>
+
+    <div class="card">
+      <div class="title">Video Remotion gốc</div>
+      <video id="remotionVideo" controls muted loop playsinline preload="metadata">
+        <source src="wonderlens-promo/wonderlens-promo.mp4" type="video/mp4" />
+      </video>
+    </div>
+  </div>
+
+  <p style="margin-top: 10px; color: #8dd4de; font-size: 13px;">
+    Nếu video không tự chạy (đặc biệt trên Safari/iOS), bấm vào từng video để phát.
+  </p>
+
+  <script>
+    document.querySelectorAll('video').forEach((video) => {
+      video.addEventListener('error', () => {
+        const message = document.createElement('p');
+        message.style.color = '#ffb6b6';
+        message.textContent = `Không đọc được file: ${video.querySelector('source')?.getAttribute('src') || 'không xác định'}`;
+        video.insertAdjacentElement('afterend', message);
+      });
+    });
+
+    document.getElementById('playAll')?.addEventListener('click', () => {
+      document.querySelectorAll('video').forEach((video) => {
+        video.play().catch(() => {
+          // Một số browser chặn autoplay; vẫn để người dùng tự nhấn từng video.
+        });
+      });
+    });
+  </script>
+</body>
+</html>

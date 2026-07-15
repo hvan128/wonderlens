@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WonderLens × GSAP Landing</title>
+  <meta name="description" content="Landing page thử nghiệm dùng GSAP cho WonderLens" />
+  <style>
+    :root {
+      --teal: #26c6da;
+      --teal-deep: #0b8fa2;
+      --paper: #fffdf7;
+      --ink: #1f2f35;
+      --accent: #ffb74d;
+      --shadow: rgba(11, 48, 56, 0.26);
+      --badge: rgba(38, 198, 218, 0.2);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body {
+      overflow: hidden;
+      background:
+        radial-gradient(120% 120% at 50% -10%, #eafbfe 0%, #fff6d8 48%, #f6e4be 100%);
+      color: var(--ink);
+    }
+
+    .wrap {
+      width: 100%;
+      height: 100%;
+      max-width: 430px;
+      margin: 0 auto;
+      padding: 16px 18px 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform-origin: left center;
+    }
+
+    .logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #4ce0f3, var(--teal));
+      box-shadow: 0 10px 22px var(--shadow);
+      display: grid;
+      place-items: center;
+      color: white;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -0.4px;
+      color: #0b5f6b;
+    }
+
+    .sub {
+      margin: 6px 0 0;
+      color: #5d6f76;
+      font-weight: 500;
+      max-width: 80%;
+    }
+
+    .screen {
+      position: relative;
+      margin-top: 16px;
+      border-radius: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.58);
+      background: #f9f7f0;
+      overflow: hidden;
+      box-shadow: 0 32px 70px rgba(11, 56, 62, 0.25);
+      height: 470px;
+      transform-origin: top center;
+      background-image: linear-gradient(155deg, #f6f0e3 0%, #fff9e8 100%);
+    }
+
+    .bg-orbit {
+      position: absolute;
+      inset: -40% -10% auto;
+      width: 140%;
+      height: 220%;
+      background: radial-gradient(circle at 30% 38%, rgba(38, 198, 218, 0.2), rgba(38, 198, 218, 0) 45%);
+      transform: translateY(0);
+      pointer-events: none;
+    }
+
+    .phone {
+      position: absolute;
+      left: 50%;
+      top: 58%;
+      width: 230px;
+      height: 420px;
+      transform: translate(-50%, -50%);
+      border-radius: 36px;
+      border: 4px solid rgba(22, 50, 58, 0.18);
+      background: linear-gradient(180deg, #0f3740 0%, #163f4e 100%);
+      box-shadow: 0 18px 50px rgba(11, 54, 60, 0.45);
+      overflow: hidden;
+    }
+
+    .phone::before {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border-radius: 30px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.88) 0%, #fff 60%, #ebedeb 100%);
+    }
+
+    .lens {
+      position: absolute;
+      left: 50%;
+      top: 74px;
+      width: 128px;
+      height: 128px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      border: 2px solid rgba(39, 197, 218, 0.4);
+      background: radial-gradient(circle at 28% 22%, rgba(38,198,218,0.25), rgba(38,198,218,0.04) 55%, transparent 58%);
+      box-shadow: inset 0 0 0 3px rgba(14, 87, 98, 0.15), 0 0 30px rgba(38, 198, 218, 0.3);
+      z-index: 2;
+      overflow: hidden;
+    }
+
+    .scan {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 4px dashed rgba(38, 198, 218, 0.5);
+      opacity: 0;
+    }
+
+    .badge {
+      position: absolute;
+      right: 18px;
+      top: 24px;
+      background: var(--badge);
+      border: 1px solid rgba(38, 198, 218, 0.5);
+      color: #0a6b78;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      opacity: 0;
+      z-index: 3;
+    }
+
+    .label {
+      position: absolute;
+      bottom: 16px;
+      left: 20px;
+      right: 20px;
+      text-align: center;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      opacity: 0;
+      z-index: 2;
+      color: #0c4f5f;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .card-track {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      top: 330px;
+      display: grid;
+      gap: 8px;
+      z-index: 3;
+      perspective: 900px;
+    }
+
+    .stage {
+      border-radius: 16px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      box-shadow: 0 8px 20px rgba(16, 46, 54, 0.12);
+      backdrop-filter: blur(2px);
+      transform-origin: center left;
+      opacity: 0;
+    }
+
+    .stage h3 {
+      margin: 0 0 4px;
+      font-size: 14px;
+      color: #0f5a67;
+    }
+
+    .stage p {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.4;
+      color: #4f6670;
+    }
+
+    .bottom {
+      text-align: center;
+      transform-origin: bottom center;
+    }
+
+    .cta {
+      margin: 20px auto 10px;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #25cae0 0%, #0f97ad 100%);
+      color: white;
+      font-size: 16px;
+      padding: 14px 20px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      width: min(320px, 100%);
+      box-shadow: 0 12px 22px rgba(13, 135, 155, 0.34);
+      opacity: 0;
+    }
+
+    .footnote {
+      margin: 0;
+      color: #6f8087;
+      font-size: 12px;
+      opacity: 0;
+      min-height: 18px;
+    }
+
+    .stage-dot {
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #ffcb6c;
+      top: 18px;
+      right: 14px;
+      opacity: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="header">
+      <div class="logo">◉</div>
+      <div>
+        <h1 class="title">WonderLens</h1>
+        <p class="sub">Kể chuyện khoa học cho bé, từ một cú chạm</p>
+      </div>
+    </header>
+
+    <main class="screen">
+      <div class="bg-orbit"></div>
+      <div class="phone">
+        <div class="lens">
+          <div class="scan" aria-hidden="true"></div>
+        </div>
+        <div class="badge">Scan vào, bé bắt đầu</div>
+        <div class="label">Màn hình quét</div>
+        <div class="stage-dot"></div>
+        <div class="card-track">
+          <article class="stage"><h3>Bước 1</h3><p>Máy ảnh nhận vật, app nhận diện đồ vật gần nhất.</p></article>
+          <article class="stage"><h3>Bước 2</h3><p>Hành trình sản xuất chạy theo từng chặng ngắn.</p></article>
+          <article class="stage"><h3>Bước 3</h3><p>Nhận huy hiệu mới và lưu vào bộ sưu tập.</p></article>
+        </div>
+      </div>
+    </main>
+
+    <section class="bottom">
+      <button class="cta">Xem hành trình ngắn</button>
+      <p class="footnote">Thử nghiệm bản landing động bằng GSAP</p>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js"></script>
+  <script>
+    const stages = document.querySelectorAll('.stage');
+    const scan = document.querySelector('.scan');
+    const badge = document.querySelector('.badge');
+    const phone = document.querySelector('.phone');
+    const label = document.querySelector('.label');
+    const cta = document.querySelector('.cta');
+    const footnote = document.querySelector('.footnote');
+    const logo = document.querySelector('.logo');
+    const title = document.querySelector('.title');
+    const sub = document.querySelector('.sub');
+    const dots = document.querySelectorAll('.stage-dot');
+    const bgOrbit = document.querySelector('.bg-orbit');
+    const bottom = document.querySelector('.bottom');
+
+    const hero = gsap.timeline({ paused: true });
+
+    hero
+      .from(logo, { duration: 0.45, scale: 0.5, autoAlpha: 0, x: -14, ease: 'back.out(1.8)' })
+      .from(title, { duration: 0.4, y: 10, autoAlpha: 0 }, '<0.04')
+      .from(sub, { duration: 0.4, y: 8, autoAlpha: 0 }, '<0.02')
+      .from('.screen', { duration: 0.8, y: 14, autoAlpha: 0, ease: 'power2.out' }, '+=0.1')
+      .to(bgOrbit, { duration: 1, y: -24, ease: 'power1.inOut', yoyo: true, repeat: -1 }, '-=0.2')
+      .from(phone, { duration: 0.8, y: 24, scale: 0.97, rotation: -2, autoAlpha: 0, ease: 'power2.out' }, '<0.2')
+      .to(scan, { duration: 0.75, rotation: 360, autoAlpha: 1, ease: 'none' }, '-=0.15')
+      .fromTo(scan, { clipPath: 'inset(0 80% 0 0)' }, { clipPath: 'inset(0 0 0 0)', duration: 0.7, ease: 'power1.inOut' })
+      .to(scan, { duration: 0.6, autoAlpha: 0.55, yoyo: true, repeat: 1 }, '+=0.1');
+
+    stages.forEach((stage, index) => {
+      hero
+        .fromTo(
+          stage,
+          { y: 20, autoAlpha: 0, rotationX: 12, scale: 0.98 },
+          { y: 0, autoAlpha: 1, rotationX: 0, scale: 1, duration: 0.45, ease: 'back.out(1.55)' },
+          `>-=0.04`
+        )
+        .to(stage, { duration: 0.25, y: -4, repeat: 1, yoyo: true, ease: 'sine.inOut' }, '+=0.35')
+        .to(dots[index], { duration: 0.24, autoAlpha: 1, scale: 1.4, yoyo: true, repeat: 1 }, '-=0.25');
+    });
+
+    hero
+      .to(badge, { duration: 0.45, autoAlpha: 1, y: 6, ease: 'back.out(1.6)' })
+      .to(label, { duration: 0.42, autoAlpha: 1, y: -4, ease: 'power2.out' })
+      .to(cta, { duration: 0.5, autoAlpha: 1, y: -6, ease: 'back.out(1.55)' })
+      .to(footnote, { duration: 0.38, autoAlpha: 1 })
+      .to({}, { duration: 0.2 })
+      .to(bottom, { duration: 0.2, y: -3, repeat: 2, yoyo: true, ease: 'sine.inOut' });
+
+    hero.repeat(0);
+
+    window.__seekGsapFrame = (frame, totalFrames = 420) => {
+      const max = Math.max(1, Number(totalFrames) - 1);
+      const progress = Math.max(0, Math.min(1, Number(frame) / max));
+      hero.progress(progress);
+    };
+
+    window.__playGsapLanding = () => hero.play();
+    window.__resetGsapLanding = () => hero.progress(0).pause();
+
+    const params = new URLSearchParams(window.location.search);
+    const shouldAutoplay = params.get('autoplay') !== '0';
+    const initialFrame = Number(params.get('frame'));
+    if (Number.isFinite(initialFrame)) {
+      const totalFrames = Number(params.get('frames') || 420);
+      hero.pause();
+      window.__seekGsapFrame(initialFrame, totalFrames);
+    } else if (shouldAutoplay) {
+      hero.play();
+    }
+
+    if (!Number.isFinite(initialFrame)) {
+      cta.addEventListener('click', () => {
+        hero.restart();
+      });
+    }
+  </script>
+</body>
+</html>
