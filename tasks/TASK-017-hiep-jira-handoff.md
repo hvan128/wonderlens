@@ -41,4 +41,8 @@ phần nào còn cần quyền truy cập, phê duyệt hoặc hạ tầng bên 
 
 - Ngày: 2026-07-15.
 - Chi tiết: [Hoàng Hiệp — Jira delivery index](../docs/hiep-jira-delivery.md).
-- Commits triển khai/verification: cập nhật sau khi tạo commit scoped cuối.
+- Commits:
+  - `d099cb0` — thiết kế bàn giao backlog.
+  - `b80fbbd` — kế hoạch triển khai.
+  - `fb7e74b` — nhãn AI, tests và screenshot core flow.
+  - `2385f5e` — product/growth/release handoff + verification record.
