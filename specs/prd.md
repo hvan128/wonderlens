@@ -73,6 +73,7 @@ Xem chi tiết: [`specs/features.md`](./features.md)
 | F-06 | Polish & demo UX | P1 | Done |
 | F-07 | Tranh minh hoạ thật (thay emoji) | P2 | Backlog |
 | F-08 | Kid-safe runtime audit (red-team) | P0* | Backlog* |
+| F-10 | WonderLens Plus subscription foundation | P2 | Done |
 
 > *F-08: Bắt buộc trước khi deploy cho trẻ thật (hiện guardrail là prompt-only, chưa test runtime).
 
@@ -85,7 +86,7 @@ Xem chi tiết: [`specs/features.md`](./features.md)
      │
      ├─ Hero objects → bundled assets (offline, < 2s)
      │
-     └─ Unknown objects → [Vercel proxy] → OpenAI gpt-4o (Vision + TTS)
+     └─ Unknown objects → [Vercel proxy] → OpenAI gpt-4o (Vision/generate)
 ```
 
 - Vercel proxy giấu `OPENAI_API_KEY` (không bao giờ trong app)
@@ -104,7 +105,8 @@ ADR chi tiết: [`adrs/`](../adrs/)
 - Không localisation tiếng khác (chỉ tiếng Việt)
 - Không AR overlay
 - Không social features (chia sẻ bộ sưu tập)
-- Không subscription / monetisation
+- Không thu tiền thật nếu Store chưa có product IDs; WonderLens Plus đã có bridge
+  IAP nhưng giao dịch thật phụ thuộc App Store Connect / Play Console setup
 
 ---
 
@@ -138,6 +140,8 @@ ADR chi tiết: [`adrs/`](../adrs/)
 - Đổi `APP_SHARED_SECRET` + set OpenAI spend limit
 - Tranh minh hoạ thật thay emoji (`Stage.illustration` đã sẵn)
 - Thêm 4–8 hero objects (mở rộng bộ văn phòng)
+- Hoàn tất submit WonderLens Plus trên App Store Connect; bật payments profile
+  Google Play rồi chạy lại Store API script cho Android
 - TestFlight / Play beta với phụ huynh thật
 
 ### v2 — Growth

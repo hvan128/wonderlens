@@ -24,7 +24,7 @@
 └───────────────────────────────────┘
         │
         ▼
-   OpenAI API (gpt-4o Vision + TTS)
+   OpenAI API (gpt-4o Vision/generate)
 ```
 
 ---
@@ -127,6 +127,28 @@
 - Validate `APP_SHARED_SECRET` header trên mọi request
 - Giới hạn image size (tránh payload lớn)
 - Kid-safe prompt guardrail cho generate endpoint
+
+---
+
+## Domain 5: Subscription & Parent Controls
+
+**Responsibility:** Paywall WonderLens Plus, Store subscription bridge,
+entitlement local sau purchase/restore và parental gate trước cơ hội mua hàng.
+
+**Owns:**
+- `lib/screens/subscription_screen.dart`
+- `lib/data/subscription_repository.dart`
+
+**Contract out:** Các domain khác chỉ đọc entitlement qua
+`SubscriptionRepository.state` / `isPremium` khi cần gate tính năng Plus.
+
+**Business rules:**
+- Dùng `in_app_purchase` để query product details, purchase, restore và complete
+  transaction.
+- Paywall nằm trong khu phụ huynh (Hồ sơ), không chen lén vào camera/timeline.
+- CTA mua/bật Plus phải qua parental gate.
+- Khi Store chưa trả product IDs, fallback mock chỉ dùng cho kiểm thử nội bộ.
+- Product IDs cấu hình qua dart-define, không hardcode secret.
 
 ---
 

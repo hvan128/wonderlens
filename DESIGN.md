@@ -204,6 +204,8 @@ Interaction rules:
 
 - Primary visuals should be real object cutouts, stage illustrations, bundled
   videos, or generated stage images from the proxy flow.
+- Hero object visuals, onboarding visuals, and mission reminder visuals must use
+  bundled/local object cutouts. Do not use emoji in their place.
 - Do not use generic stock photos for hero objects.
 - Do not use emoji as UI icons. Use icons through `phosphor_compat.dart`
   (mapped to **Iconsax** via `iconsax_plus` — a friendly rounded set that
@@ -213,7 +215,8 @@ Interaction rules:
   (FILLED, status/active/emphasis). Pick the tier by meaning, not by looks.
 - Add a new glyph by mapping it in `phosphor_compat.dart` only; verify with
   `flutter test` (compiles the icon font), not just `flutter analyze`.
-- Emoji is acceptable only as content fallback for object identity.
+- Emoji is acceptable only as a last-resort content fallback for AI-live or
+  unknown objects that do not have any cutout yet.
 - Hero object images and videos must remain offline-first.
 - AI-live generated imagery is optional and must fail gracefully.
 
@@ -304,4 +307,3 @@ and any UI that feels like SaaS instead of a kid-safe STEM discovery app.
 | Floating dev panel | `GlassPanelArea` / `GlassPanel` |
 | Colors/spacing/type | `wonder_tokens.dart` |
 | Motion | `motion.dart` / `WonderSpring` |
-

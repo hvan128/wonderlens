@@ -8,7 +8,7 @@
 |-------|------|
 | Mobile | Flutter (iOS/Android) |
 | AI Vision | OpenAI gpt-4o (qua proxy) |
-| AI TTS | OpenAI TTS (qua proxy) |
+| Narration | TTS mặc định hệ điều hành (`flutter_tts`); OpenAI speech proxy giữ sau flag |
 | Proxy | Vercel serverless (`/proxy`) |
 | Local storage | Hive |
 | Animation | Rive hoặc Lottie |
@@ -58,6 +58,9 @@ wonderlens/
 - Hero object content nằm trong `app/assets/content/`
 - Audio pre-generated nằm trong `app/assets/audio/`
 - Tên file asset: `{object_id}_{stage}.{ext}` (ví dụ: `ball_pen_stage1.mp3`)
+- Visual đại diện cho hero/onboarding/mission object phải dùng cutout của object;
+  không dùng emoji thay ảnh vật. Emoji chỉ là metadata/fallback cuối cho vật
+  AI-live/unknown chưa có cutout.
 
 ## Git rules
 

@@ -2,7 +2,7 @@
 
 App khám phá khoa học cho trẻ 6–10: **chụp một đồ vật → hiện hành trình tạo ra nó** (Origin Timeline có lồng tiếng) + game sưu tầm huy hiệu.
 
-Chủ đề demo: **đồ vật văn phòng** (cốc giấy, bút bi, kẹp giấy…). Engine **hybrid curated-first**: vật "anh hùng" có nội dung đóng gói sẵn (offline); vật lạ gọi OpenAI Vision + TTS qua Vercel proxy.
+Chủ đề demo: **đồ vật văn phòng** (cốc giấy, bút bi, kẹp giấy…). Engine **hybrid curated-first**: vật "anh hùng" có nội dung đóng gói sẵn (offline); vật lạ gọi OpenAI Vision/generate qua Vercel proxy. Narration hiện dùng TTS mặc định của hệ điều hành; OpenAI speech proxy vẫn giữ sau công tắc code.
 
 ## Cấu trúc
 
@@ -20,10 +20,12 @@ cd app
 flutter pub get
 flutter run                     # Mock offline: chụp lần lượt ra 8 vật hero (xoay tua)
 # Khi đã deploy proxy:
-flutter run --dart-define=PROXY_BASE_URL=https://<your-proxy>.vercel.app
+flutter run \
+  --dart-define=PROXY_BASE_URL=https://<your-proxy>.vercel.app \
+  --dart-define=APP_TOKEN=<APP_SHARED_SECRET>
 ```
 
-> `RecognitionService` mặc định **Mock offline** (xoay tua lần lượt 8 vật hero) khi build không có `PROXY_BASE_URL`, và tự rớt về mock khi proxy lỗi → app/demo không bao giờ vỡ.
+> Mock offline chỉ dùng cho demo/dev. Luồng camera thật gọi `/api/generate`; nếu proxy/token/mạng lỗi thì app báo lỗi thân thiện, **không** tự rớt về vật hero giả.
 >
 > Đổi **Mock ↔ API thật ngay trong app** (không cần build lại) bằng **Dev panel ẩn**: **nhấn giữ** logo "WonderLens" (màn chào) hoặc nhãn "CHẾ ĐỘ KHÁM PHÁ" (màn camera). Panel cho bật/tắt API thật + nhập Proxy URL/token (lưu Hive).
 

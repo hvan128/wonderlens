@@ -20,6 +20,12 @@ Cần balance giữa demo reliability và tính tổng quát (chụp gì cũng r
 - Kiểm soát chất lượng content cho hero (kid-safe, khoa học đúng)
 - Tốc độ hero < 2s → wow-factor đảm bảo
 
+## Amendment 2026-07-09
+
+Narration tạm thời dùng TTS mặc định hệ điều hành (`flutter_tts`) trong app để
+phản hồi nhanh hơn. Vật lạ vẫn gọi OpenAI qua proxy để sinh nội dung hành trình;
+đường OpenAI speech giữ lại sau flag để bật lại khi cần.
+
 ## Consequences
 
 - Phải soạn + kiểm chứng content 8 vật hero

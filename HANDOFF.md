@@ -11,11 +11,11 @@ Repo: https://github.com/hvan128/wonderlens (branch `main`). Đã tách hẳn kh
 ## 2. Trạng thái hiện tại
 - **Code: 6/6 phase HOÀN TẤT**, đã push. Xem `ck plan status plans/2026-06-27-wonderlens/plan.md`.
 - **Proxy: ĐANG LIVE** tại **https://wonderlens-proxy.vercel.app** (đã test end-to-end: chụp ảnh → OpenAI Vision → JSON ✅).
-- **App: đã cài (release) trên iPhone** "Hai Van's iPhone" (`00008120-0014450C0E58201E`) NHƯNG là **bản cũ dùng mock** → chụp gì cũng ra "Cốc giấy".
-- `flutter analyze` sạch · 5 test pass · proxy `tsc` sạch.
+- **App: đã cài (release) trên iPhone** "Hai Van's iPhone" (`00008120-0014450C0E58201E`) bằng token proxy live. App đã được uninstall trước khi cài lại nên onboarding hiện lại từ đầu.
+- `flutter test` pass; `flutter analyze` còn vài warning/info cũ trong tooling/test ngoài app runtime. Proxy `tsc` sạch.
 
 ## 3. ⚠️ VIỆC CẦN LÀM TIẾP (ưu tiên P0)
-**Build lại app trỏ vào proxy live** → nhận diện thật + AI-live hoạt động:
+**Build lại app trỏ vào proxy live** khi cần cài lại:
 ```bash
 cd /Users/haivan/Documents/wonderlens/app
 SECRET=$(grep '^APP_SHARED_SECRET=' ../proxy/.env | cut -d= -f2-)
@@ -24,7 +24,7 @@ flutter run --release -d 00008120-0014450C0E58201E \
   --dart-define=APP_TOKEN=$SECRET
 # (flutter devices để xem id thiết bị nếu khác)
 ```
-Sau đó: chụp vật văn phòng thật → ra đúng tên; chụp vật lạ → AI-live sinh hành trình.
+Sau đó: mở app → onboarding hiện lại nếu đã uninstall trước build; chụp vật thật → AI-live sinh hành trình. Nếu proxy/token/mạng lỗi, app hiện lỗi thân thiện, không tự rớt về hero mock.
 
 Tiếp theo (P1): **red-team kid-safety** output AI-live (chụp ~20 vật, kể cả vật nhạy cảm) trước khi tin trên sân khấu.
 
@@ -62,9 +62,9 @@ cd app && flutter run
 
 ## 7. Quyết định & điều chỉnh (đừng đảo ngược nếu không có lý do mới)
 - **Hybrid curated-first**: 8 vật hero đóng gói sẵn chạy offline (demo không phụ thuộc wifi); vật lạ mới gọi AI-live.
-- **Giọng đọc: `flutter_tts` on-device** (không phải OpenAI TTS) → offline, không cần key. Trường `Stage.audio` để dành nâng cấp audio pre-gen.
+- **Giọng đọc: ưu tiên audio asset nếu có, rồi fallback `flutter_tts` on-device**. Paper cup/onboarding đã có mp3 Eco88 đóng gói (`app/assets/audio/`); OpenAI speech proxy vẫn giữ sau flag để quay lại dễ.
 - **AI-live KHÔNG tính vào bộ sưu tập** (chỉ `heroCatalog` mới tính) — tránh phồng số liệu + tách nội dung chưa kiểm chứng.
-- **`RecognitionService` mock xoay tua** khi Mock offline (chụp ra lần lượt 8 vật hero, bắt đầu từ Cốc giấy) hoặc khi proxy lỗi → demo không vỡ. Chuyển **Mock ↔ API thật ngay trong app** (không cần build lại) bằng **Dev panel ẩn** (`widgets/dev_panel.dart`): nhấn giữ logo "WonderLens" (onboarding) hoặc nhãn "CHẾ ĐỘ KHÁM PHÁ" (camera). Cấu hình runtime ở `data/app_settings.dart` (Hive box `wonderlens_settings`); mặc định bật API thật nếu build có `PROXY_BASE_URL`, ngược lại Mock. Có thể nhập Proxy URL/token trong panel để bản mock-only vẫn gọi proxy mà không cần build lại.
+- **Mock xoay tua** chỉ là chế độ demo/dev (chụp ra lần lượt 8 vật hero, bắt đầu từ Cốc giấy). Luồng camera thật gọi `/api/generate`; proxy/token/mạng lỗi → hiện lỗi thân thiện, **không** tự rớt về hero mock. Chuyển **Mock ↔ API thật ngay trong app** (không cần build lại) bằng **Dev panel ẩn** (`widgets/dev_panel.dart`): nhấn giữ logo "WonderLens" (onboarding) hoặc nhãn "CHẾ ĐỘ KHÁM PHÁ" (camera). Cấu hình runtime ở `data/app_settings.dart` (Hive box `wonderlens_settings`); mặc định bật API thật nếu build có `PROXY_BASE_URL`, ngược lại Mock. Có thể nhập Proxy URL/token trong panel để bản mock-only vẫn gọi proxy mà không cần build lại.
 - **Tranh minh hoạ = emoji** (chưa làm asset thật); `Stage.illustration` đã sẵn để gắn ảnh sau.
 - **Proxy phải là ESM**: `package.json` có `"type":"module"` + import tương đối phải có đuôi `.js` (Vercel transpile .ts giữ ESM, không bundle lib). Đừng gỡ đuôi `.js`.
 - **Chia sẻ = ảnh thẻ + caption, fallback text** (offline, không backend): màn Hành trình (chia sẻ 1 khám phá) và màn Bộ sưu tập (khoe cấp độ + tiến độ + huy hiệu) đều có nút "Chia sẻ" → mở bảng xem trước thẻ (`widgets/share_card.dart`: `ShareCard` + `CollectionShareCard`, chung khung `_WonderCardShell`) → chụp PNG (`services/share_service.dart`) → khay chia sẻ hệ thống (`share_plus`). Chụp ảnh lỗi thì tự gửi text → demo không vỡ. Nút "khoe bộ sưu tập" chỉ hiện khi đã khám phá ≥1 vật. Đã thêm `NSPhotoLibraryAddUsageDescription` (iOS) cho mục "Lưu ảnh".

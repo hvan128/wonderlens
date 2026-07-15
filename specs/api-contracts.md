@@ -119,6 +119,9 @@ Hai key trong cùng box:
   huy hiệu vật liệu suy ra từ danh sách này (chỉ hero, xem `specs/domains.md`).
 - `journal`: `List<String>` — nhật ký **"Khám phá thêm (AI)"**, mỗi phần tử là
   JSON string của một vật NON-hero (AI-live), mới nhất đứng đầu, dedup theo `id`:
+- `hero_journal`: `List<String>` — log ngày cho **hero object** đã khám phá, dùng
+  để trang chủ dựng nhật ký ngày. Key này không thay thế `discovered`: level,
+  badge, dedup hero vẫn dựa vào `discovered`.
 
 ```json
 {
@@ -139,16 +142,82 @@ dạng ISO **không có hậu tố 'Z'** (giờ tường, không quy đổi khi 
 `content.id` nên mở lại cũng không tốn phí sinh ảnh. Vật journal không mở
 huy hiệu, không tính level (AI content chưa red-team).
 
+Trang chủ dùng feed ngày tổng hợp từ `hero_journal` + `journal`. Dữ liệu cũ chỉ
+có `discovered` mà chưa có `hero_journal` được backfill runtime bằng metadata
+hero bundled để vật đã sưu tầm không biến mất khỏi nhật ký ngày.
+
 ### Ảnh sản phẩm (cutout, local-only)
 
 Không có thay đổi proxy. Khi quét, app tách nền **trên máy** (xem
 `ADR-006`) qua MethodChannel `wonderlens/segmentation`:
 
 - Request (app → native): method `cutout`, args `{ "path": "<đường dẫn ảnh chụp>" }`
-- Response: PNG bytes (nền trong suốt) hoặc `null` (rớt về emoji).
+- Response: PNG bytes (nền trong suốt) hoặc `null`.
 
 Lưu local: `getApplicationDocumentsDirectory()/captures/{object_id}.png`
-(`CaptureStore`). Ảnh thật của vật được hiển thị thay emoji; thiếu ảnh → emoji.
+(`CaptureStore`). Ảnh thật của vật được ưu tiên hiển thị. Hero object thiếu ảnh
+local thì dùng cutout bundled (`paper_cup_cutout.png` hoặc
+`mission_<object_id>_cutout.png`); chỉ vật AI-live/unknown chưa có cutout mới
+được rớt về emoji legacy để không vỡ flow.
+
+### Subscription (Hive box `wonderlens_subscription`)
+
+TASK-014 tạo nền tảng WonderLens Plus Store-first qua `in_app_purchase`.
+Entitlement được ghi local sau khi purchase/restored hợp lệ hoặc fallback mock
+nội bộ:
+
+```json
+{
+  "plus_active": true,
+  "product_id": "wonderlens_plus_yearly_mock",
+  "activated_at": "2026-07-09T10:30:00.000",
+  "source": "store | mock"
+}
+```
+
+Quy ước:
+- `plus_active=false` hoặc thiếu key → chưa có Plus.
+- `activated_at` dùng `vnNow()` giống journal local.
+- `source=store` nghĩa là entitlement đến từ Store purchase stream.
+- `source=mock` chỉ dùng cho dev/internal khi Store chưa có product IDs.
+- Product IDs mặc định:
+  - `WONDERLENS_PLUS_YEARLY_ID` → `wonderlens_plus_yearly`
+  - `WONDERLENS_PLUS_MONTHLY_ID` → `wonderlens_plus_monthly`
+- Store metadata script: `app/scripts/create_store_subscriptions.rb`.
+  - iOS tạo qua App Store Connect API: subscription group, product IDs,
+    localization, availability `VNM`, giá VND, yearly free trial 3 ngày và review
+    screenshots.
+  - Android tạo qua Google Android Publisher API sau khi Play developer account
+    đã có payments profile.
+- Trước production lớn hơn, cân nhắc backend receipt validation; Hive local không
+  nên là bằng chứng mua hàng duy nhất cho môi trường có gian lận cao.
+
+### Mission reminder settings (Hive box `wonderlens_settings`)
+
+TASK-015 thêm nhắc khám phá dạng **local notification**. Đây không phải remote
+push và không có device token/backend.
+
+```json
+{
+  "mission_reminders_enabled": true,
+  "mission_reminder_object_id": "ball_pen"
+}
+```
+
+Quy ước:
+- `mission_reminders_enabled=false` hoặc thiếu key → không schedule reminder.
+- Khi bật, app xin quyền notification trong Hồ sơ rồi schedule một reminder sau
+  2 ngày. Mỗi lần app mở lại/resume, reminder được hủy và đặt lại sau 2 ngày.
+- Nhấn giữ card "Nhắc khám phá" trong Hồ sơ schedule một notification test sau
+  10 giây để kiểm tra nhanh trên máy thật.
+- `mission_reminder_object_id` là hero object curated/offline được dùng cho
+  notification kế tiếp; id không hợp lệ fallback `paper_cup`.
+- Mission/onboarding visual của hero object dùng cutout bundled, không dùng
+  emoji làm ảnh đại diện.
+- Payload notification: `mission:<object_id>`.
+- Tap notification mở route `/onboarding/mission/:objectId`.
+- Copy notification parent-facing, không FOMO/streak, không dùng cho quảng cáo
+  hay subscription.
 
 ### HeroContent (bundled JSON)
 
@@ -200,6 +269,10 @@ Quy ước:
 - `stages[].illustration` là **optional**: hero objects pre-gen sẵn (asset bundle);
   vật AI-live sinh runtime qua `POST /api/journey-images` rồi cache local. Thiếu
   ảnh → tile chặng hiển thị không-ảnh (giữ look cũ), không crash.
+- `stages[].audio` là **optional**: hero objects có thể trỏ tới mp3 đóng gói
+  trong `assets/audio/`. Thiếu hoặc load lỗi → app fallback đọc `kid_text` bằng
+  TTS hệ điều hành. Lời cover/lịch sử hero dùng quy ước
+  `assets/audio/{object_id}_history.mp3` khi đã pre-gen.
 - `stages[].predict`, `stages[].action`, `experiment` là **optional** và được giữ
   để tương thích content cũ. Timeline hiện tại không render các field này thành
   cổng chặn; mọi chặng hiển thị ngay theo thứ tự để trẻ xem nhanh và trực quan.

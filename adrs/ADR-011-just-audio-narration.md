@@ -30,3 +30,20 @@ Thêm dependency **`just_audio`** và phát giọng đọc bằng nó trong `Nar
 - `video_player` vẫn dùng cho **phim hành trình** (`journey_video.dart`) — không gỡ.
 - iOS dùng Swift Package Manager (xem [[wonderlens-ios-spm-pods]]); `just_audio` hỗ trợ SPM.
 - Cần rebuild + verify trên máy thật (debug wireless hỏng → dùng bản release).
+
+## Amendment 2026-07-09: tạm dùng TTS hệ điều hành
+
+Theo yêu cầu owner, app tạm thời ép narration qua TTS mặc định của hệ điều hành
+(`flutter_tts`) để phản hồi nhanh hơn và không đợi `/api/speech`.
+
+- Đường OpenAI speech vẫn giữ nguyên trong code (`SpeechService`) để quay lại dễ.
+- Công tắc nằm ở `app/lib/services/narration_service.dart`:
+  `kUseDeviceTtsOnly = true`. Đổi về `false` để bật lại OpenAI speech khi cần.
+- `JourneyWarmup` không prefetch `/api/speech` khi công tắc này bật.
+
+## Amendment 2026-07-09: audio asset Eco88 cho onboarding cố định
+
+Paper cup/onboarding dùng mp3 pre-gen từ Eco88 (`Tuyết Trâm`) trong
+`app/assets/audio/`. Timeline ưu tiên `Stage.audio` và cover history theo quy
+ước `assets/audio/{object_id}_history.mp3`; file lỗi/missing thì fallback về
+`flutter_tts`. Đường OpenAI speech vẫn giữ nguyên sau flag.
