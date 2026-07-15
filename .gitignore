@@ -14,3 +14,7 @@ app/.flutter-plugins-dependencies
 # Node / Vercel (phòng hờ, proxy/.gitignore đã có)
 proxy/node_modules/
 proxy/.vercel/
+
+# Công cụ local / scratch — KHÔNG commit
+.claude/
+.tmp/

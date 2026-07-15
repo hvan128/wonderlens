@@ -12,3 +12,7 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Artifact chạy fastlane (giống app/ios/.gitignore)
+fastlane/report.xml
+fastlane/README.md
