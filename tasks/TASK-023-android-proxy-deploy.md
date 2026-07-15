@@ -13,8 +13,10 @@ end-to-end mà không lộ OpenAI API key trong app hoặc repo.
 
 - [ ] Vercel project `wonderlens-android-proxy` tồn tại trong scope
       `sireals-projects` và thư mục `proxy/` được link đúng project.
+- [ ] Infisical project `shared-platform-secrets`, environment `prod`, path
+      `/wonderlens/android-proxy` là nguồn sự thật cho secret production.
 - [ ] Production có `OPENAI_API_KEY` và `APP_SHARED_SECRET`; không secret nào
-      được commit hoặc in ra log.
+      được commit, ghi vào tài liệu, hoặc in ra log.
 - [ ] Request thiếu/sai `x-app-token` nhận `401`; request hợp lệ đi qua OpenAI
       và trả response đúng contract.
 - [ ] Android release config dùng URL production mới; iOS release config không
@@ -38,4 +40,3 @@ end-to-end mà không lộ OpenAI API key trong app hoặc repo.
 - [ ] Android artifact build thành công với proxy mới.
 - [ ] Verification evidence được ghi lại.
 - [ ] PR review và merge vào `main`.
-

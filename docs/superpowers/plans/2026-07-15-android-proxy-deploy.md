@@ -4,14 +4,16 @@
 
 **Goal:** Deploy a new Vercel proxy owned by Hiệp and ship an Android release artifact configured to use it securely.
 
-**Architecture:** Keep OpenAI credentials server-only in Vercel. Generate a separate app-to-proxy token, inject it into Android through `--dart-define`, and keep iOS pinned to its existing proxy. Verify every boundary from Android configuration through Vercel authentication to a real OpenAI response.
+**Architecture:** Keep Infisical as the source of truth for production secrets, inject those secrets into the deployment process with `infisical run`, and persist only the server runtime values in Vercel. Generate a separate app-to-proxy token, inject it into Android through `--dart-define`, and keep iOS pinned to its existing proxy. Verify every boundary from Android configuration through Vercel authentication to a real OpenAI response.
 
-**Tech Stack:** Flutter/Dart, Bash release scripts, Vercel Functions/TypeScript, OpenAI API, Vercel CLI.
+**Tech Stack:** Flutter/Dart, Bash release scripts, Vercel Functions/TypeScript, OpenAI API, Infisical CLI, Vercel CLI.
 
 ## Global Constraints
 
 - Flutter never calls OpenAI directly; every AI call goes through Vercel proxy.
 - Never commit or print API keys/tokens.
+- Infisical project `shared-platform-secrets`, environment `prod`, path
+  `/wonderlens/android-proxy` is the source of truth for production secrets.
 - No new dependency without ADR.
 - Vietnamese, kid-safe output for children aged 6–10.
 - Existing HTTP contracts stay unchanged.
@@ -77,10 +79,10 @@ git commit -m "TASK-023: cấu hình proxy production cho Android"
 
 **Files:**
 - Runtime-only: `proxy/.vercel/project.json` (gitignored)
-- Runtime-only: `app/.env.local` (gitignored, mode 600)
+- Create: `.infisical.json` (project ID only; no secret values)
 
 **Interfaces:**
-- Consumes: authenticated Vercel account `sireal`, scope `sireals-projects`, user-provided OpenAI project API key.
+- Consumes: authenticated Vercel account `sireal`, scope `sireals-projects`, authenticated Infisical project, and an OpenAI project API key stored by the user in Infisical.
 - Produces: project `wonderlens-android-proxy`, production URL, `APP_SHARED_SECRET`, `OPENAI_API_KEY`.
 
 - [ ] **Step 1: Create and deterministically link project**
@@ -93,31 +95,50 @@ vercel link --yes --project wonderlens-android-proxy --scope sireals-projects
 
 Expected: `.vercel/project.json` names `wonderlens-android-proxy`.
 
-- [ ] **Step 2: Generate app token and store it without logging value**
+- [ ] **Step 2: Link the repository to Infisical**
 
-Run from `proxy/` in one shell session:
+Run from the repository root and select `shared-platform-secrets`:
 
 ```bash
-APP_SHARED_SECRET="$(openssl rand -hex 32)"
-printf '%s' "$APP_SHARED_SECRET" | vercel env add APP_SHARED_SECRET production
-vercel env pull ../app/.env.local --environment=production --yes
-chmod 600 ../app/.env.local
-unset APP_SHARED_SECRET
+infisical login status
+infisical init
 ```
 
-`APP_SHARED_SECRET` stays readable to authorized Vercel developers because the
-Android app must embed the same value. It is an abuse throttle, not a secret
-that can remain hidden from a shipped client.
+Expected: `.infisical.json` contains only the project ID. The production secret
+path is `/wonderlens/android-proxy`.
 
-- [ ] **Step 3: Add OpenAI key at the credential gate**
+- [ ] **Step 3: Populate the Infisical production path**
 
-Open
-`https://vercel.com/sireals-projects/wonderlens-android-proxy/settings/environment-variables`.
-Create `OPENAI_API_KEY`, scope it to Production, mark it Sensitive, and paste a
-project API key created at `https://platform.openai.com/api-keys`. Never place
-the value in Flutter, git, command output, or Android artifact.
+Create `/wonderlens/android-proxy` in environment `prod` and add exactly:
 
-- [ ] **Step 4: Verify names/scopes only**
+- `OPENAI_API_KEY`: a project API key created at
+  `https://platform.openai.com/api-keys`.
+- `APP_SHARED_SECRET`: a random 32-byte value generated without terminal output.
+
+The user enters `OPENAI_API_KEY` directly in Infisical. Never paste it into
+chat, Flutter, git, command output, or an Android artifact.
+
+`APP_SHARED_SECRET` is embedded in the Android client. It is an abuse throttle,
+not a cryptographic secret that can remain hidden from a shipped app.
+
+- [ ] **Step 4: Sync Infisical values into Vercel Production**
+
+Run from the repository root. The inner shell checks names and sends values by
+stdin; it never prints them:
+
+```bash
+infisical run --env=prod --path=/wonderlens/android-proxy -- bash -ceu '
+  : "${OPENAI_API_KEY:?OPENAI_API_KEY missing in Infisical}"
+  : "${APP_SHARED_SECRET:?APP_SHARED_SECRET missing in Infisical}"
+  cd proxy
+  printf %s "$OPENAI_API_KEY" |
+    vercel env add OPENAI_API_KEY production --force --sensitive --yes
+  printf %s "$APP_SHARED_SECRET" |
+    vercel env add APP_SHARED_SECRET production --force --no-sensitive --yes
+'
+```
+
+- [ ] **Step 5: Verify names/scopes only**
 
 Run: `vercel env ls production`  
 Expected: `APP_SHARED_SECRET` and `OPENAI_API_KEY` exist for Production.
@@ -175,7 +196,8 @@ Expected: deployment READY; no unhandled runtime errors.
 
 - [ ] **Step 1: Build through repository release script**
 
-Run: `cd app && ./scripts/build-appbundle.sh`  
+Run:
+`infisical run --env=prod --path=/wonderlens/android-proxy --project-config-dir=. -- bash -ceu 'cd app && ./scripts/build-appbundle.sh'`
 Expected: AAB at `build/app/outputs/bundle/release/app-release.aab`.
 
 - [ ] **Step 2: Inspect artifact configuration safely**
