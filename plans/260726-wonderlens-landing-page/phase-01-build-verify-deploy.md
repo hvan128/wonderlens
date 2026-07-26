@@ -102,6 +102,8 @@
   Update `AGENTS.md`, `specs/domains.md`, root `README.md` and TASK-024 with
   verified commands. Review against design spec, anti-slop checklist and AC.
 
+### Task 2: Deploy and verify production
+
 - [ ] **9. Production deploy**
 
   Link/deploy `landing-page/` as separate Vercel project. Inspect deployment
