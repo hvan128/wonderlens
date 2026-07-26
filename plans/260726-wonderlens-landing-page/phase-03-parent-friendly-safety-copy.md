@@ -273,7 +273,8 @@ SHA khớp `ac0a70c`:
 - production `/` trả 200 và branded missing route trả 404;
 - asset core object, journey và timeline trả 200;
 - browser 375/768/1440 không overflow, ảnh hỏng hoặc console error;
-- public HTML có approved parent copy và không có forbidden jargon;
+- approved parent copy hiển thị và forbidden jargon không xuất hiện trong vùng
+  guardrail `#rao-chan`;
 - Vercel build error, runtime error/fatal và 5xx scan đều sạch.
 
 ### Operational handoff
