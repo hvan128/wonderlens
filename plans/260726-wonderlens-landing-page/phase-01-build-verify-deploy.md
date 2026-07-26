@@ -1,6 +1,6 @@
 # Phase 01 — Build, verify and deploy
 
-### Task 1: Build and deploy WonderLens landing page
+### Task 1: Build and verify WonderLens landing page
 
 ## Context
 
@@ -26,24 +26,24 @@
 - `ButtonLink({ href, children, variant?: 'primary' | 'secondary',
   ariaLabel?: string })`
 - `SectionHeading({ eyebrow, title, description?, align?: 'start' | 'center' })`
-- `PhoneFrame({ src, alt, priority?, className? })`
+- `PhoneFrame({ src, alt, preload?, className? })`
 - `Brand({ compact?: boolean })`
 
 ## Steps
 
-- [ ] **1. Scaffold setup only**
+- [x] **1. Scaffold setup only**
 
   Run non-interactive `create-next-app` for `landing-page/` with TypeScript,
   App Router, ESLint, `src/`, npm and no Tailwind. Remove demo production page
   before starting TDD. Pin Next/React versions from ADR-016.
 
-- [ ] **2. Copy curated assets**
+- [x] **2. Copy curated assets**
 
   Copy exact source files named in design spec. Preserve original files. Put
   marketing copies under `public/images/{brand,objects,journey,screens}` and local
   fonts under `src/assets/fonts/`.
 
-- [ ] **3. RED — page behavior**
+- [x] **3. RED — page behavior**
 
   Add Vitest/Testing Library config and `page.test.tsx`. Test must render real
   page and fail because page implementation is absent. Assertions:
@@ -65,24 +65,24 @@
   Run `npm test -- page.test.tsx`; expected FAIL for missing page/component
   behavior, not config error.
 
-- [ ] **4. GREEN — token system and shared components**
+- [x] **4. GREEN — token system and shared components**
 
   Implement tokens, global styles, `Brand`, `SiteHeader`, `ButtonLink`,
   `SectionHeading`, `PhoneFrame`, `SiteFooter`. Add focused `ButtonLink` test
   before its production implementation and observe RED, then GREEN.
 
-- [ ] **5. GREEN — landing route**
+- [x] **5. GREEN — landing route**
 
   Implement hero, product story, journey gallery, app gallery, trust section and
   final CTA using shared components and curated assets. Keep route as Server
   Component and use `next/image`. Run focused tests until GREEN.
 
-- [ ] **6. Metadata and fallback**
+- [x] **6. Metadata and fallback**
 
   Add Vietnamese metadata, OG asset, skip link, semantic layout and branded 404.
   Add no API route or runtime fetch.
 
-- [ ] **7. Verification**
+- [x] **7. Verification**
 
   Run:
 
@@ -97,14 +97,14 @@
   verify keyboard focus, reduced motion, no horizontal overflow, no broken image
   and no serious console error.
 
-- [ ] **8. Docs and review**
+- [x] **8. Docs and review**
 
   Update `AGENTS.md`, `specs/domains.md`, root `README.md` and TASK-024 with
   verified commands. Review against design spec, anti-slop checklist and AC.
 
 ### Task 2: Deploy and verify production
 
-- [ ] **9. Production deploy**
+- [x] **9. Production deploy**
 
   Link/deploy `landing-page/` as separate Vercel project. Inspect deployment
   until READY, smoke `/`, scan recent error logs and repeat browser check on

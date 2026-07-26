@@ -4,7 +4,7 @@
 > `superpowers:executing-plans` to implement this plan task-by-task. Steps use
 > checkbox (`- [ ]`) syntax for tracking.
 
-**Status:** In Progress
+**Status:** Complete
 **Goal:** Build and deploy a static, Apple-like WonderLens product landing page
 inside `landing-page/`.
 
