@@ -25,7 +25,9 @@ describe("WonderLens landing page", () => {
         name: /điều hướng chính/i,
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/không tài khoản trẻ/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "An tâm khám phá" }),
+    ).toHaveAttribute("href", "#rao-chan");
   });
 
   it("prioritizes object history and the real manufacturing journey", () => {
@@ -54,26 +56,30 @@ describe("WonderLens landing page", () => {
     ).toBeInTheDocument();
   });
 
-  it("puts explicit family and AI guardrails before the story", () => {
+  it("puts parent-facing safety information before the story", () => {
     const { container } = render(<Home />);
 
-    const guardrails = screen.getByRole("region", {
-      name: /giới hạn được nói rõ, không giấu ở cuối trang/i,
+    const safety = screen.getByRole("region", {
+      name: /cùng con khám phá, với những lớp bảo vệ rõ ràng/i,
     });
     expect(
-      within(guardrails).getByText(/không phải công cụ để trẻ tự dùng/i),
+      within(safety).getByText(/có các lớp kiểm tra an toàn/i),
     ).toBeInTheDocument();
     expect(
-      within(guardrails).getByText(/ảnh chụp đi qua proxy tới AI/i),
+      within(safety).getAllByText(/nội dung do AI hỗ trợ.*luôn có nhãn/i),
+    ).toHaveLength(2);
+    expect(
+      within(safety).getByText(/AI đôi khi có thể nhầm/i),
     ).toBeInTheDocument();
     expect(
-      within(guardrails).getByText(/AI-live có thể sai/i),
+      within(safety).getByText(/ảnh chụp được gửi tới dịch vụ AI/i),
     ).toBeInTheDocument();
     expect(
-      within(guardrails).getByText(
-        /runtime kid-safety audit chưa hoàn tất/i,
-      ),
+      within(safety).getByText(/không cần tài khoản trẻ.*không quảng cáo/i),
     ).toBeInTheDocument();
+    expect(safety).not.toHaveTextContent(
+      /runtime|kid-safety|safety pass|prompt|moderation|proxy|tracking|cookie|analytics|AI-live/i,
+    );
 
     const sectionIds = Array.from(
       container.querySelector("main")?.children ?? [],
@@ -109,7 +115,7 @@ describe("WonderLens landing page", () => {
     ).toBeInTheDocument();
     expect(
       getByRole("region", {
-        name: /giới hạn được nói rõ, không giấu ở cuối trang/i,
+        name: /cùng con khám phá, với những lớp bảo vệ rõ ràng/i,
       }),
     ).toBeInTheDocument();
   });

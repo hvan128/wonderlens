@@ -3,24 +3,24 @@ import styles from "./guardrails.module.css";
 
 const guardrails = [
   {
-    title: "Người lớn cùng tham gia",
+    title: "Bố mẹ cùng con khám phá",
     description:
-      "WonderLens được thiết kế để phụ huynh hoặc giáo viên dùng cùng trẻ 6–10 tuổi, không phải công cụ để trẻ tự dùng không giám sát.",
+      "WonderLens được thiết kế cho những phút cùng học: bố mẹ hoặc giáo viên cùng trẻ 6–10 tuổi quan sát, đặt câu hỏi và kiểm tra lại điều thú vị.",
   },
   {
-    title: "AI-live luôn có nhãn",
+    title: "Nội dung phù hợp lứa tuổi",
     description:
-      "AI-live có thể sai và không thay thế giáo viên, sách giáo khoa hay nội dung đã kiểm chứng.",
+      "Câu chuyện ngắn, gần gũi; WonderLens đặt giới hạn để tránh nội dung nguy hiểm, bạo lực hoặc không phù hợp với trẻ.",
   },
   {
-    title: "Luồng ảnh được nói thẳng",
+    title: "Biết rõ khi AI tham gia",
     description:
-      "Ảnh chụp đi qua proxy tới AI để nhận diện; cutout và bộ sưu tập có thể lưu trên thiết bị.",
+      "Nội dung do AI hỗ trợ luôn có nhãn. AI có thể nhầm và không thay thế giáo viên hay sách đã được kiểm chứng.",
   },
   {
-    title: "Không tài khoản trẻ, quảng cáo hay tracking",
+    title: "Riêng tư được nói rõ",
     description:
-      "Landing không có form, cookie hoặc analytics; trải nghiệm được giới thiệu không cần tài khoản trẻ.",
+      "Không cần tài khoản trẻ, không quảng cáo, không theo dõi hành vi. Ảnh chụp được gửi tới dịch vụ AI để nhận diện; ảnh tách nền và bộ sưu tập có thể lưu trên thiết bị.",
   },
 ];
 
@@ -34,23 +34,22 @@ export function Guardrails() {
       <div className={styles.inner}>
         <div className={styles.top}>
           <SectionHeading
-            eyebrow="Rào chắn trước khi bắt đầu"
+            eyebrow="Để bố mẹ an tâm"
             headingId="guardrails-title"
-            title="Giới hạn được nói rõ, không giấu ở cuối trang."
-            description="WonderLens là khoảnh khắc cùng học, không phải mạng xã hội hay chương trình khoa học đã kiểm chứng."
+            title="Cùng con khám phá, với những lớp bảo vệ rõ ràng."
+            description="WonderLens ưu tiên những câu chuyện ngắn, phù hợp lứa tuổi và giúp bố mẹ biết khi nào AI tham gia."
           />
 
-          <aside
-            className={styles.status}
-            aria-label="Trạng thái kiểm định an toàn"
-          >
-            <p className={styles.statusLabel}>Trạng thái safety</p>
+          <aside className={styles.status} aria-label="Các lớp kiểm tra an toàn">
+            <p className={styles.statusLabel}>Các lớp kiểm tra an toàn</p>
             <p>
-              <strong>Chưa hoàn tất.</strong> Runtime kid-safety audit chưa hoàn
-              tất trước family beta.
+              <strong>Có các lớp kiểm tra an toàn.</strong> Đồ vật quen thuộc dùng
+              câu chuyện đã tuyển chọn; nội dung do AI hỗ trợ được giới hạn theo
+              lứa tuổi và luôn có nhãn rõ ràng.
             </p>
             <p className={styles.statusDetail}>
-              Prompt và moderation chỉ là một lớp bảo vệ, chưa phải safety pass.
+              AI đôi khi có thể nhầm. Bố mẹ hoặc giáo viên hãy cùng trẻ xem, đặt
+              câu hỏi và kiểm tra lại khi cần.
             </p>
           </aside>
         </div>

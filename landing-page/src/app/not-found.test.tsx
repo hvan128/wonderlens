@@ -14,10 +14,9 @@ describe("WonderLens not-found page", () => {
       "href",
       "/#cach-lam-ra",
     );
-    expect(screen.getByRole("link", { name: "Rào chắn" })).toHaveAttribute(
-      "href",
-      "/#rao-chan",
-    );
+    expect(
+      screen.getByRole("link", { name: "An tâm khám phá" }),
+    ).toHaveAttribute("href", "/#rao-chan");
     expect(
       screen.getByRole("link", { name: /WonderLens — về đầu trang/i }),
     ).toHaveAttribute("href", "/#dau-trang");

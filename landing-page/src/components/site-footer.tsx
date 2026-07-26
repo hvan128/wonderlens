@@ -23,7 +23,8 @@ export function SiteFooter() {
         <div className={styles.brand}>
           <Brand compact />
           <p>
-            Bản giới thiệu sản phẩm. Hiện chưa có liên kết tải công khai.
+            Đồng hành cùng phụ huynh và giáo viên trong những phút khám phá khoa
+            học với trẻ.
           </p>
         </div>
         <nav className={styles.legal} aria-label="Pháp lý và hỗ trợ">

@@ -5,7 +5,7 @@ import styles from "./site-header.module.css";
 const navigation = [
   { href: "#lich-su", label: "Lịch sử" },
   { href: "#cach-lam-ra", label: "Cách làm ra" },
-  { href: "#rao-chan", label: "Rào chắn" },
+  { href: "#rao-chan", label: "An tâm khám phá" },
 ];
 
 type SiteHeaderProps = {
