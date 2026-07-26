@@ -1,5 +1,7 @@
 # Phase 01 — Build, verify and deploy
 
+### Task 1: Build and deploy WonderLens landing page
+
 ## Context
 
 - [TASK-024](../../tasks/TASK-024-landing-page.md)
