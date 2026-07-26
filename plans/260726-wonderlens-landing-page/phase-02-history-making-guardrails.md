@@ -8,6 +8,8 @@
 **Goal:** Refocus WonderLens landing on object history, how products are made and
 explicit family/AI guardrails, then redeploy verified source to production.
 
+**Status:** Complete — 2026-07-26
+
 **Architecture:** Keep route static and server-rendered. Add one focused
 `ObjectHistory` Server Component, replace late generic trust copy with an early
 `Guardrails` Server Component, and reorder existing content around a
@@ -62,7 +64,7 @@ assets; CSS custom properties and CSS Modules remain styling boundary.
 - Updates: `JourneyGallery()` section ID from `#hanh-trinh` to
   `#cach-lam-ra`.
 
-- [ ] **Step 1: Write failing route tests**
+- [x] **Step 1: Write failing route tests**
 
 Import `within` from Testing Library. Replace old hero/section names and add:
 
@@ -106,7 +108,7 @@ it("prioritizes object history and the real manufacturing journey", () => {
 Update accessible-section test to use new history, making and retained product
 flow/gallery headings.
 
-- [ ] **Step 2: Run focused test and prove RED**
+- [x] **Step 2: Run focused test and prove RED**
 
 Run:
 
@@ -118,7 +120,7 @@ npm test -- src/app/page.test.tsx
 Expected: FAIL because H1, `#lich-su`, `#cach-lam-ra` and history region do not
 exist. A configuration/import failure does not count.
 
-- [ ] **Step 3: Implement `ObjectHistory`**
+- [x] **Step 3: Implement `ObjectHistory`**
 
 Use `SectionHeading`, `PhoneFrame` and `next/image`. Render an ordered list with
 these literal source-backed beats:
@@ -160,7 +162,7 @@ Section heading:
 Compose paper-cup cutout with `/images/screens/timeline.png`. On mobile, remove
 overlap/rotation. Keep image dimensions and `sizes` explicit.
 
-- [ ] **Step 4: Reorder and rewrite route narrative**
+- [x] **Step 4: Reorder and rewrite route narrative**
 
 Task 1 keeps current `TrustSection` until Task 2. Use this interim order so
 TypeScript stays green:
@@ -193,7 +195,7 @@ Update:
 - Final CTA returns to `#lich-su`.
 - Metadata description mentions both history and how objects are made.
 
-- [ ] **Step 5: Run focused test and reach GREEN**
+- [x] **Step 5: Run focused test and reach GREEN**
 
 Run:
 
@@ -205,7 +207,7 @@ npm test -- src/app/page.test.tsx
 Expected: new history/manufacturing test PASS. Existing trust behavior remains
 green until Task 2.
 
-- [ ] **Step 6: Commit narrative**
+- [x] **Step 6: Commit narrative**
 
 ```bash
 git add landing-page/src
@@ -230,7 +232,7 @@ git commit -m "TASK-024: làm rõ lịch sử và cách đồ vật được t�
   `guardrails-title`.
 - Consumes: static route composition and `SectionHeading`.
 
-- [ ] **Step 1: Write failing guardrail test**
+- [x] **Step 1: Write failing guardrail test**
 
 Add:
 
@@ -266,7 +268,7 @@ it("puts explicit family and AI guardrails before the story", () => {
 
 This catches a missing, euphemistic or buried guardrail section.
 
-- [ ] **Step 2: Run focused test and prove RED**
+- [x] **Step 2: Run focused test and prove RED**
 
 Run:
 
@@ -278,7 +280,7 @@ npm test -- src/app/page.test.tsx
 Expected: FAIL because region `#rao-chan` and explicit safety status do not
 exist.
 
-- [ ] **Step 3: Implement `Guardrails`**
+- [x] **Step 3: Implement `Guardrails`**
 
 Render a section immediately after hero. Use one ruled semantic list, not equal
 card grid:
@@ -323,7 +325,7 @@ Add a labelled status note containing:
 `Chưa hoàn tất — runtime kid-safety audit chưa hoàn tất; prompt và moderation
 chỉ là một lớp bảo vệ, chưa phải safety pass.`
 
-- [ ] **Step 4: Replace late trust section and style**
+- [x] **Step 4: Replace late trust section and style**
 
 Import `Guardrails` in `page.tsx`, place it immediately after `Hero`, delete
 `TrustSection` files/import. Use semantic tokens for status/surface if needed.
@@ -335,7 +337,7 @@ CSS must:
 - collapse two-column desktop layout to one column below 64rem;
 - animate only opacity/transform and honor reduced motion.
 
-- [ ] **Step 5: Run focused and full tests**
+- [x] **Step 5: Run focused and full tests**
 
 Run:
 
@@ -347,7 +349,7 @@ npm test
 
 Expected: focused test and all test files PASS.
 
-- [ ] **Step 6: Commit guardrails**
+- [x] **Step 6: Commit guardrails**
 
 ```bash
 git add landing-page/src
@@ -369,7 +371,7 @@ git commit -m "TASK-024: đưa guardrails lên đầu landing"
 - Consumes: source commits from Tasks 1–2.
 - Produces: verified production deployment and updated PR #9.
 
-- [ ] **Step 1: Run local quality gates**
+- [x] **Step 1: Run local quality gates**
 
 From `landing-page/`:
 
@@ -388,7 +390,7 @@ git status --short
 
 Expected: all exit 0; only intended iteration files are modified.
 
-- [ ] **Step 2: Run local production browser review**
+- [x] **Step 2: Run local production browser review**
 
 Start `npm start` from successful build. At 375×812, 768×1024 and 1440×1000
 verify:
@@ -402,14 +404,14 @@ verify:
 - no console/page error;
 - reduced motion removes long animation/transition.
 
-- [ ] **Step 3: Review against sources and design**
+- [x] **Step 3: Review against sources and design**
 
 Compare every claim against `paper_cup.json`, PRD risk table, Domain 6 and press
 kit FAQ. Review modified UI against `DESIGN.md`, design spec, anti-slop rules and
 performance guardrails. Fix concrete findings, rerun focused gates, then request
 final code review.
 
-- [ ] **Step 4: Commit verified implementation and push**
+- [x] **Step 4: Commit verified implementation and push**
 
 Update iteration checkboxes/evidence, mark phase complete only after local gates.
 Commit:
@@ -424,13 +426,13 @@ git push origin feature/TASK-024-landing-page
 
 Confirm PR #9 still OPEN and points at pushed HEAD; do not create a duplicate PR.
 
-- [ ] **Step 5: Deploy exact pushed source**
+- [x] **Step 5: Deploy exact pushed source**
 
 From `landing-page/`, deploy project `sireals-projects/wonderlens-landing` with
 production metadata `gitCommitSha=<pushed HEAD>`. Wait for READY; do not alter
 proxy/app deployments.
 
-- [ ] **Step 6: Smoke production and record evidence**
+- [x] **Step 6: Smoke production and record evidence**
 
 Verify production alias and immutable URL:
 

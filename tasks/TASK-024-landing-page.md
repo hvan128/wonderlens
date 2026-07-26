@@ -1,7 +1,7 @@
 # TASK-024 — Landing page giới thiệu WonderLens
 
 **Owner:** Dev
-**Status:** In Progress — iteration 2
+**Status:** In Review — iteration 2 complete
 **Branch:** `feature/TASK-024-landing-page`
 
 ## Goal
@@ -35,17 +35,17 @@ design token, component dùng chung, responsive, truy cập được, build đ�
 
 ## Iteration 2 — lịch sử, cách làm ra và guardrails
 
-- [ ] Hero và điều hướng ưu tiên ba câu hỏi: lịch sử, cách làm ra, guardrails.
-- [ ] Có section lịch sử riêng, dùng đúng content curated của cốc giấy; không
+- [x] Hero và điều hướng ưu tiên ba câu hỏi: lịch sử, cách làm ra, guardrails.
+- [x] Có section lịch sử riêng, dùng đúng content curated của cốc giấy; không
       bịa năm, nhân vật hoặc claim môi trường.
-- [ ] Dây chuyền bốn bước khớp `paper_cup.json` và có phần kết “sau khi dùng”
+- [x] Dây chuyền bốn bước khớp `paper_cup.json` và có phần kết “sau khi dùng”
       không tuyên bố mọi cốc giấy đều tái chế được.
-- [ ] Guardrails xuất hiện sớm, nói rõ adult co-use, AI-live có thể sai, ảnh đi
+- [x] Guardrails xuất hiện sớm, nói rõ adult co-use, AI-live có thể sai, ảnh đi
       qua proxy và runtime kid-safety audit chưa hoàn tất.
-- [ ] Không thêm dependency, Client Component, API, form, analytics, cookie hoặc
+- [x] Không thêm dependency, Client Component, API, form, analytics, cookie hoặc
       release/safety claim.
-- [ ] Focused test, full test, lint, build và browser 375/768/1440 pass.
-- [ ] Production redeploy READY, smoke pass và PR hiện có được cập nhật.
+- [x] Focused test, full test, lint, build và browser 375/768/1440 pass.
+- [x] Production redeploy READY, smoke pass và PR hiện có được cập nhật.
 
 ## Out of scope
 
@@ -67,26 +67,31 @@ design token, component dùng chung, responsive, truy cập được, build đ�
 
 ### Local
 
-- `npm test`: 3 test file, 4/4 test pass.
+- `npm test`: 3 test file, 6/6 test pass.
 - `npm run lint`: pass.
 - `npm run build`: static route `/`, `/_not-found`, icon và Open Graph image.
+- Flutter regression: 92/92 test pass; landing iteration không sửa Flutter app.
+- Review: không có lỗi Critical/Important; lỗi Minor nav wrap tại 768px đã sửa,
+  verify và commit.
 
 ### Production
 
 - Project: `sireals-projects/wonderlens-landing`, Next.js, Node.js 24.x.
-- Deployment `dpl_8Vvnqh3W1Ax6jTFwyVoWoXxX8Q85`: `READY`, production.
-- Source `3ec01e98748630c1f4ba63f959c9ebc4325b77d3` khớp metadata
+- Deployment `dpl_9zDscffa6p4DZeF8NRAMZdQrrv4L`: `READY`, production.
+- Source `36c49d850cf72d49a163a1c71dee278286629f09` khớp metadata
   `gitCommitSha` của deployment.
 - URL: <https://wonderlens-landing.vercel.app>
 - Immutable URL:
-  <https://wonderlens-landing-nfu6v0qtv-sireals-projects.vercel.app>
+  <https://wonderlens-landing-3tf3ozcid-sireals-projects.vercel.app>
 - HTTP: `/` trả 200; đường dẫn không tồn tại trả branded 404; ảnh brand,
   journey, object và screen cốt lõi trả 200.
 - Metadata/H1 tiếng Việt đúng nội dung đã duyệt.
 - Browser smoke pass tại 375×812, 768×1024 và 1440×1000: không tràn ngang,
-  24/24 ảnh tải được, anchor hoạt động, không console/page error; reduced motion
+  26/26 ảnh tải được, anchor hoạt động, không console/page error; reduced motion
   không còn animation/transition dài.
-- Final-source redeploy được smoke lại ở desktop 1440×1000: không tràn ngang,
-  24/24 ảnh tải được, named sections và H1 đúng, không console/page error.
-- Remote build hoàn tất trong 12 giây, không có lỗi; runtime error/fatal và 5xx
-  scan không có entry.
+- Guardrails đứng trước lịch sử; lịch sử đứng trước dây chuyền bốn bước; năm
+  anchor tương thích đều resolve.
+- Final-source redeploy sau commit evidence được smoke lại; deployment ID/SHA
+  cuối được ghi trong PR #9 để tài liệu không tự thay đổi source SHA.
+- Remote build kiểm chứng hoàn tất trong 11 giây, không có lỗi; runtime
+  error/fatal và 5xx scan không có entry.

@@ -61,8 +61,8 @@ thu dữ liệu và không analytics. Xem thêm
 [`landing-page/README.md`](landing-page/README.md).
 
 Production: <https://wonderlens-landing.vercel.app> — Vercel deployment
-`dpl_8Vvnqh3W1Ax6jTFwyVoWoXxX8Q85` ở trạng thái `READY` ngày 2026-07-26,
-deploy từ source `3ec01e98748630c1f4ba63f959c9ebc4325b77d3`.
+`dpl_9zDscffa6p4DZeF8NRAMZdQrrv4L` ở trạng thái `READY` ngày 2026-07-26,
+deploy từ source `36c49d850cf72d49a163a1c71dee278286629f09`.
 
 ## Secret production với Infisical
 

@@ -31,10 +31,10 @@ bàn phím, reduced motion, ảnh lỗi, console và horizontal overflow.
 
 - URL: <https://wonderlens-landing.vercel.app>
 - Immutable deployment:
-  <https://wonderlens-landing-nfu6v0qtv-sireals-projects.vercel.app>
-- Deployment ID: `dpl_8Vvnqh3W1Ax6jTFwyVoWoXxX8Q85` (`READY`, production,
+  <https://wonderlens-landing-3tf3ozcid-sireals-projects.vercel.app>
+- Deployment ID: `dpl_9zDscffa6p4DZeF8NRAMZdQrrv4L` (`READY`, production,
   2026-07-26).
-- Source: `3ec01e98748630c1f4ba63f959c9ebc4325b77d3`, khớp metadata
+- Source: `36c49d850cf72d49a163a1c71dee278286629f09`, khớp metadata
   `gitCommitSha` của deployment.
 - Vercel project: `sireals-projects/wonderlens-landing`; Root Directory `.` là
   thư mục `landing-page/` của repo, framework Next.js và Node.js 24.x.
@@ -46,16 +46,18 @@ vercel link --yes --scope sireals-projects --project wonderlens-landing
 vercel deploy --prod --yes --scope sireals-projects
 ```
 
-Evidence ngày 2026-07-26: 4/4 test, lint và build pass; `/` trả 200, trang 404
+Evidence ngày 2026-07-26: 6/6 test, lint và build pass; `/` trả 200, trang 404
 có nhận diện WonderLens trả đúng 404, các ảnh cốt lõi trả 200. Browser smoke ở
-375×812, 768×1024 và 1440×1000 không tràn ngang, 24/24 ảnh tải được, anchor hoạt
+375×812, 768×1024 và 1440×1000 không tràn ngang, 26/26 ảnh tải được, anchor hoạt
 động, reduced motion pass và không có console/page error. Build log, runtime
 error/fatal và 5xx scan đều sạch.
 
-Final-source redeploy ngày 2026-07-26 giữ nguyên kết quả trên; smoke lại live
-desktop 1440×1000 có 24/24 ảnh tải được, không tràn ngang, không console/page
-error. `/`, branded 404 và ảnh screenshot cốt lõi lần lượt trả 200, 404 và 200;
-remote build hoàn tất trong 12 giây, không có build/runtime error mới.
+Vòng cải thiện ưu tiên lịch sử → cách làm ra → guardrails. Review không có lỗi
+Critical/Important; lỗi Minor nav wrap ở 768px đã sửa và verify. Final-source
+redeploy sau commit evidence giữ nguyên artifact landing; ID/SHA cuối được ghi
+trong PR #9 để tránh tạo vòng lặp self-reference trong tài liệu. `/`, branded
+404 và ảnh cốt lõi được smoke lại; remote build kiểm chứng hoàn tất trong 11
+giây, không có build/runtime error mới.
 
 ## Ranh giới
 
