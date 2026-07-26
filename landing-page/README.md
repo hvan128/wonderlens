@@ -6,7 +6,7 @@ thật của sản phẩm và font local Baloo 2/Nunito.
 
 ## Chạy local
 
-Yêu cầu Node.js 20.9 trở lên.
+Yêu cầu Node.js 24.x (khớp môi trường local và Vercel của team).
 
 ```bash
 npm install

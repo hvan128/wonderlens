@@ -41,6 +41,7 @@ export function JourneyGallery() {
         <SectionHeading
           align="center"
           eyebrow="Một hành trình thật trong WonderLens"
+          headingId="journey-title"
           title="Chiếc cốc giấy bắt đầu từ đâu?"
           description="Bốn khung hình ngắn giúp trẻ nối món đồ trong tay với nguyên liệu, máy móc và những lựa chọn sau khi dùng."
         />

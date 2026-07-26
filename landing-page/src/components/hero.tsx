@@ -56,7 +56,7 @@ export function Hero() {
             alt=""
             width={1024}
             height={1024}
-            priority
+            preload
             sizes="(max-width: 767px) 86vw, 46vw"
           />
         </div>
@@ -64,7 +64,7 @@ export function Hero() {
           className={styles.result}
           src="/images/screens/result.png"
           alt="Màn hình WonderLens nhận diện cốc giấy"
-          priority
+          preload
         />
         <PhoneFrame
           className={styles.timeline}

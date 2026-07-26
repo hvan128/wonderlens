@@ -30,6 +30,7 @@ export function TrustSection() {
       <div className={styles.inner}>
         <SectionHeading
           eyebrow="Dành cho trải nghiệm cùng người lớn"
+          headingId="trust-title"
           title="Để gia đình biết điều gì đang xảy ra."
           description="WonderLens được định hướng như một khoảnh khắc bố mẹ và trẻ cùng học, không phải mạng xã hội hay nơi thay thế chương trình khoa học."
         />

@@ -35,6 +35,7 @@ export function AppGallery() {
       <div className={styles.inner}>
         <SectionHeading
           eyebrow="Sau mỗi lần khám phá"
+          headingId="app-gallery-title"
           title="Tò mò hôm nay trở thành bộ sưu tập ngày mai."
           description="WonderLens giữ nhịp trải nghiệm ngắn và trực quan: xem lại câu chuyện, mở nhật ký theo ngày và nhận ra những vật liệu trẻ đã gặp."
         />

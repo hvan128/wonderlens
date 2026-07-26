@@ -16,7 +16,7 @@ export default function NotFound() {
       <a className="skip-link" href="#noi-dung-chinh">
         Bỏ qua điều hướng
       </a>
-      <SiteHeader />
+      <SiteHeader sectionHrefPrefix="/" />
       <main className={styles.main} id="noi-dung-chinh" tabIndex={-1}>
         <p className={styles.eyebrow}>Lạc khỏi hành trình rồi</p>
         <h1>Không tìm thấy trang này.</h1>

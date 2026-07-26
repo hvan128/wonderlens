@@ -5,6 +5,7 @@ type SectionHeadingProps = {
   title: string;
   description?: string;
   align?: "start" | "center";
+  headingId?: string;
 };
 
 export function SectionHeading({
@@ -12,11 +13,12 @@ export function SectionHeading({
   title,
   description,
   align = "start",
+  headingId,
 }: SectionHeadingProps) {
   return (
     <div className={`${styles.heading} ${styles[align]}`}>
       <p className={styles.eyebrow}>{eyebrow}</p>
-      <h2>{title}</h2>
+      <h2 id={headingId}>{title}</h2>
       {description ? (
         <p className={styles.description}>{description}</p>
       ) : null}

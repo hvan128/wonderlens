@@ -5,14 +5,14 @@ import styles from "./phone-frame.module.css";
 type PhoneFrameProps = {
   src: string;
   alt: string;
-  priority?: boolean;
+  preload?: boolean;
   className?: string;
 };
 
 export function PhoneFrame({
   src,
   alt,
-  priority = false,
+  preload = false,
   className,
 }: PhoneFrameProps) {
   return (
@@ -24,7 +24,7 @@ export function PhoneFrame({
         alt={alt}
         width={1290}
         height={2796}
-        priority={priority}
+        preload={preload}
         sizes="(max-width: 767px) 66vw, (max-width: 1199px) 34vw, 24vw"
       />
     </div>

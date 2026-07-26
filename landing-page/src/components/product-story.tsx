@@ -41,6 +41,7 @@ export function ProductStory() {
       <div className={styles.inner}>
         <SectionHeading
           eyebrow="Một câu hỏi. Bốn nhịp khám phá."
+          headingId="product-story-title"
           title="Từ chiếc camera đến câu chuyện vật liệu."
           description="WonderLens biến khoảnh khắc “món đồ này từ đâu ra?” thành một hoạt động ngắn để bố mẹ và trẻ làm cùng nhau."
         />

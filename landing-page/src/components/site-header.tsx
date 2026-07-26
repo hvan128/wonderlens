@@ -8,13 +8,17 @@ const navigation = [
   { href: "#ung-dung", label: "Trong ứng dụng" },
 ];
 
-export function SiteHeader() {
+type SiteHeaderProps = {
+  sectionHrefPrefix?: string;
+};
+
+export function SiteHeader({ sectionHrefPrefix = "" }: SiteHeaderProps) {
   return (
     <header className={styles.header}>
       <nav className={styles.navigation} aria-label="Điều hướng chính">
         <a
           className={styles.brandLink}
-          href="#dau-trang"
+          href={`${sectionHrefPrefix}#dau-trang`}
           aria-label="WonderLens — về đầu trang"
         >
           <Brand compact />
@@ -22,12 +26,15 @@ export function SiteHeader() {
         <ul className={styles.links}>
           {navigation.map((item) => (
             <li key={item.href}>
-              <a href={item.href}>{item.label}</a>
+              <a href={`${sectionHrefPrefix}${item.href}`}>{item.label}</a>
             </li>
           ))}
         </ul>
         <div className={styles.action}>
-          <ButtonLink href="#cach-hoat-dong" variant="secondary">
+          <ButtonLink
+            href={`${sectionHrefPrefix}#cach-hoat-dong`}
+            variant="secondary"
+          >
             Khám phá
           </ButtonLink>
         </div>
