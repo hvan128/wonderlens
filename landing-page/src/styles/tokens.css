@@ -26,10 +26,13 @@
   --surface-warm: #fff6df;
   --surface-teal-soft: #dff7f7;
   --surface-history: #e6f5f2;
+  --surface-guardrail: #dcefed;
   --border-glass: rgb(255 255 255 / 76%);
   --border-subtle: rgb(21 35 59 / 12%);
   --border-dark: rgb(255 255 255 / 18%);
   --border-history: rgb(14 151 172 / 12%);
+  --border-guardrail: rgb(8 116 136 / 20%);
+  --status-caution: #8c4a00;
   --shadow-cutout: drop-shadow(0 1.5rem 1.5rem rgb(11 24 48 / 18%));
   --focus-ring: #b35d00;
   --gradient-cta: linear-gradient(

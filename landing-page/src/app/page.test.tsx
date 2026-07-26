@@ -54,6 +54,36 @@ describe("WonderLens landing page", () => {
     ).toBeInTheDocument();
   });
 
+  it("puts explicit family and AI guardrails before the story", () => {
+    const { container } = render(<Home />);
+
+    const guardrails = screen.getByRole("region", {
+      name: /giới hạn được nói rõ, không giấu ở cuối trang/i,
+    });
+    expect(
+      within(guardrails).getByText(/không phải công cụ để trẻ tự dùng/i),
+    ).toBeInTheDocument();
+    expect(
+      within(guardrails).getByText(/ảnh chụp đi qua proxy tới AI/i),
+    ).toBeInTheDocument();
+    expect(
+      within(guardrails).getByText(/AI-live có thể sai/i),
+    ).toBeInTheDocument();
+    expect(
+      within(guardrails).getByText(
+        /runtime kid-safety audit chưa hoàn tất/i,
+      ),
+    ).toBeInTheDocument();
+
+    const sectionIds = Array.from(
+      container.querySelector("main")?.children ?? [],
+      (section) => section.id,
+    );
+    expect(sectionIds.indexOf("rao-chan")).toBeLessThan(
+      sectionIds.indexOf("lich-su"),
+    );
+  });
+
   it("gives each content section the accessible name of its heading", () => {
     const { getByRole } = render(<Home />);
 
@@ -79,7 +109,7 @@ describe("WonderLens landing page", () => {
     ).toBeInTheDocument();
     expect(
       getByRole("region", {
-        name: /để gia đình biết điều gì đang xảy ra/i,
+        name: /giới hạn được nói rõ, không giấu ở cuối trang/i,
       }),
     ).toBeInTheDocument();
   });

@@ -8,15 +8,16 @@ describe("WonderLens not-found page", () => {
     render(<NotFound />);
 
     expect(
-      screen.getByRole("link", { name: "Cách hoạt động" }),
-    ).toHaveAttribute("href", "/#cach-hoat-dong");
-    expect(screen.getByRole("link", { name: "Hành trình" })).toHaveAttribute(
+      screen.getByRole("link", { name: "Lịch sử" }),
+    ).toHaveAttribute("href", "/#lich-su");
+    expect(screen.getByRole("link", { name: "Cách làm ra" })).toHaveAttribute(
       "href",
-      "/#hanh-trinh",
+      "/#cach-lam-ra",
     );
-    expect(
-      screen.getByRole("link", { name: "Trong ứng dụng" }),
-    ).toHaveAttribute("href", "/#ung-dung");
+    expect(screen.getByRole("link", { name: "Rào chắn" })).toHaveAttribute(
+      "href",
+      "/#rao-chan",
+    );
     expect(
       screen.getByRole("link", { name: /WonderLens — về đầu trang/i }),
     ).toHaveAttribute("href", "/#dau-trang");
