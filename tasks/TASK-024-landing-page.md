@@ -60,14 +60,19 @@ design token, component dùng chung, responsive, truy cập được, build đ�
 ### Production
 
 - Project: `sireals-projects/wonderlens-landing`, Next.js, Node.js 24.x.
-- Deployment `dpl_CGTUqw7xg43ArqZZ8kqLZnk78Tw1`: `READY`, production.
+- Deployment `dpl_8Vvnqh3W1Ax6jTFwyVoWoXxX8Q85`: `READY`, production.
+- Source `3ec01e98748630c1f4ba63f959c9ebc4325b77d3` khớp metadata
+  `gitCommitSha` của deployment.
 - URL: <https://wonderlens-landing.vercel.app>
 - Immutable URL:
-  <https://wonderlens-landing-8rswzilny-sireals-projects.vercel.app>
+  <https://wonderlens-landing-nfu6v0qtv-sireals-projects.vercel.app>
 - HTTP: `/` trả 200; đường dẫn không tồn tại trả branded 404; ảnh brand,
   journey, object và screen cốt lõi trả 200.
 - Metadata/H1 tiếng Việt đúng nội dung đã duyệt.
 - Browser smoke pass tại 375×812, 768×1024 và 1440×1000: không tràn ngang,
   24/24 ảnh tải được, anchor hoạt động, không console/page error; reduced motion
   không còn animation/transition dài.
-- Build log không có lỗi; runtime error/fatal và 5xx scan không có entry.
+- Final-source redeploy được smoke lại ở desktop 1440×1000: không tràn ngang,
+  24/24 ảnh tải được, named sections và H1 đúng, không console/page error.
+- Remote build hoàn tất trong 12 giây, không có lỗi; runtime error/fatal và 5xx
+  scan không có entry.
