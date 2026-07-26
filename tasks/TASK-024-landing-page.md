@@ -1,7 +1,7 @@
 # TASK-024 — Landing page giới thiệu WonderLens
 
 **Owner:** Dev
-**Status:** In Progress
+**Status:** In Review
 **Branch:** `feature/TASK-024-landing-page`
 
 ## Goal
@@ -30,7 +30,7 @@ design token, component dùng chung, responsive, truy cập được, build đ�
 - [x] Mobile 375px, tablet và desktop không tràn ngang; CTA/touch target tối
       thiểu 44px; focus rõ; ảnh có alt; hỗ trợ `prefers-reduced-motion`.
 - [x] Test component/page, lint và `next build` pass.
-- [ ] Production deployment Vercel ở trạng thái READY; route `/` trả 200 và
+- [x] Production deployment Vercel ở trạng thái READY; route `/` trả 200 và
       browser smoke test không có lỗi console nghiêm trọng.
 
 ## Out of scope
@@ -45,15 +45,29 @@ design token, component dùng chung, responsive, truy cập được, build đ�
 
 - [x] Code đúng AC và ADR-016.
 - [x] Test, lint, build và visual/browser checks có evidence.
-- [ ] Docs setup/deploy và URL production được cập nhật.
+- [x] Docs setup/deploy và URL production được cập nhật.
 - [x] Không secret, `.env*` hoặc Vercel credential trong diff.
 - [ ] PR reviewed trước merge; không push thẳng `main`.
 
-## Local verification — 2026-07-26
+## Verification — 2026-07-26
 
-- `npm test`: 2 test pass.
+### Local
+
+- `npm test`: 3 test file, 4/4 test pass.
 - `npm run lint`: pass.
 - `npm run build`: static route `/`, `/_not-found`, icon và Open Graph image.
-- Production browser: pass tại 375×812, 768×1024, 1440×1000; không overflow,
-  ảnh lỗi, console error hoặc WCAG A/AA violation; focus và reduced motion pass.
-- Production deploy và URL thuộc bước tiếp theo, sau review local.
+
+### Production
+
+- Project: `sireals-projects/wonderlens-landing`, Next.js, Node.js 24.x.
+- Deployment `dpl_CGTUqw7xg43ArqZZ8kqLZnk78Tw1`: `READY`, production.
+- URL: <https://wonderlens-landing.vercel.app>
+- Immutable URL:
+  <https://wonderlens-landing-8rswzilny-sireals-projects.vercel.app>
+- HTTP: `/` trả 200; đường dẫn không tồn tại trả branded 404; ảnh brand,
+  journey, object và screen cốt lõi trả 200.
+- Metadata/H1 tiếng Việt đúng nội dung đã duyệt.
+- Browser smoke pass tại 375×812, 768×1024 và 1440×1000: không tràn ngang,
+  24/24 ảnh tải được, anchor hoạt động, không console/page error; reduced motion
+  không còn animation/transition dài.
+- Build log không có lỗi; runtime error/fatal và 5xx scan không có entry.

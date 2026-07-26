@@ -60,6 +60,9 @@ Landing page là app tĩnh độc lập: không API route, không gọi OpenAI, 
 thu dữ liệu và không analytics. Xem thêm
 [`landing-page/README.md`](landing-page/README.md).
 
+Production: <https://wonderlens-landing.vercel.app> — Vercel deployment
+`dpl_CGTUqw7xg43ArqZZ8kqLZnk78Tw1` ở trạng thái `READY` ngày 2026-07-26.
+
 ## Secret production với Infisical
 
 Production dùng Infisical project `shared-platform-secrets`, environment
