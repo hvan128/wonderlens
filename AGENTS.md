@@ -10,6 +10,7 @@
 | AI Vision | OpenAI gpt-4o (qua proxy) |
 | Narration | TTS mặc định hệ điều hành (`flutter_tts`); OpenAI speech proxy giữ sau flag |
 | Proxy | Vercel serverless (`/proxy`) |
+| Marketing | Next.js App Router (`/landing-page`) |
 | Local storage | Hive |
 | Animation | Rive hoặc Lottie |
 
@@ -22,6 +23,7 @@ wonderlens/
 │   ├── test/      # Unit + widget tests
 │   └── assets/    # Ảnh, audio bundled (hero objects)
 ├── proxy/         # Vercel serverless proxy
+├── landing-page/  # Next.js static marketing app, deploy độc lập
 ├── specs/         # Product specs (what/why)
 ├── adrs/          # Architectural decisions (how)
 ├── tasks/         # Task lớn: Goal, AC, DoD, owner
@@ -53,6 +55,13 @@ wonderlens/
 - Mỗi endpoint là một file trong `proxy/api/`
 - Validate request trước khi forward tới OpenAI
 - Cache response khi có thể (tránh gọi lặp cùng object)
+
+### Landing page
+- Next.js App Router + TypeScript; route marketing ưu tiên Server Components
+- CSS custom properties trong `src/styles/tokens.css` + CSS Modules
+- Dùng `next/image` và font local; không tải font/asset từ CDN
+- Không thêm API route, form thu PII, analytics, cookie hoặc OpenAI call
+- Chạy `npm test`, `npm run lint`, `npm run build` trong `landing-page/`
 
 ### Content / Assets
 - Hero object content nằm trong `app/assets/content/`

@@ -8,9 +8,10 @@ Chủ đề demo: **đồ vật văn phòng** (cốc giấy, bút bi, kẹp gi�
 
 ```
 hackathon_codex/
-├─ app/      # Flutter app (iOS/Android)
-├─ proxy/    # Vercel serverless — giấu OpenAI key (recognize, generate, video)
-└─ plans/    # Kế hoạch + brainstorm report
+├─ app/           # Flutter app (iOS/Android)
+├─ proxy/         # Vercel serverless — giấu OpenAI key
+├─ landing-page/  # Next.js static marketing app
+└─ plans/         # Kế hoạch + brainstorm report
 ```
 
 ## Chạy app (dev)
@@ -37,6 +38,27 @@ npm install
 cp .env.example .env            # điền OPENAI_API_KEY (KHÔNG commit .env)
 npm run dev                     # vercel dev → http://localhost:3000
 ```
+
+## Chạy landing page (dev)
+
+```bash
+cd landing-page
+npm install
+npm run dev                     # http://localhost:3000
+```
+
+Kiểm tra bản production local:
+
+```bash
+npm test
+npm run lint
+npm run build
+npm start
+```
+
+Landing page là app tĩnh độc lập: không API route, không gọi OpenAI, không form
+thu dữ liệu và không analytics. Xem thêm
+[`landing-page/README.md`](landing-page/README.md).
 
 ## Secret production với Infisical
 

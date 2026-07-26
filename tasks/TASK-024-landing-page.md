@@ -14,22 +14,22 @@ design token, component dùng chung, responsive, truy cập được, build đ�
 
 ## Acceptance Criteria
 
-- [ ] `landing-page/` là ứng dụng Next.js App Router + TypeScript độc lập.
-- [ ] Design token tập trung cho màu, typography, spacing, radius, shadow, motion
+- [x] `landing-page/` là ứng dụng Next.js App Router + TypeScript độc lập.
+- [x] Design token tập trung cho màu, typography, spacing, radius, shadow, motion
       và z-index; component không tự phát minh token trùng lặp.
-- [ ] Header, button/link, section heading, product/device frame và footer là
+- [x] Header, button/link, section heading, product/device frame và footer là
       component dùng chung.
-- [ ] Route `/` kể rõ flow chụp vật → nhận diện/tách nền → hành trình STEM →
+- [x] Route `/` kể rõ flow chụp vật → nhận diện/tách nền → hành trình STEM →
       bộ sưu tập, bằng copy tiếng Việt hướng phụ huynh đồng hành cùng trẻ 6–10.
-- [ ] Trang dùng nhiều asset thật có sẵn: logo, object cutout, ảnh chặng và
+- [x] Trang dùng nhiều asset thật có sẵn: logo, object cutout, ảnh chặng và
       screenshot production; không dùng emoji hoặc stock photo làm visual vật.
-- [ ] Không có form waitlist, analytics, testimonial, rating hoặc release claim
+- [x] Không có form waitlist, analytics, testimonial, rating hoặc release claim
       chưa có bằng chứng.
-- [ ] Copy trust nói đúng trạng thái: không tài khoản trẻ/quảng cáo/tracking;
+- [x] Copy trust nói đúng trạng thái: không tài khoản trẻ/quảng cáo/tracking;
       AI-live có nhãn; không tuyên bố ảnh không bao giờ rời thiết bị.
-- [ ] Mobile 375px, tablet và desktop không tràn ngang; CTA/touch target tối
+- [x] Mobile 375px, tablet và desktop không tràn ngang; CTA/touch target tối
       thiểu 44px; focus rõ; ảnh có alt; hỗ trợ `prefers-reduced-motion`.
-- [ ] Test component/page, lint và `next build` pass.
+- [x] Test component/page, lint và `next build` pass.
 - [ ] Production deployment Vercel ở trạng thái READY; route `/` trả 200 và
       browser smoke test không có lỗi console nghiêm trọng.
 
@@ -43,8 +43,17 @@ design token, component dùng chung, responsive, truy cập được, build đ�
 
 ## Definition of Done
 
-- [ ] Code đúng AC và ADR-016.
-- [ ] Test, lint, build và visual/browser checks có evidence.
+- [x] Code đúng AC và ADR-016.
+- [x] Test, lint, build và visual/browser checks có evidence.
 - [ ] Docs setup/deploy và URL production được cập nhật.
-- [ ] Không secret, `.env*` hoặc Vercel credential trong diff.
+- [x] Không secret, `.env*` hoặc Vercel credential trong diff.
 - [ ] PR reviewed trước merge; không push thẳng `main`.
+
+## Local verification — 2026-07-26
+
+- `npm test`: 2 test pass.
+- `npm run lint`: pass.
+- `npm run build`: static route `/`, `/_not-found`, icon và Open Graph image.
+- Production browser: pass tại 375×812, 768×1024, 1440×1000; không overflow,
+  ảnh lỗi, console error hoặc WCAG A/AA violation; focus và reduced motion pass.
+- Production deploy và URL thuộc bước tiếp theo, sau review local.
