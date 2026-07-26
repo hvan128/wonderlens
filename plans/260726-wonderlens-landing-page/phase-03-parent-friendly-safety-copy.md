@@ -144,7 +144,7 @@ const guardrails = [
   {
     title: "Nội dung phù hợp lứa tuổi",
     description:
-      "Câu chuyện ngắn, gần gũi; nội dung nguy hiểm, bạo lực hoặc không phù hợp nằm ngoài giới hạn trải nghiệm.",
+      "Câu chuyện ngắn, gần gũi; WonderLens đặt giới hạn để tránh nội dung nguy hiểm, bạo lực hoặc không phù hợp với trẻ.",
   },
   {
     title: "Biết rõ khi AI tham gia",

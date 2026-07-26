@@ -44,8 +44,8 @@ Bốn cam kết:
 
 1. `Bố mẹ cùng con khám phá` — hoạt động đồng sử dụng cho người lớn và trẻ
    6–10 tuổi.
-2. `Nội dung phù hợp lứa tuổi` — câu chuyện ngắn, gần gũi; nội dung nguy hiểm,
-   bạo lực hoặc không phù hợp nằm ngoài giới hạn trải nghiệm.
+2. `Nội dung phù hợp lứa tuổi` — câu chuyện ngắn, gần gũi; WonderLens đặt giới
+   hạn để tránh nội dung nguy hiểm, bạo lực hoặc không phù hợp với trẻ.
 3. `Biết rõ khi AI tham gia` — nội dung AI có nhãn, có thể nhầm, không thay thế
    giáo viên hoặc sách đã kiểm chứng.
 4. `Riêng tư được nói rõ` — không tài khoản trẻ, quảng cáo hay theo dõi hành vi;
