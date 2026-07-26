@@ -54,6 +54,7 @@
   font-weight: 900;
   min-height: 2.75rem;
   padding: 0 var(--space-16);
+  white-space: nowrap;
   transition:
     color var(--motion-fast) var(--ease-out),
     background-color var(--motion-fast) var(--ease-out);
@@ -71,6 +72,7 @@
 .action a {
   min-height: 2.75rem;
   padding: var(--space-8) var(--space-16);
+  white-space: nowrap;
 }
 
 @media (min-width: 48rem) {

@@ -108,8 +108,8 @@ Status safety được đặt thành câu riêng có nhãn `Chưa hoàn tất`, 
 - Signature mới là “hộ chiếu đồ vật”: cutout cốc giấy nối với ba mốc lịch sử bằng
   một đường teal mảnh. Chỉ một composition táo bạo; phần còn lại dùng khoảng thở
   và divider.
-- Guardrails dùng nền ink nhất quán, chữ sáng, nhãn trạng thái màu sunny; không
-  tạo lưới card trắng generic.
+- Guardrails dùng nền teal nhạt, chữ ink và status caution có nhãn + đường kẻ;
+  không phụ thuộc màu để truyền trạng thái, không tạo lưới card trắng generic.
 - Chỉ animate `opacity` và `transform`; không thêm parallax, scroll listener hoặc
   client JavaScript. Tắt motion qua `prefers-reduced-motion`.
 - Mobile 375px xếp timeline một cột, bỏ overlap/rotation; touch target giữ 44px.
