@@ -1,0 +1,28 @@
+.frame {
+  background: var(--color-ink);
+  border: 1px solid var(--border-dark);
+  border-radius: clamp(1.75rem, 8%, 3.25rem);
+  box-shadow: var(--shadow-phone);
+  line-height: 0;
+  overflow: hidden;
+  padding: 0.45rem;
+  position: relative;
+}
+
+.screen {
+  border-radius: clamp(1.45rem, 7%, 2.8rem);
+  height: auto;
+  width: 100%;
+}
+
+.speaker {
+  background: var(--color-ink);
+  border-radius: var(--radius-pill);
+  height: 0.3rem;
+  left: 50%;
+  position: absolute;
+  top: 0.8rem;
+  transform: translateX(-50%);
+  width: 19%;
+  z-index: var(--z-content);
+}

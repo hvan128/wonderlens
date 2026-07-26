@@ -1,0 +1,30 @@
+.main {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: var(--content-max);
+  min-height: 80dvh;
+  padding: 8rem var(--page-gutter) var(--space-80);
+}
+
+.eyebrow {
+  color: var(--text-accent);
+  font-size: var(--type-label-size);
+  font-weight: 900;
+  margin-bottom: var(--space-12);
+}
+
+.main h1 {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--type-section-size);
+  line-height: var(--type-section-leading);
+}
+
+.main > p:not(.eyebrow) {
+  color: var(--text-soft);
+  margin: var(--space-20) 0 var(--space-32);
+  max-width: 34rem;
+}

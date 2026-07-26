@@ -152,6 +152,27 @@ entitlement local sau purchase/restore và parental gate trước cơ hội mua 
 
 ---
 
+## Domain 6: Marketing Landing
+
+**Responsibility:** Giới thiệu WonderLens cho phụ huynh và giáo viên bằng trang
+marketing tĩnh, SEO được và dùng asset sản phẩm đã duyệt.
+
+**Owns:**
+- `landing-page/`
+
+**Contract in:** Asset curated được copy từ `app/assets/` và
+`app/store-assets/`; privacy/release copy từ `docs/launch/press-kit.md`.
+
+**Contract out:** Trang HTML tĩnh và metadata public; không có API/runtime data.
+
+**Business rules:**
+- Không gọi Flutter proxy/OpenAI, không route API, form, cookie hoặc analytics.
+- Không tự tuyên bố store release, rating, safety pass hoặc số người dùng.
+- Copy dữ liệu nói rõ ảnh chụp đi qua proxy tới AI; AI-live luôn có nhãn.
+- Deploy `landing-page/` thành Vercel project độc lập theo ADR-016.
+
+---
+
 ## Domain boundaries (không được cross)
 
 | Từ | Sang | Cách giao tiếp |
@@ -160,5 +181,8 @@ entitlement local sau purchase/restore và parental gate trước cơ hội mua 
 | Timeline | Collection | `DiscoveryEvent` object |
 | Flutter app | Proxy | HTTP REST (`specs/api-contracts.md`) |
 | Proxy | OpenAI | OpenAI SDK (server-side only) |
+| App assets/docs | Marketing Landing | Curated copy tại build time |
 
-**KHÔNG được:** Domain 3 gọi trực tiếp proxy. Domain 1 đọc bundled content. App gọi OpenAI không qua proxy.
+**KHÔNG được:** Domain 3 gọi trực tiếp proxy. Domain 1 đọc bundled content. App
+gọi OpenAI không qua proxy. Marketing Landing gọi proxy/OpenAI hoặc thu dữ liệu
+runtime.
