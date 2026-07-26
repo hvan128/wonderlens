@@ -1,7 +1,7 @@
 # TASK-024 — Landing page giới thiệu WonderLens
 
 **Owner:** Dev
-**Status:** In Review — iteration 2 complete
+**Status:** In Progress — iteration 3
 **Branch:** `feature/TASK-024-landing-page`
 
 ## Goal
@@ -46,6 +46,25 @@ design token, component dùng chung, responsive, truy cập được, build đ�
       release/safety claim.
 - [x] Focused test, full test, lint, build và browser 375/768/1440 pass.
 - [x] Production redeploy READY, smoke pass và PR hiện có được cập nhật.
+
+## Iteration 3 — copy an tâm cho phụ huynh
+
+Iteration này thay cách trình bày public của guardrails; trạng thái safety audit
+nội bộ vẫn được theo dõi trong PRD và release docs.
+
+- [ ] Điều hướng và section dùng ngôn ngữ `An tâm khám phá`, không dùng
+      `Rào chắn` hoặc trạng thái kỹ thuật làm thông điệp chính.
+- [ ] Copy nói rõ các lớp kiểm tra an toàn, nội dung phù hợp lứa tuổi, adult
+      co-use và nhãn khi AI tham gia bằng tiếng Việt thân thiện.
+- [ ] Public copy không hiện `runtime`, `kid-safety audit`, `safety pass`,
+      `prompt`, `moderation`, `proxy`, `tracking`, `cookie`, `analytics` hoặc
+      `AI-live`.
+- [ ] Không tạo claim chứng nhận an toàn: vẫn nói AI có thể nhầm, không thay
+      giáo viên/sách đã kiểm chứng và ảnh được gửi tới dịch vụ AI để nhận diện.
+- [ ] Giữ `#rao-chan`, cấu trúc semantic, Server Component, CSS/token và không
+      thêm dependency/API/form/runtime data.
+- [ ] Focused/full test, lint, build và browser 375/768/1440 pass.
+- [ ] Production redeploy READY, smoke pass và PR #9 được cập nhật.
 
 ## Out of scope
 
