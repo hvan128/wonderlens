@@ -1,7 +1,7 @@
 # TASK-024 — Landing page giới thiệu WonderLens
 
 **Owner:** Dev
-**Status:** In Review
+**Status:** In Progress — iteration 2
 **Branch:** `feature/TASK-024-landing-page`
 
 ## Goal
@@ -32,6 +32,20 @@ design token, component dùng chung, responsive, truy cập được, build đ�
 - [x] Test component/page, lint và `next build` pass.
 - [x] Production deployment Vercel ở trạng thái READY; route `/` trả 200 và
       browser smoke test không có lỗi console nghiêm trọng.
+
+## Iteration 2 — lịch sử, cách làm ra và guardrails
+
+- [ ] Hero và điều hướng ưu tiên ba câu hỏi: lịch sử, cách làm ra, guardrails.
+- [ ] Có section lịch sử riêng, dùng đúng content curated của cốc giấy; không
+      bịa năm, nhân vật hoặc claim môi trường.
+- [ ] Dây chuyền bốn bước khớp `paper_cup.json` và có phần kết “sau khi dùng”
+      không tuyên bố mọi cốc giấy đều tái chế được.
+- [ ] Guardrails xuất hiện sớm, nói rõ adult co-use, AI-live có thể sai, ảnh đi
+      qua proxy và runtime kid-safety audit chưa hoàn tất.
+- [ ] Không thêm dependency, Client Component, API, form, analytics, cookie hoặc
+      release/safety claim.
+- [ ] Focused test, full test, lint, build và browser 375/768/1440 pass.
+- [ ] Production redeploy READY, smoke pass và PR hiện có được cập nhật.
 
 ## Out of scope
 
