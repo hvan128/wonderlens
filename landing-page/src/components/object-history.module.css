@@ -1,0 +1,151 @@
+.section {
+  background: var(--color-paper);
+  padding: var(--space-96) var(--page-gutter);
+}
+
+.inner {
+  margin: 0 auto;
+  max-width: var(--content-max);
+}
+
+.story {
+  display: grid;
+  gap: var(--space-48);
+  margin-top: var(--space-64);
+}
+
+.visual {
+  background-color: var(--surface-history);
+  background-image:
+    linear-gradient(var(--border-history) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-history) 1px, transparent 1px);
+  background-size: 2.5rem 2.5rem;
+  border: 1px solid var(--border-history);
+  border-radius: var(--radius-xl);
+  min-height: 36rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.passport {
+  inset: var(--space-24);
+  position: absolute;
+}
+
+.passportLabel {
+  color: var(--text-accent);
+  font-size: var(--type-label-size);
+  font-weight: 900;
+}
+
+.cup {
+  filter: var(--shadow-cutout);
+  height: auto;
+  left: 5%;
+  position: absolute;
+  top: 13%;
+  transform: rotate(-4deg);
+  width: 54%;
+}
+
+.material {
+  bottom: 0;
+  display: grid;
+  gap: var(--space-16);
+  left: 0;
+  position: absolute;
+}
+
+.material div {
+  border-left: 2px solid var(--brand-teal);
+  padding-left: var(--space-12);
+}
+
+.material dt {
+  color: var(--text-soft);
+  font-size: var(--type-label-size);
+  font-weight: 800;
+}
+
+.material dd {
+  color: var(--text-strong);
+  font-weight: 900;
+  margin: var(--space-4) 0 0;
+}
+
+.phone {
+  bottom: -12%;
+  max-width: 17rem;
+  position: absolute;
+  right: 3%;
+  transform: rotate(4deg);
+  width: 42%;
+}
+
+.timeline {
+  list-style: none;
+}
+
+.timeline li {
+  border-top: 1px solid var(--border-subtle);
+  display: grid;
+  gap: var(--space-16);
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  padding: var(--space-24) 0;
+}
+
+.timeline li:last-child {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.number {
+  color: var(--text-accent);
+  font-size: var(--type-label-size);
+  font-weight: 900;
+}
+
+.time {
+  color: var(--text-accent);
+  font-size: var(--type-label-size);
+  font-weight: 900;
+  margin-bottom: var(--space-8);
+}
+
+.timeline h3 {
+  color: var(--text-strong);
+  font-size: var(--type-heading-size);
+  line-height: 1.25;
+}
+
+.description {
+  color: var(--text-soft);
+  margin-top: var(--space-8);
+}
+
+@media (min-width: 64rem) {
+  .story {
+    align-items: center;
+    grid-template-columns: minmax(0, 1.08fr) minmax(22rem, 0.92fr);
+  }
+
+  .timeline li {
+    padding: var(--space-32) 0;
+  }
+}
+
+@media (max-width: 47.99rem) {
+  .visual {
+    min-height: 31rem;
+  }
+
+  .cup {
+    transform: none;
+  }
+
+  .phone {
+    bottom: -8%;
+    right: 1%;
+    transform: none;
+    width: 46%;
+  }
+}

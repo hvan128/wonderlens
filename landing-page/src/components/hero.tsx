@@ -27,24 +27,24 @@ export function Hero() {
   return (
     <section className={styles.hero} id="dau-trang" aria-labelledby="hero-title">
       <div className={styles.copy}>
-        <p className={styles.eyebrow}>Khám phá STEM từ thế giới thật</p>
-        <h1 id="hero-title">
-          Mọi đồ vật đều có một câu chuyện khoa học.
-        </h1>
+        <p className={styles.eyebrow}>
+          Lịch sử và khoa học từ thế giới thật
+        </p>
+        <h1 id="hero-title">Mỗi đồ vật đều có một lịch sử để kể.</h1>
         <p className={styles.intro}>
-          WonderLens giúp bố mẹ cùng trẻ 6–10 tuổi chụp một món đồ, khám phá vật
-          liệu và theo dõi hành trình nó được tạo ra — bằng tiếng Việt, hình ảnh
-          và giọng kể.
+          WonderLens giúp bố mẹ cùng trẻ 6–10 tuổi chụp một món đồ, tìm hiểu vì
+          sao nó xuất hiện, vật liệu từ đâu và từng bước được làm ra — bằng tiếng
+          Việt, hình ảnh và giọng kể.
         </p>
         <div className={styles.actions}>
           <ButtonLink
-            href="#cach-hoat-dong"
-            ariaLabel="Xem cách WonderLens hoạt động"
+            href="#lich-su"
+            ariaLabel="Xem lịch sử cốc giấy"
           >
-            Xem cách WonderLens hoạt động
+            Xem lịch sử cốc giấy
           </ButtonLink>
-          <ButtonLink href="#hanh-trinh" variant="secondary">
-            Theo dấu chiếc cốc giấy
+          <ButtonLink href="#cach-lam-ra" variant="secondary">
+            Theo cách chiếc cốc được làm ra
           </ButtonLink>
         </div>
       </div>

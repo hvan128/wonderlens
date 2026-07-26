@@ -45,7 +45,7 @@ export const metadata: Metadata = {
   ),
   title: "WonderLens — Cùng trẻ khám phá khoa học từ đồ vật quanh mình",
   description:
-    "WonderLens biến đồ vật quanh nhà thành hành trình STEM tiếng Việt để bố mẹ và trẻ 6–10 tuổi cùng khám phá.",
+    "WonderLens kể lịch sử và cách đồ vật quanh nhà được làm ra bằng hành trình STEM tiếng Việt để bố mẹ cùng trẻ 6–10 tuổi khám phá.",
   applicationName: "WonderLens",
   keywords: [
     "WonderLens",
@@ -54,9 +54,9 @@ export const metadata: Metadata = {
     "ứng dụng gia đình",
   ],
   openGraph: {
-    title: "WonderLens — Mọi đồ vật đều có một câu chuyện khoa học",
+    title: "WonderLens — Mỗi đồ vật đều có một lịch sử để kể",
     description:
-      "Chụp một đồ vật và cùng trẻ khám phá hành trình vật liệu bằng hình, giọng kể và bộ sưu tập.",
+      "Chụp một đồ vật và cùng trẻ khám phá vì sao nó xuất hiện, vật liệu từ đâu và được làm ra thế nào.",
     locale: "vi_VN",
     type: "website",
   },

@@ -59,6 +59,43 @@
   margin-top: var(--space-4);
 }
 
+.afterUse {
+  border-bottom: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--border-subtle);
+  display: grid;
+  gap: var(--space-16);
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  margin-top: var(--space-80);
+  padding: var(--space-32) 0;
+}
+
+.afterUse > span {
+  color: var(--text-accent);
+  font-size: var(--type-label-size);
+  font-weight: 900;
+}
+
+.afterUseEyebrow {
+  color: var(--text-accent);
+  font-size: var(--type-label-size);
+  font-weight: 900;
+  margin-bottom: var(--space-8);
+}
+
+.afterUse h3 {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.afterUse div > p:last-child {
+  color: var(--text-soft);
+  margin-top: var(--space-16);
+  max-width: 46rem;
+}
+
 @media (min-width: 48rem) {
   .gallery {
     grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -81,6 +118,13 @@
 
   .stage:nth-child(4) {
     grid-column: 7 / span 6;
+  }
+
+  .afterUse {
+    grid-template-columns: 4rem minmax(0, 1fr);
+    margin-left: auto;
+    max-width: 58rem;
+    padding: var(--space-40) 0;
   }
 }
 

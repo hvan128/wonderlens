@@ -34,16 +34,16 @@ export function JourneyGallery() {
   return (
     <section
       className={styles.section}
-      id="hanh-trinh"
+      id="cach-lam-ra"
       aria-labelledby="journey-title"
     >
       <div className={styles.inner}>
         <SectionHeading
           align="center"
-          eyebrow="Một hành trình thật trong WonderLens"
+          eyebrow="Từ nguyên liệu tới thành hình"
           headingId="journey-title"
-          title="Chiếc cốc giấy bắt đầu từ đâu?"
-          description="Bốn khung hình ngắn giúp trẻ nối món đồ trong tay với nguyên liệu, máy móc và những lựa chọn sau khi dùng."
+          title="Cách chiếc cốc giấy được làm ra."
+          description="Bốn khung hình ngắn nối món đồ trong tay với sợi gỗ, nước, máy ép và lớp màng mỏng bên trong."
         />
 
         <div className={styles.gallery}>
@@ -72,6 +72,21 @@ export function JourneyGallery() {
             </figure>
           ))}
         </div>
+
+        <aside className={styles.afterUse} aria-labelledby="after-use-title">
+          <span aria-hidden="true">05</span>
+          <div>
+            <p className={styles.afterUseEyebrow}>Câu hỏi tiếp theo</p>
+            <h3 id="after-use-title">
+              Sau khi dùng, câu chuyện chưa kết thúc.
+            </h3>
+            <p>
+              Một cốc giấy có thể gồm giấy và lớp màng mỏng. Gia đình hãy xem
+              hướng dẫn thu gom tại nơi mình sống, thay vì mặc định mọi chiếc
+              cốc đều được tái chế giống nhau.
+            </p>
+          </div>
+        </aside>
       </div>
     </section>
   );

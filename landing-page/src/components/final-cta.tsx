@@ -28,17 +28,15 @@ export function FinalCta() {
   return (
     <section className={styles.section} aria-labelledby="final-cta-title">
       <div className={styles.content}>
-        <p className={styles.eyebrow}>Một món đồ. Một câu hỏi mới.</p>
+        <p className={styles.eyebrow}>Một món đồ. Hai câu hỏi lớn.</p>
         <h2 id="final-cta-title">
-          Bắt đầu bằng thứ đang nằm ngay trên bàn.
+          Nó xuất hiện vì sao? Nó được làm ra thế nào?
         </h2>
         <p>
-          Xem cách WonderLens đưa chiếc cốc giấy từ camera vào một hành trình
-          khoa học có thể cùng nhau trò chuyện.
+          Bắt đầu với chiếc cốc giấy, rồi đem cùng cách hỏi ấy tới những đồ vật
+          đang nằm ngay trên bàn.
         </p>
-        <ButtonLink href="#cach-hoat-dong">
-          Xem lại cách hoạt động
-        </ButtonLink>
+        <ButtonLink href="#lich-su">Xem lại lịch sử cốc giấy</ButtonLink>
       </div>
       <div className={styles.objects} aria-hidden="true">
         {cutouts.map((cutout) => (

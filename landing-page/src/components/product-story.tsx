@@ -19,7 +19,7 @@ const steps = [
   },
   {
     number: "03",
-    title: "Theo hành trình STEM bằng tiếng Việt",
+    title: "Nghe lịch sử và cách làm ra",
     description:
       "Mỗi chặng dùng hình minh hoạ, câu chữ ngắn và giọng kể để hai thế hệ cùng trao đổi.",
   },
@@ -40,7 +40,7 @@ export function ProductStory() {
     >
       <div className={styles.inner}>
         <SectionHeading
-          eyebrow="Một câu hỏi. Bốn nhịp khám phá."
+          eyebrow="Đưa câu chuyện vào tay trẻ"
           headingId="product-story-title"
           title="Từ chiếc camera đến câu chuyện vật liệu."
           description="WonderLens biến khoảnh khắc “món đồ này từ đâu ra?” thành một hoạt động ngắn để bố mẹ và trẻ làm cùng nhau."
@@ -94,7 +94,7 @@ export function ProductStory() {
             <h3>Không bắt trẻ nhập từ khoá hay đọc một bài dài.</h3>
             <p>
               Món đồ vừa chụp trở thành nhân vật chính. Từ đó, trẻ đi tiếp qua
-              những chặng cụ thể về nguyên liệu và cách sản xuất.
+              những chặng cụ thể về lịch sử, nguyên liệu và cách sản xuất.
             </p>
           </div>
           <PhoneFrame

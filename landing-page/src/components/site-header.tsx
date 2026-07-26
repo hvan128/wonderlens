@@ -3,9 +3,9 @@ import { ButtonLink } from "./button-link";
 import styles from "./site-header.module.css";
 
 const navigation = [
-  { href: "#cach-hoat-dong", label: "Cách hoạt động" },
-  { href: "#hanh-trinh", label: "Hành trình" },
-  { href: "#ung-dung", label: "Trong ứng dụng" },
+  { href: "#lich-su", label: "Lịch sử" },
+  { href: "#cach-lam-ra", label: "Cách làm ra" },
+  { href: "#rao-chan", label: "Rào chắn" },
 ];
 
 type SiteHeaderProps = {
@@ -32,10 +32,10 @@ export function SiteHeader({ sectionHrefPrefix = "" }: SiteHeaderProps) {
         </ul>
         <div className={styles.action}>
           <ButtonLink
-            href={`${sectionHrefPrefix}#cach-hoat-dong`}
+            href={`${sectionHrefPrefix}#lich-su`}
             variant="secondary"
           >
-            Khám phá
+            Xem câu chuyện
           </ButtonLink>
         </div>
       </nav>
