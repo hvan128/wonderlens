@@ -4,7 +4,7 @@
 > `superpowers:executing-plans` to implement this plan task-by-task. Steps use
 > checkbox (`- [ ]`) syntax for tracking.
 
-**Status:** Complete — in review
+**Status:** In Progress — iteration 3
 **Goal:** Build and deploy a static, Apple-like WonderLens product landing page
 inside `landing-page/`.
 
@@ -29,6 +29,7 @@ Testing Library, Vercel.
 
 - [x] [Phase 01 — Build, verify and deploy](phase-01-build-verify-deploy.md)
 - [x] [Phase 02 — Lịch sử, cách làm ra và guardrails](phase-02-history-making-guardrails.md)
+- [ ] [Phase 03 — Copy an tâm cho phụ huynh](phase-03-parent-friendly-safety-copy.md)
 
 ## Dependencies
 
