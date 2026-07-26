@@ -51,7 +51,7 @@ Vitest, Testing Library and Vercel.
 - Produces: public Vietnamese copy defined by
   `docs/superpowers/specs/2026-07-26-parent-friendly-safety-copy-design.md`.
 
-- [ ] **Step 1: Write the failing route tests**
+- [x] **Step 1: Write the failing route tests**
 
 Replace the old guardrail assertions with:
 
@@ -90,7 +90,7 @@ expect(
 
 Use `#rao-chan` without `/` on the home route.
 
-- [ ] **Step 2: Run tests and prove RED**
+- [x] **Step 2: Run tests and prove RED**
 
 Run:
 
@@ -102,7 +102,7 @@ npm test -- src/app/page.test.tsx src/app/not-found.test.tsx
 Expected: FAIL because the current route still renders `Rào chắn`, audit jargon
 and the old accessible section name.
 
-- [ ] **Step 3: Implement the approved copy**
+- [x] **Step 3: Implement the approved copy**
 
 Use these section values:
 
@@ -169,7 +169,7 @@ Replace the footer release-status sentence with:
 </p>
 ```
 
-- [ ] **Step 4: Run focused and full tests**
+- [x] **Step 4: Run focused and full tests**
 
 Run:
 
@@ -181,7 +181,7 @@ npm test
 
 Expected: focused tests and all landing tests PASS.
 
-- [ ] **Step 5: Commit the copy**
+- [x] **Step 5: Commit the copy**
 
 ```bash
 git add landing-page/src/app/page.test.tsx \
@@ -207,7 +207,7 @@ git commit -m "TASK-024: viết lại copy an tâm cho phụ huynh"
 - Produces: updated PR #9 and a READY production deployment whose
   `gitCommitSha` matches the pushed source.
 
-- [ ] **Step 1: Run local quality gates**
+- [x] **Step 1: Run local quality gates**
 
 ```bash
 cd landing-page
@@ -222,7 +222,7 @@ git diff --check
 
 Expected: 0 failures and no formatting errors.
 
-- [ ] **Step 2: Review local production UI**
+- [x] **Step 2: Review local production UI**
 
 Start the production build:
 
@@ -240,14 +240,14 @@ At 375×812, 768×1024 and 1440×1000 verify:
 - all five retained anchors resolve;
 - no console/page error.
 
-- [ ] **Step 3: Run final review**
+- [x] **Step 3: Run final review**
 
 Compare public claims with `specs/prd.md`, `specs/domains.md`,
 `docs/launch/press-kit.md` and `docs/release/privacy-age-rating.md`. Review for
 friendly Vietnamese, factual accuracy, accessibility and responsive layout.
 Fix Critical/Important findings; rerun affected gates.
 
-- [ ] **Step 4: Record evidence and push**
+- [x] **Step 4: Record evidence and push**
 
 Check all iteration 3 AC, set task to `In Review — iteration 3 complete`, mark
 phase 03 complete and record current test/browser evidence in TASK/README.
@@ -260,13 +260,13 @@ git push origin feature/TASK-024-landing-page
 
 Confirm PR #9 remains OPEN and its head matches the pushed SHA.
 
-- [ ] **Step 5: Deploy exact pushed source**
+- [x] **Step 5: Deploy exact pushed source**
 
 From `landing-page/`, deploy production project
 `sireals-projects/wonderlens-landing` with
 `gitCommitSha=<pushed HEAD>`. Wait for `READY`.
 
-- [ ] **Step 6: Smoke production**
+- [x] **Step 6: Smoke production**
 
 Verify:
 
@@ -278,6 +278,27 @@ Verify:
 - Vercel build error, runtime error/fatal and 5xx scans are clean.
 
 Post final deployment ID, immutable URL, source SHA and gate summary to PR #9.
+
+## Evidence — 2026-07-26
+
+- Task 1 review đạt Spec Compliance PASS và Task Quality PASS; không có finding
+  Critical, Important hoặc Minor. Final branch review từ merge base đến
+  `ac0a70c` cũng không có finding ở các mức này.
+- Local: `npm test` (3 file, 6/6 test), `npm run lint`, `npm run build` và
+  Flutter regression (92/92 test) đều pass. Build tạo static `/`,
+  `/_not-found`, icon và Open Graph image.
+- Browser production local và production tại 375×812, 768×1024, 1440×1000:
+  không horizontal overflow; 26/26 ảnh tải sau lazy-load sweep; copy yêu cầu
+  hiển thị; jargon cấm không xuất hiện trong `#rao-chan`; năm anchor còn lại
+  resolve; `An tâm khám phá` liên kết `#rao-chan`; không có warning/error.
+- Production validation: `dpl_FVWbzWH4jhKfvTJkBEgs5STT4K5u`, trạng thái
+  `READY`, target production, source metadata
+  `ac0a70c7b6a578d85a4cb1f1f0d9d291a493b2d4`; remote build hoàn tất trong 11
+  giây. `/` trả 200, branded missing route trả 404, asset core trả 200; không
+  có runtime error cluster, error/fatal log hoặc 5xx log.
+- PR #9 vẫn OPEN với base `main`, head `feature/TASK-024-landing-page`; sau
+  commit evidence này cần redeploy final source và đăng deployment ID/SHA cuối
+  vào PR #9 để tránh self-reference trong tài liệu.
 
 ## Risks and rollback
 

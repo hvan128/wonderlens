@@ -1,7 +1,7 @@
 # TASK-024 — Landing page giới thiệu WonderLens
 
 **Owner:** Dev
-**Status:** In Progress — iteration 3
+**Status:** In Review — iteration 3 complete
 **Branch:** `feature/TASK-024-landing-page`
 
 ## Goal
@@ -52,19 +52,19 @@ design token, component dùng chung, responsive, truy cập được, build đ�
 Iteration này thay cách trình bày public của guardrails; trạng thái safety audit
 nội bộ vẫn được theo dõi trong PRD và release docs.
 
-- [ ] Điều hướng và section dùng ngôn ngữ `An tâm khám phá`, không dùng
+- [x] Điều hướng và section dùng ngôn ngữ `An tâm khám phá`, không dùng
       `Rào chắn` hoặc trạng thái kỹ thuật làm thông điệp chính.
-- [ ] Copy nói rõ các lớp kiểm tra an toàn, nội dung phù hợp lứa tuổi, adult
+- [x] Copy nói rõ các lớp kiểm tra an toàn, nội dung phù hợp lứa tuổi, adult
       co-use và nhãn khi AI tham gia bằng tiếng Việt thân thiện.
-- [ ] Public copy không hiện `runtime`, `kid-safety audit`, `safety pass`,
+- [x] Public copy không hiện `runtime`, `kid-safety audit`, `safety pass`,
       `prompt`, `moderation`, `proxy`, `tracking`, `cookie`, `analytics` hoặc
       `AI-live`.
-- [ ] Không tạo claim chứng nhận an toàn: vẫn nói AI có thể nhầm, không thay
+- [x] Không tạo claim chứng nhận an toàn: vẫn nói AI có thể nhầm, không thay
       giáo viên/sách đã kiểm chứng và ảnh được gửi tới dịch vụ AI để nhận diện.
-- [ ] Giữ `#rao-chan`, cấu trúc semantic, Server Component, CSS/token và không
+- [x] Giữ `#rao-chan`, cấu trúc semantic, Server Component, CSS/token và không
       thêm dependency/API/form/runtime data.
-- [ ] Focused/full test, lint, build và browser 375/768/1440 pass.
-- [ ] Production redeploy READY, smoke pass và PR #9 được cập nhật.
+- [x] Focused/full test, lint, build và browser 375/768/1440 pass.
+- [x] Production redeploy READY, smoke pass và PR #9 được cập nhật.
 
 ## Out of scope
 
@@ -90,27 +90,33 @@ nội bộ vẫn được theo dõi trong PRD và release docs.
 - `npm run lint`: pass.
 - `npm run build`: static route `/`, `/_not-found`, icon và Open Graph image.
 - Flutter regression: 92/92 test pass; landing iteration không sửa Flutter app.
-- Review: không có lỗi Critical/Important; lỗi Minor nav wrap tại 768px đã sửa,
-  verify và commit.
+- Task 1 review: Spec Compliance PASS, Task Quality PASS; không có finding
+  Critical, Important hoặc Minor. Final branch review từ merge base đến
+  `ac0a70c` cũng không có finding Critical, Important hoặc Minor.
+- Browser production local tại 375×812, 768×1024 và 1440×1000: không tràn
+  ngang; 26/26 ảnh tải sau lazy-load sweep; copy phụ huynh bắt buộc hiển thị;
+  jargon bị cấm không xuất hiện trong `#rao-chan`; năm anchor còn lại đều có;
+  `An tâm khám phá` một dòng tại tablet/desktop, liên kết `#rao-chan`; mobile
+  giữ header gọn và trust section theo sau hero; không có browser warning/error.
 
 ### Production
 
 - Project: `sireals-projects/wonderlens-landing`, Next.js, Node.js 24.x.
-- Deployment `dpl_9zDscffa6p4DZeF8NRAMZdQrrv4L`: `READY`, production.
-- Source `36c49d850cf72d49a163a1c71dee278286629f09` khớp metadata
+- Deployment `dpl_FVWbzWH4jhKfvTJkBEgs5STT4K5u`: `READY`, production.
+- Source `ac0a70c7b6a578d85a4cb1f1f0d9d291a493b2d4` khớp metadata
   `gitCommitSha` của deployment.
 - URL: <https://wonderlens-landing.vercel.app>
 - Immutable URL:
-  <https://wonderlens-landing-3tf3ozcid-sireals-projects.vercel.app>
+  <https://wonderlens-landing-oala6pc5x-sireals-projects.vercel.app>
 - HTTP: `/` trả 200; đường dẫn không tồn tại trả branded 404; ảnh brand,
   journey, object và screen cốt lõi trả 200.
 - Metadata/H1 tiếng Việt đúng nội dung đã duyệt.
-- Browser smoke pass tại 375×812, 768×1024 và 1440×1000: không tràn ngang,
-  26/26 ảnh tải được, anchor hoạt động, không console/page error; reduced motion
-  không còn animation/transition dài.
-- Guardrails đứng trước lịch sử; lịch sử đứng trước dây chuyền bốn bước; năm
-  anchor tương thích đều resolve.
-- Final-source redeploy sau commit evidence được smoke lại; deployment ID/SHA
-  cuối được ghi trong PR #9 để tài liệu không tự thay đổi source SHA.
-- Remote build kiểm chứng hoàn tất trong 11 giây, không có lỗi; runtime
-  error/fatal và 5xx scan không có entry.
+- Browser smoke production pass tại 375×812, 768×1024 và 1440×1000: không tràn
+  ngang, 26/26 ảnh tải được, copy bắt buộc hiển thị, jargon bị cấm không xuất
+  hiện trong `#rao-chan`, anchor hoạt động và không có console/page error.
+- `An tâm khám phá` liên kết `#rao-chan`; các anchor giữ lại đều resolve.
+- Remote build hoàn tất trong 11 giây; runtime error clusters, error/fatal và
+  5xx scan không có entry.
+- PR #9 vẫn OPEN, base `main`, head `feature/TASK-024-landing-page`; headRefOid
+  khớp `ac0a70c` sau push. Sau commit evidence này sẽ redeploy final source và
+  ghi deployment ID/SHA cuối vào PR #9 để tránh tài liệu tự tham chiếu.
