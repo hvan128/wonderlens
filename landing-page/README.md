@@ -30,11 +30,11 @@ bàn phím, reduced motion, ảnh lỗi, console và horizontal overflow.
 ## Production
 
 - URL: <https://wonderlens-landing.vercel.app>
-- Immutable deployment:
+- Validation deployment immutable URL:
   <https://wonderlens-landing-oala6pc5x-sireals-projects.vercel.app>
-- Deployment ID: `dpl_FVWbzWH4jhKfvTJkBEgs5STT4K5u` (`READY`, production,
-  2026-07-26).
-- Source: `ac0a70c7b6a578d85a4cb1f1f0d9d291a493b2d4`, khớp metadata
+- Validation deployment ID: `dpl_FVWbzWH4jhKfvTJkBEgs5STT4K5u` (`READY`,
+  production, 2026-07-26).
+- Validation source: `ac0a70c7b6a578d85a4cb1f1f0d9d291a493b2d4`, khớp metadata
   `gitCommitSha` của deployment.
 - Vercel project: `sireals-projects/wonderlens-landing`; Root Directory `.` là
   thư mục `landing-page/` của repo, framework Next.js và Node.js 24.x.
@@ -61,8 +61,8 @@ trong 11 giây; runtime error clusters, error/fatal logs và 5xx logs không có
 entry.
 
 PR #9 vẫn OPEN, base `main`, head `feature/TASK-024-landing-page`; headRefOid
-khớp `ac0a70c` sau push. Sau commit evidence này sẽ redeploy final source và
-đăng deployment ID/SHA cuối vào PR #9 để tránh tài liệu tự tham chiếu.
+khớp `ac0a70c` sau push. Sau mỗi evidence commit, deployment ID/SHA final-source
+và evidence smoke cuối được ghi trên PR #9, tránh tài liệu tự tham chiếu.
 
 ## Ranh giới
 

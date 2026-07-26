@@ -102,14 +102,14 @@ nội bộ vẫn được theo dõi trong PRD và release docs.
 ### Production
 
 - Project: `sireals-projects/wonderlens-landing`, Next.js, Node.js 24.x.
-- Deployment `dpl_FVWbzWH4jhKfvTJkBEgs5STT4K5u`: `READY`, production.
-- Source `ac0a70c7b6a578d85a4cb1f1f0d9d291a493b2d4` khớp metadata
+- Validation deployment `dpl_FVWbzWH4jhKfvTJkBEgs5STT4K5u`: `READY`, production.
+- Validation source `ac0a70c7b6a578d85a4cb1f1f0d9d291a493b2d4` khớp metadata
   `gitCommitSha` của deployment.
 - URL: <https://wonderlens-landing.vercel.app>
 - Immutable URL:
   <https://wonderlens-landing-oala6pc5x-sireals-projects.vercel.app>
-- HTTP: `/` trả 200; đường dẫn không tồn tại trả branded 404; ảnh brand,
-  journey, object và screen cốt lõi trả 200.
+- HTTP: `/` trả 200; đường dẫn không tồn tại trả branded 404; asset object,
+  journey và timeline cốt lõi trả 200.
 - Metadata/H1 tiếng Việt đúng nội dung đã duyệt.
 - Browser smoke production pass tại 375×812, 768×1024 và 1440×1000: không tràn
   ngang, 26/26 ảnh tải được, copy bắt buộc hiển thị, jargon bị cấm không xuất
@@ -118,5 +118,6 @@ nội bộ vẫn được theo dõi trong PRD và release docs.
 - Remote build hoàn tất trong 11 giây; runtime error clusters, error/fatal và
   5xx scan không có entry.
 - PR #9 vẫn OPEN, base `main`, head `feature/TASK-024-landing-page`; headRefOid
-  khớp `ac0a70c` sau push. Sau commit evidence này sẽ redeploy final source và
-  ghi deployment ID/SHA cuối vào PR #9 để tránh tài liệu tự tham chiếu.
+  khớp `ac0a70c` sau push. Sau mỗi evidence commit, handoff final source ghi
+  deployment ID/SHA cùng smoke evidence cuối vào PR #9 để tránh tài liệu tự tham
+  chiếu.

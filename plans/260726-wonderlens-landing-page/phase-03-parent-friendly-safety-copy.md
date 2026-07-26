@@ -247,37 +247,41 @@ Compare public claims with `specs/prd.md`, `specs/domains.md`,
 friendly Vietnamese, factual accuracy, accessibility and responsive layout.
 Fix Critical/Important findings; rerun affected gates.
 
-- [x] **Step 4: Record evidence and push**
+- [x] **Step 4: Record evidence and push reviewed implementation**
 
-Check all iteration 3 AC, set task to `In Review — iteration 3 complete`, mark
-phase 03 complete and record current test/browser evidence in TASK/README.
-Commit using:
+Đã check toàn bộ iteration 3 AC, đặt task là `In Review — iteration 3 complete`,
+đánh dấu phase 03 hoàn thành và ghi evidence test/browser vào TASK/README. Đã
+push implementation đã review `ac0a70c`; PR #9 vẫn OPEN, base `main`, head
+`feature/TASK-024-landing-page`, headRefOid khớp `ac0a70c`.
+
+Evidence commit dùng:
 
 ```bash
 git commit -m "TASK-024: ghi nhận kiểm chứng copy phụ huynh"
-git push origin feature/TASK-024-landing-page
 ```
 
-Confirm PR #9 remains OPEN and its head matches the pushed SHA.
+- [x] **Step 5: Deploy pushed implementation for validation**
 
-- [x] **Step 5: Deploy exact pushed source**
+Đã deploy implementation đã push `ac0a70c` để validation vào production project
+`sireals-projects/wonderlens-landing`; deployment đạt `READY`.
 
-From `landing-page/`, deploy production project
-`sireals-projects/wonderlens-landing` with
-`gitCommitSha=<pushed HEAD>`. Wait for `READY`.
+- [x] **Step 6: Smoke validation deployment**
 
-- [x] **Step 6: Smoke production**
+Đã smoke validation deployment `dpl_FVWbzWH4jhKfvTJkBEgs5STT4K5u` với metadata
+SHA khớp `ac0a70c`:
 
-Verify:
+- production `/` trả 200 và branded missing route trả 404;
+- asset core object, journey và timeline trả 200;
+- browser 375/768/1440 không overflow, ảnh hỏng hoặc console error;
+- public HTML có approved parent copy và không có forbidden jargon;
+- Vercel build error, runtime error/fatal và 5xx scan đều sạch.
 
-- production `/` returns 200 and branded missing route returns 404;
-- core object, journey and screenshot assets return 200;
-- deployment metadata SHA equals PR head;
-- browser 375/768/1440 has no overflow, broken images or console errors;
-- public HTML contains approved parent copy and none of the forbidden jargon;
-- Vercel build error, runtime error/fatal and 5xx scans are clean.
+### Operational handoff
 
-Post final deployment ID, immutable URL, source SHA and gate summary to PR #9.
+Sau mỗi evidence commit làm thay đổi source, handoff gồm push final source,
+deploy production, smoke lại và đăng deployment ID, immutable URL, source SHA
+cùng gate summary cuối vào PR #9. Cách làm này tránh tài liệu tự tham chiếu SHA
+của chính evidence commit.
 
 ## Evidence — 2026-07-26
 
@@ -296,9 +300,9 @@ Post final deployment ID, immutable URL, source SHA and gate summary to PR #9.
   `ac0a70c7b6a578d85a4cb1f1f0d9d291a493b2d4`; remote build hoàn tất trong 11
   giây. `/` trả 200, branded missing route trả 404, asset core trả 200; không
   có runtime error cluster, error/fatal log hoặc 5xx log.
-- PR #9 vẫn OPEN với base `main`, head `feature/TASK-024-landing-page`; sau
-  commit evidence này cần redeploy final source và đăng deployment ID/SHA cuối
-  vào PR #9 để tránh self-reference trong tài liệu.
+- PR #9 vẫn OPEN với base `main`, head `feature/TASK-024-landing-page`; handoff
+  final-source deployment ghi ID/SHA và gate summary cuối vào PR #9 theo quy
+  trình ở trên.
 
 ## Risks and rollback
 
